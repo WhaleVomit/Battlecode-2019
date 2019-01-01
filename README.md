@@ -2,4 +2,4 @@
 
 Test
 
-we should name our team something cow related :(
+we should name our team something cow related :)
