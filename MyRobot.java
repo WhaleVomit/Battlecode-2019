@@ -38,7 +38,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     private boolean wsim() {
-        for (int i = 0; i < glo.w - 1 - i; ++i) for (int j = 0; j < glo.h; ++j) if (glo.map[i][j] != glo.map[glo.w-1-i][j]) return false;
+        for (int i = 0; i < glo.w - 1 - i; ++i) for (int j = 0; j < glo.h; ++j) if (map[i][j] != map[glo.w-1-i][j]) return false;
         return true;
     }
 

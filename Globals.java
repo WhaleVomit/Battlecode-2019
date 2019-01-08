@@ -49,7 +49,7 @@ public class Globals extends BCAbstractRobot {
     }
 
     public boolean valid(int x, int y) {
-        return x >= 0 && x < w && y >= 0 && y < h && map[y][x];
+        return x >= 0 && x < w && y >= 0 && y < h && myRobot.map[y][x];
     }
     
     boolean isEmpty(int x, int y) {
