@@ -25,7 +25,7 @@ public class Castle extends MyRobot {
         for (Robot R: robots) S += getInfo(R);;
 
         log(S);*/
-        if (Z.numPilgrims < 6/Z.numCastles) {
+        if (2*Z.numPilgrims <= Z.numAttack) {
             if (Z.canBuild(PILGRIM)) {
                 Action A = Z.tryBuild(PILGRIM);
                 if (A != null) {
@@ -35,13 +35,22 @@ public class Castle extends MyRobot {
                 }
             }
         } else {
-            if (Z.canBuild(CRUSADER)) {
-                Action A = Z.tryBuild(CRUSADER);
+            if (Z.canBuild(PROPHET)) {
+                Action A = Z.tryBuild(PROPHET);
                 if (A != null) {
-                    Z.log("Built crusader");
+                    Z.numAttack ++;
+                    Z.log("Built prophet");
                     return A;
                 }
             }
+            /*if (Z.canBuild(CRUSADER)) {
+                Action A = Z.tryBuild(CRUSADER);
+                if (A != null) {
+                    Z.numAttack ++;
+                    Z.log("Built crusader");
+                    return A;
+                }
+            }*/
         }
         return null;
 
