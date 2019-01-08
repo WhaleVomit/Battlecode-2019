@@ -1,10 +1,15 @@
 package bc19;
 
-import static constants;
+public class Pilgrim extends BCAbstractRobot {
+	MyRobot myRobot;
+	Globals glo;
+	
+	public Pilgrim(MyRobot k) {
+		this.myRobot = k;
+		glo = new Globals(myRobot);
+	}
 
-public class Pilgrim {
-
-	public static Action run(Robot r) {
+	public Action run() {
         return null;
         /*if (turn == 1) {
             log("I am a pilgrim.");

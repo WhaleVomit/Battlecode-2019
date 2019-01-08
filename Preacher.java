@@ -1,10 +1,15 @@
 package bc19;
 
-import static constants;
+public class Preacher extends BCAbstractRobot {
+	MyRobot myRobot;
+	Globals glo;
+	
+	public Preacher(MyRobot k) {
+		this.myRobot = k;
+		glo = new Globals(myRobot);
+	}
 
-public class Preacher {
-
-	public static Action run(Robot r) {
+	public Action run() {
         return null;
     }
 	

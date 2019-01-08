@@ -1,27 +1,32 @@
 package bc19;
 
-import static constants;
+public class Castle extends BCAbstractRobot {
+	MyRobot myRobot;
+	Globals glo;
+	
+	public Castle(MyRobot k) {
+		this.myRobot = k;
+		glo = new Globals(myRobot);
+	}
 
-public class Castle {
-
-	public static Action tryBuild(Robot r, int type) {
+	public Action tryBuild(int type) {
         for (int dx = -1; dx <= 1; ++dx)
             for (int dy = -1; dy <= 1; ++dy)
-                    if (available(me.x + dx, me.y + dy))
-                        return buildUnit(type, dx, dy);
+                    if (glo.available(myRobot.me.x + dx, myRobot.me.y + dy))
+                        return myRobot.buildUnit(type, dx, dy);
         return null;
     }
 
-	public static Action run(Robot r) {
+	public Action run() {
         /*if (turn == 1) {
             log("Building a pilgrim.");
             return buildUnit(SPECS.PILGRIM,1,0);
         }*/
 
-        if (r.turn % 10 == 0) {
-            Action A = tryBuild(r, CRUSADER);
+        if (glo.turn % 10 == 0) {
+            Action A = tryBuild(glo.CRUSADER);
             if (A != null) {
-                log("Built crusader");
+                myRobot.log("Built crusader");
                 return A;
             }
         }
