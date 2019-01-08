@@ -14,11 +14,11 @@ public class Pilgrim extends MyRobot {
         log(T);*/
 
         if (Z.resource == 0) {
-            if (Z.me.karbonite > 15) return Z.returnHome();
+            if (Z.me.karbonite > 15) return Z.moveHome();
             if (Z.karboniteMap[Z.me.y][Z.me.x]) return Z.mine();
             return Z.nextMove(Z.getClosest(Z.karboniteMap));
         } else {
-            if (Z.me.fuel > 75) return Z.returnHome();
+            if (Z.me.fuel > 75) return Z.moveHome();
             if (Z.fuelMap[Z.me.y][Z.me.x]) return Z.mine();
             return Z.nextMove(Z.getClosest(Z.fuelMap));
         }
