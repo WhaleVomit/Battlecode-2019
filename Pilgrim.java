@@ -1,30 +1,26 @@
 package bc19;
-import java.util.*;
-import java.math.*;
 
-public class Pilgrim extends BCAbstractRobot {
-	MyRobot myRobot;
-	Global g;
+public class Pilgrim extends MyRobot {
+	MyRobot Z;
 	
-	public Pilgrim(MyRobot k) {
-		this.myRobot = k;
-		g = new Global(myRobot);
+	public Pilgrim(MyRobot z) {
+		this.Z = z;
 	}
-	
-	public Action run() {
-		if (g.resource == -1) g.resource = myRobot.me.id % 2;
+
+    Action run() {
+        if (Z.resource == -1) Z.resource = Z.me.id % 2;
         /*String T = me.karbonite+" "+me.fuel+" "+myCastle.size()+ " | ";
         T += closest(myCastle);
         log(T);*/
 
-        if (g.resource == 0) {
-            if (myRobot.me.karbonite > 15) return g.returnHome();
-            if (g.karboniteMap[myRobot.me.y][myRobot.me.x]) return myRobot.mine();
-            return g.nextMove(g.getClosest(g.karboniteMap));
+        if (Z.resource == 0) {
+            if (Z.me.karbonite > 15) return Z.returnHome();
+            if (Z.karboniteMap[Z.me.y][Z.me.x]) return Z.mine();
+            return Z.nextMove(Z.getClosest(Z.karboniteMap));
         } else {
-            if (myRobot.me.fuel > 75) return g.returnHome();
-            if (g.fuelMap[me.y][me.x]) return myRobot.mine();
-            return g.nextMove(g.getClosest(g.fuelMap));
+            if (Z.me.fuel > 75) return Z.returnHome();
+            if (Z.fuelMap[Z.me.y][Z.me.x]) return Z.mine();
+            return Z.nextMove(Z.getClosest(Z.fuelMap));
         }
     }
 }

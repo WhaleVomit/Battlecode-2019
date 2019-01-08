@@ -1,23 +1,19 @@
 package bc19;
-import java.util.*;
-import java.math.*;
 
-public class Crusader extends BCAbstractRobot {
-	MyRobot myRobot;
-	Global g;
+public class Crusader extends MyRobot {
+	MyRobot Z;
 	
-	public Crusader(MyRobot k) {
-		this.myRobot = k;
-		g = new Global(myRobot);
+	public Crusader(MyRobot z) {
+		this.Z = z;
 	}
-	
-	public Action run() {
-        Action A = g.tryAttack();
+
+    Action run() {
+        Action A = Z.tryAttack();
         if (A != null) return A;
-        A = g.moveTowardEnemy();
+        A = Z.moveToward(Z.closestEnemy());
         if (A != null) return A;
-        A = g.moveTowardCastle();
+        A = Z.moveTowardCastle();
         if (A != null) return A;
-        return g.nextMove(g.closestUnseen());
+        return Z.nextMove(Z.closestUnseen());
     }
 }

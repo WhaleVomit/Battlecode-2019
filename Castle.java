@@ -1,18 +1,14 @@
 package bc19;
-import java.util.*;
-import java.math.*;
 
-public class Castle extends BCAbstractRobot {
-	MyRobot myRobot;
-	Global g;
+public class Castle extends MyRobot {
+	MyRobot Z;
 	
-	public Castle(MyRobot k) {
-		this.myRobot = k;
-		g = new Global(myRobot);
+	public Castle(MyRobot z) {
+		this.Z = z;
 	}
-	
-	public Action run() {
-        if (g.numCastles == 0) g.numCastles = Math.min(3,g.robots.length);
+
+    Action run() {
+        if (Z.numCastles == 0) Z.numCastles = Math.min(3,Z.robots.length);
 
         /*if (turn == 1) {
             castleTalk(me.x);
@@ -29,20 +25,20 @@ public class Castle extends BCAbstractRobot {
         for (Robot R: robots) S += getInfo(R);;
 
         log(S);*/
-        if (g.numPilgrims < 6/g.numCastles) {
-            if (g.canBuild(myRobot.SPECS.PILGRIM)) {
-            		Action A = g.tryBuild(myRobot.SPECS.PILGRIM);
+        if (Z.numPilgrims < 6/Z.numCastles) {
+            if (Z.canBuild(PILGRIM)) {
+                Action A = Z.tryBuild(PILGRIM);
                 if (A != null) {
-                		g.numPilgrims ++;
-                    myRobot.log("Built pilgrim");
+                    Z.numPilgrims ++;
+                    Z.log("Built pilgrim");
                     return A;
                 }
             }
         } else {
-            if (g.canBuild(myRobot.SPECS.CRUSADER)) {
-                Action A = g.tryBuild(myRobot.SPECS.CRUSADER);
+            if (Z.canBuild(CRUSADER)) {
+                Action A = Z.tryBuild(CRUSADER);
                 if (A != null) {
-                    myRobot.log("Built crusader");
+                    Z.log("Built crusader");
                     return A;
                 }
             }
