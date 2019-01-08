@@ -3,6 +3,7 @@ import java.util.*;
 import java.math.*;
 
 public class MyRobot extends BCAbstractRobot {
+    // CONSTANTS
     public int INF = Integer.MAX_VALUE;
     public int MOD = 1000000007;
 
@@ -37,45 +38,33 @@ public class MyRobot extends BCAbstractRobot {
     public int[] MAX_ATTACK_R = {-1, -1, -1, 4, 8, 4};
     public int[] ATTACK_F_COST = {-1, -1, -1, 10, 25, 15};
 
-    int w,h;
-    int turn;
+    // DATA
+    int w,h,turn;
     Robot[] robots;
-    int[][] robotMap, seenMap, dist, pre;
+    int[][] robotMap, seenMap, dist, pre; // note that arrays are by y and tthen x
     Robot[][] seenRobot;
-    ArrayList<Integer> myCastle = new ArrayList<>();
-    ArrayList<Integer> otherCastle = new ArrayList<>();
+    ArrayList<Integer> myCastle = new ArrayList<>(), otherCastle = new ArrayList<>();
     int numCastles, numPilgrims;
     int resource = -1;
     // Random ran = new Random();
 
-    // UTILITY
+    // SQUARES
 
+    boolean wsim() {
+        for (int i = 0; i < w-1-i; ++i) for (int j = 0; j < h; ++j) if (map[i][j] != map[w-1-i][j]) return false;
+        return true;
+    }
+    boolean hsim() {
+        for (int i = 0; i < w; ++i) for (int j = 0; j < h-1-j; ++j) if (map[i][j] != map[i][h-1-j]) return false;
+        return true;
+    }
     boolean valid(int x, int y) {
         if (!(0 <= y && y < w && 0 <= x && x < h)) return false;
         return map[y][x];
     }
-
-    boolean isNotEmpty (int x, int y) {
-        return valid(x,y) && robotMap[y][x] > 0;
-    }
-
-    boolean isEmpty(int x, int y) {
-        return valid(x,y) && robotMap[y][x] <= 0;
-    }
-
-    boolean adjacent(Robot r) {
-        return Math.abs(me.x-r.x) <= 1 && Math.abs(me.y-r.y) <= 1; 
-    }
-
-    int moveDist(Robot r) {
-        if (r.unit == SPECS.CRUSADER) return 9;
-        return 4;
-    }
-
-    int getDist(int x) {
-        return dist[x%64][(x-(x%64))/64];
-    }
-
+    boolean isNotEmpty (int x, int y) { return valid(x,y) && robotMap[y][x] > 0; }
+    boolean isEmpty(int x, int y) { return valid(x,y) && robotMap[y][x] <= 0; }
+    boolean adjacent(Robot r) { return Math.abs(me.x-r.x) <= 1 && Math.abs(me.y-r.y) <= 1; }
     int closest(ArrayList<Integer> A) {
         int bestDist = MOD, bestPos = MOD;
         for (int x: A) if (getDist(x) < bestDist) {
@@ -84,31 +73,9 @@ public class MyRobot extends BCAbstractRobot {
         }
         return bestPos;
     }
-
-    void dumpSurroundings() {
-        if (turn == 1) {
-            log("POS: "+me.x+" "+me.y);
-            for (int i = me.x-5; i <= me.x+5; ++i) {
-                String t;
-                for (int j = me.x-5; j <= me.x+5; ++j) {
-                    t += (char)('0'+(map[i][j] ? 1 : 0));
-                }
-                log(t);
-            }
-        }
+    int dist(Robot A, Robot B) {
+        return (A.x-B.x)*(A.x-B.x)+(A.y-B.y)*(A.y-B.y);
     }
-    
-    boolean withinMoveRadius (Robot r, int dx, int dy) {
-        return dx*dx+dy*dy <= moveDist(r);
-    }
-
-    boolean canMove(Robot r, int dx, int dy) {
-        if (dx == 0 && dy == 0) return false;
-        if (!withinMoveRadius(r,dx,dy)) return false;
-        int x = r.x+dx, y = r.y+dy;
-        return valid(x,y) && robotMap[y][x] == 0;
-    }
-
     void bfs() { // TLE?
         dist = new int[w][h];
         pre = new int[w][h];
@@ -137,11 +104,38 @@ public class MyRobot extends BCAbstractRobot {
                 }
         }
     }
+    int moveDist(Robot r) { if (r.unit == CRUSADER) return 9; return 4; }
+    boolean withinMoveRadius (Robot r, int dx, int dy) { return dx*dx+dy*dy <= moveDist(r); }
+    int getDist(int x) { return dist[x%64][(x-(x%64))/64]; }
 
-    int dist(Robot A, Robot B) {
-        return (A.x-B.x)*(A.x-B.x)+(A.y-B.y)*(A.y-B.y);
+    // DEBUG 
+    void dumpSurroundings() {
+        if (turn == 1) {
+            log("POS: "+me.x+" "+me.y);
+            for (int i = me.x-5; i <= me.x+5; ++i) {
+                String t;
+                for (int j = me.x-5; j <= me.x+5; ++j) {
+                    t += (char)('0'+(map[i][j] ? 1 : 0));
+                }
+                log(t);
+            }
+        }
+    }
+    String getInfo(Robot R) {
+        String res = R.unit+" "+R.team+" " +R.x+" "+R.y;
+        res += " "+R.castle_talk;
+        res += " | ";
+        return res;
     }
 
+    void removeDup(ArrayList<Integer> A) {
+        ArrayList<Integer> B = new ArrayList<>();
+        for (Integer i: A) if (!B.contains(i)) B.add(i);
+        A.clear();
+        for (Integer i: B) A.add(i);
+    }
+
+    // LOOKING FOR DESTINATION
     Robot closestEnemy() {
         Robot bes = null;
         for (Robot R: robots) if (R.team != me.team) 
@@ -149,7 +143,6 @@ public class MyRobot extends BCAbstractRobot {
                 bes = R;
         return bes;
     }
-
     int closestUnseen() {
         int bestDist = MOD, bestPos = MOD;
         for (int i = 0; i < w; ++i) for (int j = 0; j < h; ++j) 
@@ -159,18 +152,6 @@ public class MyRobot extends BCAbstractRobot {
             }
         return bestPos;
     }
-
-    Action nextMove(int x, int y) {
-        if (pre[y][x] == MOD) return null;
-        int X = pre[y][x]; int Y = X%64; X = (X-Y)/64;
-        return move(X-me.x,Y-me.y);
-    }
-
-    Action nextMove(int x) {
-        if (x == MOD) return null;
-        return nextMove((x-(x%64))/64,x%64);
-    }
-
     int closeEmpty(int x, int y) {
         int bes = MOD, pos = -1;
         for (int i = -2; i <= 2; ++i) for (int j = -2; j <= 2; ++j) if (isEmpty(x+i,y+j)) {
@@ -182,17 +163,63 @@ public class MyRobot extends BCAbstractRobot {
         }
         return pos;
     }
+    int getClosest(boolean[][] B) {
+        int bestDist = MOD, bestPos = MOD;
+        for (int i = 0; i < w; ++i) for (int j = 0; j < h; ++j) if (B[i][j] && dist[i][j] < bestDist) {
+            bestDist = dist[i][j];
+            bestPos = 64*j+i;
+        }
+        return bestPos;
+    }
+
+    // MOVEMENT
+    boolean canMove(Robot r, int dx, int dy) {
+        if (dx == 0 && dy == 0) return false;
+        if (!withinMoveRadius(r,dx,dy)) return false;
+        int x = r.x+dx, y = r.y+dy;
+        return valid(x,y) && robotMap[y][x] == 0;
+    }
+    Action nextMove(int x, int y) {
+        if (pre[y][x] == MOD) return null;
+        int X = pre[y][x]; int Y = X%64; X = (X-Y)/64;
+        return move(X-me.x,Y-me.y);
+    }
+    Action nextMove(int x) {
+        if (x == MOD) return null;
+        return nextMove((x-(x%64))/64,x%64);
+    }
 
     Action moveToward(int x, int y) {
         int t = closeEmpty(x,y); if (t == -1) return null;
         return nextMove((t-(t%64))/64,t%64);
     }
-
     Action moveToward(Robot R) {
         if (R == null) return null;
         return moveToward(R.x,R.y);
     }
+    Action moveTowardCastle() {
+        while (otherCastle.size() > 0) {
+            int x = otherCastle.get(0);
+            int y = x % 64; x = (x-y)/64;
+            if (robotMap[y][x] == 0) {
+                otherCastle.remove(0);
+                continue;
+            }
+            return nextMove(x,y);
+        }
+        return null;
+    }
+    Action moveHome() {
+        if (myCastle.size() == 0) return null;
+        for (Robot R: robots) 
+            if (R.unit == SPECS.CASTLE && R.team == me.team && adjacent(R) && (me.fuel > 25 || me.karbonite > 5)) 
+                return give(R.x-me.x,R.y-me.y,me.karbonite,me.fuel);
+        int x = myCastle.get(0);
+        return moveToward((x-(x%64))/64,x%64);
+    }
 
+
+    // ATTACK
     boolean canAttack(int dx, int dy) {
         int x = me.x+dx, y = me.y+dy;
         if (!isNotEmpty(x,y)) return false;
@@ -212,17 +239,13 @@ public class MyRobot extends BCAbstractRobot {
         }
         return false;
     }
-
     Action tryAttack() {
-        for (int dx = -2; dx <= 2; ++dx)
-            for (int dy = -2; dy <= 2; ++dy) 
-                if (canAttack(dx,dy)) {
-                    // log("ATTACK "+dx+" "+dy);
-                    return attack(dx,dy);
-                }
+        for (int dx = -2; dx <= 2; ++dx) for (int dy = -2; dy <= 2; ++dy) 
+            if (canAttack(dx,dy)) return attack(dx,dy);
         return null;
     }
 
+    // BUILD
     Action tryBuild(int type) {
         for (int dx = -1; dx <= 1; ++dx)
             for (int dy = -1; dy <= 1; ++dy)
@@ -230,9 +253,6 @@ public class MyRobot extends BCAbstractRobot {
                         return buildUnit(type,dx,dy);
         return null;
     }
-
-    // Map<Integer,Integer> M = new HashMap<>();
-
     boolean canBuild(int t) {
         if (fuel < 50) return false;
         if (t == SPECS.PILGRIM) return karbonite >= 10;
@@ -241,60 +261,6 @@ public class MyRobot extends BCAbstractRobot {
         if (t == SPECS.PREACHER) return karbonite >= 30;
         return false;
     } 
-
-    Action moveTowardCastle() {
-        while (otherCastle.size() > 0) {
-            int x = otherCastle.get(0);
-            int y = x % 64; x = (x-y)/64;
-            if (robotMap[y][x] == 0) {
-                otherCastle.remove(0);
-                continue;
-            }
-            return nextMove(x,y);
-        }
-        return null;
-    }
-    
-    Action returnHome() {
-        for (Robot R: robots) if (R.unit == SPECS.CASTLE && R.team == me.team && adjacent(R)) 
-            return give(R.x-me.x,R.y-me.y,me.karbonite,me.fuel);
-        if (myCastle.size() == 0) return null;
-        int x = myCastle.get(0);
-        return moveToward((x-(x%64))/64,x%64);
-    }
-
-    int getClosest(boolean[][] B) {
-        int bestDist = MOD, bestPos = MOD;
-        for (int i = 0; i < w; ++i) for (int j = 0; j < h; ++j) if (B[i][j] && dist[i][j] < bestDist) {
-            bestDist = dist[i][j];
-            bestPos = 64*j+i;
-        }
-        return bestPos;
-    }
-
-    boolean wsim() {
-        for (int i = 0; i < w-1-i; ++i) for (int j = 0; j < h; ++j) if (map[i][j] != map[w-1-i][j]) return false;
-        return true;
-    }
-
-    boolean hsim() {
-        for (int i = 0; i < w; ++i) for (int j = 0; j < h-1-j; ++j) if (map[i][j] != map[i][h-1-j]) return false;
-        return true;
-    }
-
-    String getInfo(Robot R) {
-        String res = R.unit+" "+R.team+" " +R.x+" "+R.y;
-        res += " "+R.castle_talk;
-        res += " | ";
-        return res;
-    }
-
-    void removeDup(ArrayList<Integer> A) {
-        ArrayList<Integer> B = new ArrayList<>();
-        for (Integer i: A) if (!B.contains(i)) B.add(i);
-        A.clear();
-        for (Integer i: B) A.add(i);
-    }
 
     public Action turn() {
         turn ++;
