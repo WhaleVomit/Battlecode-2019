@@ -2,6 +2,30 @@ package bc19;
 
 public class MyRobot extends BCAbstractRobot {
     public int turn;
+    public Robot[] robots;
+    int[][] robotMap;
+
+    boolean valid (int x, int y) {
+        if (!(0 <= x && x < robotMap.length && 0 <= y && y < robotMap[0].length)) return false;
+        return map[x][y];
+    }
+
+    public boolean isEmpty(int x, int y) {
+        return valid(x,y) && robotMap[x][y] != 0;
+    }
+
+    public boolean canMove(Robot r, int dx, int dy) {
+        int x = r.x+dx, y = r.y+dy;
+        return isEmpty(x,y);
+    }
+
+    public void tryBuild(int type) {
+        for (int dx = -1; dx <= 1; ++dx)
+            for (int dy = -1; dy <= 1; ++dy)
+                    if (isEmpty(me.x+dx,me.y+dy))
+                        return buildUnit(type,);
+
+    }
 
     public Action runCastle() {
         /*if (turn == 1) {
@@ -10,12 +34,16 @@ public class MyRobot extends BCAbstractRobot {
         }*/
 
         if (turn % 10 == 0) {
-            this.log("Building a crusader at " + (this.me.x+1) + ", " + (this.me.y+1));
-            return this.buildUnit(SPECS.CRUSADER, 1, 1);
-        } else {
-            return null;
-            //return this.log("Castle health: " + this.me.health);
-        }
+            Action A = tryBuild(SPECS.CRUSADER);
+            if (A != null) return A;
+
+        } 
+
+        // this.log("Building a crusader at " + (this.me.x+1) + ", " + (this.me.y+1));
+        // return this.buildUnit(SPECS.CRUSADER, 1, 1);
+        //return this.log("Castle health: " + this.me.health);
+
+        return null;
 
     }
 
@@ -35,8 +63,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     public Action runCrusader() {
-        return null;
-        // return this.move(0,1);
+        return move(0,1);
         /*const choices = [[0,-1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]];
         const choice = choices[Math.floor(Math.random()*choices.length)];
         return this.move(...choice);*/
@@ -54,6 +81,9 @@ public class MyRobot extends BCAbstractRobot {
 
     public Action turn() {
         turn++;
+        robots = getVisibleRobots();
+        robotMap = getVisibleRobotMap();
+
         switch(me.unit) {
             case 0:
                 return runCastle();
