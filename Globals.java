@@ -1,39 +1,61 @@
 package bc19;
 
-public class Globals extends BCAbstractRobot {
+import static constants;
+
+public class Globals extends Constants {
+
+    int w, h;
     Robot[] robots;
-    int[][] robotMap;
-    int turn;
+    int[][] robotMap, dist, pre;
+    ArrayList<Integer> myCastle = new ArrayList<>();
+    ArrayList<Integer> otherCastle = new ArrayList<>();
 
-    boolean valid (int x, int y) {
-        if (!(0 <= x && x < robotMap.length && 0 <= y && y < robotMap[0].length)) return false;
-        return map[x][y];
+    private boolean valid(int x, int y) {
+        return x >= 0 && x < w && y >= 0 && y <h && map[y][x];
     }
 
-    boolean isNotEmpty (int x, int y) {
-        return valid(x,y) && robotMap[x][y] != 0;
+    private boolean unavailable(int x, int y) {
+        return valid(x,y) && robotMap[y][x] != 0;
     }
 
-    boolean isEmpty(int x, int y) {
-        return valid(x,y) && robotMap[x][y] == 0;
+    private boolean available(int x, int y) {
+        return valid(x,y) && robotMap[y][x] == 0;
     }
 
-    int moveDist(Robot r) {
-        if (r.unit == SPECS.CRUSADER) return 9;
-        return 4;
+    private int moveDist() {
+        return MOVE_SPEED[me.unit];
     }
 
-    boolean canMove(Robot r, int dx, int dy) {
-        if (moveDist(r) < dx*dx+dy*dy) return false;
-        int x = r.x+dx, y = r.y+dy;
-        return isEmpty(x,y);
+    private boolean withinMoveRadius(int dx, int dy) {
+        return dx * dx + dy * dy <= moveDist();
     }
 
-    Action someMove() {
+    private boolean canMove(int dx, int dy) {
+        return withinMoveRadius(dx, dy) && available(me.x + dx, me.y + dy);
+    }
+
+    private Action someMove() {
         for (int dx = -3; dx <= 3; ++dx)
-            for (int dy = -3; dy <= 3; ++dy) 
-                if (canMove(me,dx,dy)) 
-                    return move(dx,dy);
+            for (int dy = -3; dy <= 3; ++dy)
+                if (me.canMove(dx, dy))
+                    return move(dx, dy);
         return null;
+    }
+
+    private boolean canAttack(int dx, int dy) {
+        if(!CAN_ATTACK[me.unit]) return false;
+
+        int x = me.x + dx, y = me.y + dy;
+        if (unavailable(x, y)) return false;
+        if (getRobot(robotMap[y][x]).team == me.team) return false;
+
+        int dist = dx * dx + dy * dy;
+        return dist >= MIN_ATTACK_R[me.unit] && dist <= MAX_ATTACK_R[me.unit];
+    }
+
+    private Action nextMove(int x, int y) {
+        if (pre[y][x] == MOD) return null;
+        int X = pre[y][x] / 64; int Y = pre[y][x] % 64;
+        return move(X - me.x, Y - me.y);
     }
 }

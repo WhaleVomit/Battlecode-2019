@@ -1,8 +1,11 @@
 package bc19;
 
-public class Church extends Globals {
-	Action run() {
-        return null;
+import static constants;
 
-    }
+public class Church {
+
+	public static Action run(Robot r) {
+        return null;
+	}
+
 }
