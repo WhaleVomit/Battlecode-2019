@@ -1,21 +1,30 @@
 package bc19;
+import java.util.*;
+import java.math.*;
 
 public class Pilgrim extends BCAbstractRobot {
 	MyRobot myRobot;
-	Globals glo;
+	Global g;
 	
 	public Pilgrim(MyRobot k) {
 		this.myRobot = k;
-		glo = new Globals(myRobot);
+		g = new Global(myRobot);
 	}
-
+	
 	public Action run() {
-        return null;
-        /*if (turn == 1) {
-            log("I am a pilgrim.");
+		if (g.resource == -1) g.resource = myRobot.me.id % 2;
+        /*String T = me.karbonite+" "+me.fuel+" "+myCastle.size()+ " | ";
+        T += closest(myCastle);
+        log(T);*/
 
-            //log(Integer.toString([0][getVisibleRobots()[0].castle_talk]));
-        }*/
+        if (g.resource == 0) {
+            if (myRobot.me.karbonite > 15) return g.returnHome();
+            if (g.karboniteMap[myRobot.me.y][myRobot.me.x]) return myRobot.mine();
+            return g.nextMove(g.getClosest(g.karboniteMap));
+        } else {
+            if (myRobot.me.fuel > 75) return g.returnHome();
+            if (g.fuelMap[me.y][me.x]) return myRobot.mine();
+            return g.nextMove(g.getClosest(g.fuelMap));
+        }
     }
-
 }

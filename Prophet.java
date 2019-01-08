@@ -1,12 +1,14 @@
 package bc19;
+import java.util.*;
+import java.math.*;
 
 public class Prophet extends BCAbstractRobot {
 	MyRobot myRobot;
-	Globals glo;
+	Global g;
 	
 	public Prophet(MyRobot k) {
 		this.myRobot = k;
-		glo = new Globals(myRobot);
+		g = new Global(myRobot);
 	}
 	
 	public Action run() {
