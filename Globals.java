@@ -65,7 +65,7 @@ public class Globals extends BCAbstractRobot {
     }
 
     public int moveDist() {
-        return MOVE_SPEED[me.unit];
+        return MOVE_SPEED[myRobot.me.unit];
     }
 
     public boolean withinMoveRadius(int dx, int dy) {
@@ -73,7 +73,7 @@ public class Globals extends BCAbstractRobot {
     }
 
     public boolean canMove(int dx, int dy) {
-        return withinMoveRadius(dx, dy) && available(me.x + dx, me.y + dy);
+        return withinMoveRadius(dx, dy) && available(myRobot.me.x + dx, myRobot.me.y + dy);
     }
 
     public Action someMove() {
@@ -85,7 +85,7 @@ public class Globals extends BCAbstractRobot {
     }
 
     public boolean canAttack(int dx, int dy) {
-        if(!CAN_ATTACK[me.unit]) return false;
+        if(!CAN_ATTACK[myRobot.me.unit]) return false;
 
         int x = myRobot.me.x + dx, y = myRobot.me.y + dy;
         if (unavailable(x, y)) return false;
