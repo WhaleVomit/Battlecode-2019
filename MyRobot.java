@@ -73,7 +73,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     boolean withinMoveRadius(Robot r, int dx, int dy) {
-        return dx * dx + dy * dy <= moveDist(r);
+        return dx * dx + dy * dy <= moveDist(r) && MOVE_F_COST[r.unit] * (dx * dx + dy * dy) <= fuel;
     }
 
     int getDist(int x) {
@@ -217,7 +217,7 @@ public class MyRobot extends BCAbstractRobot {
     int getClosestUnused(boolean[][] B) {
         int bestDist = MOD, bestPos = MOD;
         for (int i = 0; i < h; ++i)
-            for (int j = 0; j < w; ++j) 
+            for (int j = 0; j < w; ++j)
                 if (B[i][j] && dist[i][j] < bestDist && robotMap[i][j] <= 0) {
                     bestDist = dist[i][j];
                     bestPos = 64 * j + i;
@@ -294,9 +294,13 @@ public class MyRobot extends BCAbstractRobot {
         return null;
     }
 
+    boolean enoughResources() {
+        return me.fuel > 25 || (me.fuel > 0 && !fuelMap[me.y][me.x]) || me.karbonite > 5 || (me.karbonite > 0 && !karboniteMap[me.y][me.y]);
+    }
+
     Action moveHome() {
         for (Robot R: robots)
-            if ((R.unit == CASTLE || R.unit == CHURCH) && R.team == me.team && adjacent(R) && (me.fuel > 25 || me.karbonite > 5))
+            if ((R.unit == CASTLE || R.unit == CHURCH) && R.team == me.team && adjacent(R) && enoughResources())
                 return give(R.x-me.x,R.y-me.y,me.karbonite,me.fuel);
         int x = getClosestStruct(true);
         return moveToward((x-(x%64))/64,x%64);
@@ -319,6 +323,7 @@ public class MyRobot extends BCAbstractRobot {
 
     // ATTACK
     boolean canAttack(int dx, int dy) {
+        if(ATTACK_F_COST[me.unit] > fuel) return false;
         int x = me.x + dx, y = me.y + dy;
         if (!inMap(x,y)) return false;
         if (!isNotEmpty(x, y)) return false;

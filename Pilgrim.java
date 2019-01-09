@@ -148,8 +148,8 @@ public class Pilgrim {
 			}
         }
 
-        if (Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x]) return Z.mine();
-        if (Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x]) return Z.mine();
+        if (Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
+        if (Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
         if (Z.me.karbonite < 5 && Z.me.fuel < 25) Z.goHome = false;
         if (Z.me.karbonite > 16 || Z.me.fuel > 80) Z.goHome = true;
         if (Z.goHome) return Z.moveHome();
