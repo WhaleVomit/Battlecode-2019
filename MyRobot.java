@@ -40,9 +40,13 @@ public class MyRobot extends BCAbstractRobot {
             for (int j = 0; j < w - 1 - j; ++j) if (map[i][j] != map[i][w - 1 - j]) return false;
         return true;
     }
+    
+    boolean inMap(int x, int y) {
+		return x >= 0 && x < w && y >= 0 && y < h;
+	}
 
     boolean valid(int x, int y) {
-        if (!(0 <= y && y < h && 0 <= x && x < w)) return false;
+        if (!inMap(x,y)) return false;
         return map[y][x];
     }
 
@@ -300,6 +304,7 @@ public class MyRobot extends BCAbstractRobot {
     // ATTACK
     boolean canAttack(int dx, int dy) {
         int x = me.x + dx, y = me.y + dy;
+        if (!inMap(x,y)) return false;
         if (!isNotEmpty(x, y)) return false;
         if (getRobot(robotMap[y][x]).team == me.team) return false;
 
