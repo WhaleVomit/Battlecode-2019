@@ -8,6 +8,7 @@ import static bc19.Consts.*;
 public class MyRobot extends BCAbstractRobot {
 
     // DATA
+    int type0 = 0, type1 = 0;
     int w, h;
     Robot[] robots;
     int[][] robotMap, seenMap, dist, pre; // note that arrays are by y and tthen x
@@ -17,6 +18,7 @@ public class MyRobot extends BCAbstractRobot {
     int resource = -1;
 
     boolean goHome;
+    boolean[][] emp;
     // Random ran = new Random();
 
     // UNIT TYPES
@@ -112,7 +114,7 @@ public class MyRobot extends BCAbstractRobot {
                     int X = x + dx, Y = y + dy;
                     if (withinMoveRadius(me, dx, dy) && valid(X, Y) && dist[Y][X] == MOD) {
                         dist[Y][X] = dist[y][x] + 1;
-                        if(isEmpty(X,Y)) {
+                        if (isEmpty(X,Y)) {
                             if (pre[y][x] == MOD) pre[Y][X] = 64 * X + Y;
                             else pre[Y][X] = pre[y][x];
                             L.add(64 * X + Y);
@@ -137,18 +139,36 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     String getInfo(Robot R) {
-        String res = R.unit + " " + R.team + " " + R.x + " " + R.y;
-        res += " " + R.castle_talk;
-        res += " | ";
+        String res = R.id+" "+R.unit + " " + R.team + " " + R.x + " " + R.y;
+        res += " " + R.castle_talk+" "+R.signal;
+        res += " |\n";
         return res;
     }
 
-    void removeDup(ArrayList<Integer> A) {
+    void dumpRobots() {
+        String T = getInfo(me);
+        for (Robot R: robots) T += getInfo(R);
+        log(T);
+    }
+
+    /*void removeDup(ArrayList<Integer> A) {
         ArrayList<Integer> B = new ArrayList<>();
         for (Integer i : A) if (!B.contains(i)) B.add(i);
         A.clear();
         for (Integer i : B) A.add(i);
+    }*/
+
+
+    void rem(ArrayList<Integer> A) {
+        ArrayList<Integer> B = new ArrayList<>();
+        for (Integer i : A) {
+            int y = i % 64; int x = (i-y)/64;
+            if (!emp[y][x]) B.add(i);
+        }
+        A.clear();
+        for (Integer i : B) A.add(i);
     }
+    
 
     // LOOKING FOR DESTINATION
     Robot closestEnemy() {
@@ -277,27 +297,22 @@ public class MyRobot extends BCAbstractRobot {
         for (Robot R: robots) 
             if ((R.unit == SPECS.CASTLE || R.unit == SPECS.CHURCH) && R.team == me.team && adjacent(R) && (me.fuel > 25 || me.karbonite > 5)) 
                 return give(R.x-me.x,R.y-me.y,me.karbonite,me.fuel);
-        int x = Math.min(getClosestUnit(CASTLE,true), getClosestUnit(CHURCH,true));
+        int x = getClosestUnit(true);
         return moveToward((x-(x%64))/64,x%64);
     }
     
-    int getClosestUnit(int type, boolean ourteam) {
-		int bestDist = MOD; int bestPos = MOD;
-		for(Robot r: robots) {
-			if(r.unit == type) {
-				if(ourteam && r.team == me.team) {
-					if(dist[r.y][r.x] < bestDist) {
-						bestPos = r.x*64 + r.y;
-						bestDist = dist[r.y][r.x];
-					}
-				} else if(!ourteam && r.team != me.team) {
-					if(dist[r.y][r.x] < bestDist) {
-						bestPos = r.x*64 + r.y;
-						bestDist = dist[r.y][r.x];
-					}
-				}
-			}
-		}
+    int getClosestUnit (boolean ourteam) {
+        int bestDist = MOD; int bestPos = MOD;
+        ArrayList<Integer> A;
+        if (ourteam) A = myCastle;
+        else A = otherCastle;
+        for (int i: A) {
+            int y = i%64; int x = (i-y)/64;
+            if (dist[y][x] < bestDist) {
+                bestDist = dist[y][x];
+                bestPos = i;
+            }
+        }
 		return bestPos;
 	}
 
@@ -316,7 +331,7 @@ public class MyRobot extends BCAbstractRobot {
             if (dist < 16 || dist > 64) return false;
             return true;
         } else if (me.unit == PREACHER) {
-            if (dist < 1 || dist > 16) return false;
+            if (dist < 3 || dist > 16) return false;
             return true;
         }
         return false;
@@ -347,8 +362,46 @@ public class MyRobot extends BCAbstractRobot {
         return false;
     }
 
+    public Action makePilgrim() {
+        if (!canBuild(PILGRIM)) return null; 
+        // log("???"); signal(10,2); -> this works
+        Action A = tryBuild(PILGRIM); 
+        if (A == null) return A;
+        numPilgrims ++;
+        log("Built pilgrim");
+        int t = 0;
+        if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) {
+            type0 ++; t = 1;
+            log("KARBONITE");
+        } else {
+            type1 ++; t = 2;
+            log("FUEL");
+        }
+        // log("NEW?");
+        signal(t,2); // -> this doesn't work
+        return A;
+    }
+
     Map<Integer,Integer> castleX = new HashMap<>();
     Map<Integer,Integer> castleY = new HashMap<>();
+
+    void addStruct(Robot R) {
+        if (R.team == me.team) {
+            int t = 64*R.x+R.y;
+            if (!myCastle.contains(t)) {
+                myCastle.add(t);
+                if (wsim() && R.unit == 0 && !emp[R.y][w-1-R.x]) otherCastle.add(64*(w-1-R.x)+R.y);
+                if (hsim() && R.unit == 0 && !emp[h-1-R.y][R.x]) otherCastle.add(64*R.x+(h-1-R.y));
+            }
+        } else {
+            int t = 64*R.x+R.y;
+            if (!otherCastle.contains(t)) {
+                otherCastle.add(t);
+                if (wsim() && R.unit == 0 && !emp[R.y][w-1-R.x]) myCastle.add(64*(w-1-R.x)+R.y);
+                if (hsim() && R.unit == 0 && !emp[h-1-R.y][R.x]) myCastle.add(64*R.x+(h-1-R.y));
+            }
+        }
+    }
 
     void updateData() {
         w = map[0].length; h = map.length;
@@ -363,44 +416,30 @@ public class MyRobot extends BCAbstractRobot {
                     seenMap[i][j] = -1;
         }
 
+        if (emp == null) emp = new boolean[h][w];
+
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j)
                 if (robotMap[i][j] != -1) {
                     seenMap[i][j] = robotMap[i][j];
-                    if (robotMap[i][j] == 0) seenRobot[i][j] = null;
-                    else {
-                        // log(""+robotMap[i][j]);
+                    if (robotMap[i][j] == 0) {
+                        emp[i][j] = true; 
+                        seenRobot[i][j] = null;
+                    } else {
                         seenRobot[i][j] = getRobot(robotMap[i][j]);
+                        if (isStructure(seenRobot[i][j])) emp[i][j] = false;
+                        else emp[i][j] = true;
                     }
                 }
 
-        for (Robot R: robots) if (R.unit == SPECS.CASTLE) {
-            if (R.team == me.team) myCastle.add(64*R.x+R.y);
-            else otherCastle.add(64*R.x+R.y);
-        }
-
-        if (me.unit != SPECS.CASTLE && me.turn == 1) {
-            if (wsim()) {
-                for (Integer R: myCastle) { // note: this does not include all of your team's castles
-                    int y = R%64; int x = (R-y)/64;
-                    otherCastle.add(64*(w-1-x)+y);
-                }
-            } 
-            if (hsim()) {
-                for (Integer R: myCastle) {
-                    int y = R%64; int x = (R-y)/64;
-                    otherCastle.add(64*x+(h-1-y));
-                }
-            }
-        }
-
-        removeDup(myCastle);
-        removeDup(otherCastle);
+        for (Robot R: robots) if (isStructure(R)) addStruct(R);
+        rem(myCastle); rem(otherCastle);
     }
 
     public Action turn() {
         updateData();
         bfs();
+        // log(me.turn+" "+me.unit+" "+myCastle.size()+" "+otherCastle.size());
         switch (me.unit) {
             case CASTLE: {
                 Castle C = new Castle(this);

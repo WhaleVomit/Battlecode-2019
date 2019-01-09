@@ -10,13 +10,22 @@ public class Castle {
     }
 
     void determineLoc() {
+        /*if (Z.me.turn == 1) {
+            Z.log("HA "+Z.robots.length);
+        }*/
+
         for (Robot R: Z.robots) if (R.castle_talk > 0 && R.castle_talk <= 64) 
             Z.castleX.put(R.id,R.castle_talk-1);
 
         for (Robot R: Z.robots) if (R.castle_talk > 64 && R.castle_talk <= 128) {
             if (Z.castleY.get(R.id) == null) {
                 Z.castleY.put(R.id,R.castle_talk-65);
-                Z.myCastle.add(64*Z.castleX.get(R.id)+Z.castleY.get(R.id));
+                int t = 64*Z.castleX.get(R.id)+Z.castleY.get(R.id);
+                if (!Z.myCastle.contains(t)) {
+                    Z.myCastle.add(t);
+                    if (Z.wsim()) Z.otherCastle.add(64*(Z.w-1-Z.castleX.get(R.id))+Z.castleY.get(R.id));
+                    if (Z.hsim()) Z.otherCastle.add(64*Z.castleX.get(R.id)+(Z.h-1-Z.castleY.get(R.id)));
+                }
             }
         }
 
@@ -33,20 +42,16 @@ public class Castle {
 
     Action run() {
         determineLoc();
+        // Z.signal(2,2);
+        // Z.log("HA "+Z.me.signal);
         /*
         String S = ""; S += getInfo(me);
         for (Robot R: robots) S += getInfo(R);
 
         log(S);*/
         if (2 * Z.numPilgrims <= Z.numAttack) {
-            if (Z.canBuild(PILGRIM)) {
-                Action A = Z.tryBuild(PILGRIM);
-                if (A != null) {
-                    Z.numPilgrims++;
-                    Z.log("Built pilgrim");
-                    return A;
-                }
-            }
+            Action A = Z.makePilgrim();
+            if (A != null) return A;
         } else {
             if (Z.canBuild(PROPHET)) {
                 Action A = Z.tryBuild(PROPHET);

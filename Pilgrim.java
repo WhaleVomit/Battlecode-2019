@@ -23,12 +23,13 @@ public class Pilgrim {
 		if(!isNextToEmpty) return false;
 		
 		// has to be at least 4 away from nearest deposit
-		int closeChurch = Z.getClosestUnit(CHURCH,true);
+		int closeChurch = Z.getClosestUnit(true);
 		int closeChurchX = (closeChurch-(closeChurch%64))/64;
 		int closeChurchY = closeChurch%64;
 		int d1 = MOD;
 		if(closeChurch != MOD) d1 = Z.dist[closeChurchY][closeChurchX];
 		
+		/*
 		int closeCastle = Z.getClosestUnit(CASTLE,true);
 		int closeCastleX = (closeCastle-(closeCastle%64))/64;
 		int closeCastleY = closeCastle%64;
@@ -37,12 +38,30 @@ public class Pilgrim {
 		if(Math.min(d1,d2) >= 4) {
 			Z.log(d1 + " " + d2);
 			return true;
-		}
+		}*/
+		
 		return false;
 	}
 
     Action run() {
-        if (Z.resource == -1) Z.resource = Z.me.id % 2;
+        /*if (Z.me.turn <= 2) {
+            Z.log(""+Z.me.turn);
+            Z.dumpRobots();
+            return null;
+        }*/
+        /*if (Z.resource == -1) {
+        	for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
+        		int x = Z.me.x+dx, y = Z.me.y+dy;
+        		if (Z.valid(x,y)) {
+        			Robot R = Z.getRobot(Z.robotMap[y][x]);
+        			if (R != null && Z.isStructure(R) && R.signal > 0) Z.resource = R.signal-1;
+        		}
+        	}
+        	if (Z.resource == -1) 
+            Z.log("HUH "+Z.resource);
+        }*/
+        if (Z.karbonite < 10) Z.resource = 0;
+        else if (Z.karbonite > 100) Z.resource = Z.id % 2;
         Robot R = Z.closestAttacker();
 
         if (R != null && Z.dist(R) <= 100) {
