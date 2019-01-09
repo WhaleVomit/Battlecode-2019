@@ -27,7 +27,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     boolean isAttacker(Robot r) {
-        return r.team != me.team && !isStructure(r);
+        return r.team != me.team && !isStructure(r) && r.unit != SPECS.PILGRIM;
     }
 
     // SQUARES
@@ -214,17 +214,6 @@ public class MyRobot extends BCAbstractRobot {
         return pos;
     }
 
-    int getClosest(boolean[][] B) {
-        int bestDist = MOD, bestPos = MOD;
-        for (int i = 0; i < h; ++i)
-            for (int j = 0; j < w; ++j)
-                if (B[i][j] && dist[i][j] < bestDist) {
-                    bestDist = dist[i][j];
-                    bestPos = 64 * j + i;
-                }
-        return bestPos;
-    }
-
     int distHome() {
         return getDist(closest(myCastle));
     }
@@ -364,21 +353,20 @@ public class MyRobot extends BCAbstractRobot {
 
     public Action makePilgrim() {
         if (!canBuild(PILGRIM)) return null; 
-        // log("???"); signal(10,2); -> this works
-        Action A = tryBuild(PILGRIM); 
-        if (A == null) return A;
+        int t = 0;
+        if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) t = 1;
+        else t = 2;
+        signal(t,2); // -> this works?
+
+        Action A = tryBuild(PILGRIM); if (A == null) return A;
+        if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) {
+            type0 ++; log("KARBONITE");
+        } else {
+            type1 ++; log("FUEL");
+        }
+
         numPilgrims ++;
         log("Built pilgrim");
-        int t = 0;
-        if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) {
-            type0 ++; t = 1;
-            log("KARBONITE");
-        } else {
-            type1 ++; t = 2;
-            log("FUEL");
-        }
-        // log("NEW?");
-        signal(t,2); // -> this doesn't work
         return A;
     }
 

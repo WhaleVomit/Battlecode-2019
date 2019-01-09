@@ -42,13 +42,9 @@ public class Castle {
 
     Action run() {
         determineLoc();
-        // Z.signal(2,2);
+        // Action A = Z.makePilgrim();
+        // if (A != null) return A;
         // Z.log("HA "+Z.me.signal);
-        /*
-        String S = ""; S += getInfo(me);
-        for (Robot R: robots) S += getInfo(R);
-
-        log(S);*/
         if (2 * Z.numPilgrims <= Z.numAttack) {
             Action A = Z.makePilgrim();
             if (A != null) return A;
@@ -61,15 +57,16 @@ public class Castle {
                     return A;
                 }
             }
-            /*if (Z.canBuild(CRUSADER)) {
+        } /*else {
+            if (Z.canBuild(CRUSADER)) {
                 Action A = Z.tryBuild(CRUSADER);
                 if (A != null) {
                     Z.numAttack ++;
                     Z.log("Built crusader");
                     return A;
                 }
-            }*/
-        }
+            }
+        }*/
         return null;
 
     }
