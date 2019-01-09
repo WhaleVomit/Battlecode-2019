@@ -301,26 +301,25 @@ public class MyRobot extends BCAbstractRobot {
     boolean canAttack(int dx, int dy) {
         int x = me.x + dx, y = me.y + dy;
         if (!isNotEmpty(x, y)) return false;
+        if (getRobot(robotMap[y][x]).team == me.team) return false;
 
         int dist = dx * dx + dy * dy;
         if (me.unit == CRUSADER) {
-            if (getRobot(robotMap[y][x]).team == me.team) return false;
-            if (dist < 1 || dist > 4) return false;
+            if (dist < 1 || dist > 16) return false;
             return true;
         } else if (me.unit == PROPHET) {
-            if (getRobot(robotMap[y][x]).team == me.team) return false;
-            if (dist < 4 || dist > 8) return false;
+            if (dist < 16 || dist > 64) return false;
             return true;
         } else if (me.unit == PREACHER) {
-            if (dist < 1 || dist > 4) return false;
+            if (dist < 1 || dist > 16) return false;
             return true;
         }
         return false;
     }
 
     Action tryAttack() {
-        for (int dx = -2; dx <= 2; ++dx)
-            for (int dy = -2; dy <= 2; ++dy)
+        for (int dx = -8; dx <= 8; ++dx)
+            for (int dy = -8; dy <= 8; ++dy)
                 if (canAttack(dx, dy)) return attack(dx, dy);
         return null;
     }
