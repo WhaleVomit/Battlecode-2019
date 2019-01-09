@@ -47,21 +47,32 @@ public class Pilgrim {
 		return false;
 	}
 	
-	boolean shouldMine(int x, int y) { // checks if this 5x5 square is a good spot to mine
-		int numr = 0; // number of resource squares
-		int nump = 0; // number of pilgrims
+	boolean ok(int x, int y) { // checks if this 5x5 square is a good spot to mine
+		int numr = 0, nump = 0; // number of resource squares, number of pilgrims
 		for(int dx = -2; dx <= 2; dx++) {
 			for(int dy = -2; dy <= 2; dy++) if(Z.valid(x+dx,y+dy)) {
 				if(Z.karboniteMap[y+dy][x+dx] || Z.fuelMap[y+dy][x+dx]) numr++;
 				if(Z.isNotEmpty(x+dx,y+dy) && Z.robotMap[y+dy][x+dx] != Z.me.id) {
 					Robot r = Z.getRobot(Z.robotMap[y+dy][x+dx]);
-					if(r.unit == PILGRIM) nump++;
+					if (r.unit == PILGRIM) nump++;
 				}
 			}
 		}
 		return nump < numr+2;
 	}
 	
+    int getClosest(boolean[][] B) {
+        int bestDist = MOD, bestPos = MOD;
+        for (int i = 0; i < Z.h; ++i)
+            for (int j = 0; j < Z.w; ++j)
+                if (B[i][j] && ok(j,i) && Z.dist[i][j] < bestDist) {
+                    bestDist = Z.dist[i][j];
+                    bestPos = 64 * j + i;
+                }
+        // Z.log("AH "+bestDist+" "+bestPos);
+        return bestPos;
+    }
+
 	void bubblesort(ArrayList<Integer> arr) {
 		int n = arr.size();
 		for(int i = 0; i < n-1; i++) {
@@ -79,7 +90,6 @@ public class Pilgrim {
 			}
 		}
 	}
-	
 	void fakeshuffle(ArrayList<Integer> arr) {
 		for(int i = 0; i < arr.size()-1; i++) {
 			if(Math.random() < .3) {
@@ -92,14 +102,14 @@ public class Pilgrim {
 	
 	Action runFirst() { // find a suitable spot to mine
 		if(possibleSites.isEmpty()) { // put stuff back in possibleSites
-			ArrayList<Integer> sites = new ArrayList<>();
+ 			ArrayList<Integer> sites = new ArrayList<>();
 			for(int y = 0; y < Z.h; y++) for(int x = 0; x < Z.w; x++) {
 				if(Z.karboniteMap[y][x] || Z.fuelMap[y][x]) sites.add(64*x+y);
 			}
-			bubblesort(sites);
+ 			bubblesort(sites);
 			fakeshuffle(sites);
-			for(int p: sites) possibleSites.add(p);
-		}
+ 			for(int p: sites) possibleSites.add(p);
+ 		}
 		int site = possibleSites.peek();
 		int sitey = site%64;
 		int sitex = (site-sitey)/64;
@@ -109,36 +119,29 @@ public class Pilgrim {
 		return null;
 	}
 
-    Action run() {
-        /*if (Z.me.turn <= 2) {
-            Z.log(""+Z.me.turn);
-            Z.dumpRobots();
-            return null;
-        }*/
-        /*if (Z.resource == -1) {
-        	for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
-        		int x = Z.me.x+dx, y = Z.me.y+dy;
-        		if (Z.valid(x,y)) {
-        			Robot R = Z.getRobot(Z.robotMap[y][x]);
-        			if (R != null && Z.isStructure(R) && R.signal > 0) Z.resource = R.signal-1;
-        		}
-        	}
-        	if (Z.resource == -1) 
-            Z.log("HUH "+Z.resource);
-        }*/
-        if (Z.karbonite < 10) Z.resource = 0;
-        else if (Z.karbonite > 100) Z.resource = Z.id % 2;
-        Robot R = Z.closestAttacker();
 
+	void setResource() { 
+    	for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
+    		int x = Z.me.x+dx, y = Z.me.y+dy;
+    		if (Z.valid(x,y)) {
+    			Robot R = Z.getRobot(Z.robotMap[y][x]);
+    			if (R != null && Z.isStructure(R) && R.signal > 0) Z.resource = R.signal-1;
+    		}
+    	}
+    	if (Z.resource == -1) Z.resource = 1;
+    	Z.log("RESOURCE: "+Z.resource);
+	}
+	
+    Action run() {
+        if (Z.resource == -1) setResource();
+
+        Robot R = Z.closestAttacker();
         if (R != null && Z.dist(R) <= 100) {
             Z.goHome = true;
             return Z.moveAway(R);
         }
-        if(!Z.fuelMap[Z.me.y][Z.me.x] && !Z.karboniteMap[Z.me.y][Z.me.x] && !Z.goHome && !shouldMine(Z.me.x, Z.me.y)) {
-			Action A = runFirst();
-			if(A != null) return A;
-		}
-        if(Z.canBuild(CHURCH) && shouldBuildChurch()) {
+
+        if (Z.canBuild(CHURCH) && shouldBuildChurch()) {
         	Action A = Z.tryBuild(CHURCH);
         	if(A != null) {
 				Z.numChurches++;
@@ -146,15 +149,14 @@ public class Pilgrim {
 				return A;
 			}
         }
+
+        if (Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x]) return Z.mine();
+        if (Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x]) return Z.mine();
         if (Z.me.karbonite < 5 && Z.me.fuel < 25) Z.goHome = false;
-        if (Z.me.karbonite > 15 || Z.me.fuel > 75) Z.goHome = true;
+        if (Z.me.karbonite > 16 || Z.me.fuel > 80) Z.goHome = true;
         if (Z.goHome) return Z.moveHome();
-        if (Z.resource == 0) {
-            if (Z.karboniteMap[Z.me.y][Z.me.x]) return Z.mine();
-            return Z.nextMove(Z.getClosest(Z.karboniteMap));
-        } else {
-            if (Z.fuelMap[Z.me.y][Z.me.x]) return Z.mine();
-            return Z.nextMove(Z.getClosest(Z.fuelMap));
-        }
+
+        if (Z.resource == 0 || Z.karbonite < 50) return Z.nextMove(getClosest(Z.karboniteMap));
+        else return Z.nextMove(getClosest(Z.fuelMap));
     }
 }
