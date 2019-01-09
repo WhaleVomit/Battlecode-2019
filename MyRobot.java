@@ -106,11 +106,13 @@ public class MyRobot extends BCAbstractRobot {
             for (int dx = -3; dx <= 3; ++dx)
                 for (int dy = -3; dy <= 3; ++dy) {
                     int X = x + dx, Y = y + dy;
-                    if (withinMoveRadius(me, dx, dy) && isEmpty(X, Y) && dist[Y][X] == MOD) {
+                    if (withinMoveRadius(me, dx, dy) && valid(X, Y) && dist[Y][X] == MOD) {
                         dist[Y][X] = dist[y][x] + 1;
-                        if (pre[y][x] == MOD) pre[Y][X] = 64 * X + Y;
-                        else pre[Y][X] = pre[y][x];
-                        L.add(64 * X + Y);
+                        if(isEmpty(X,Y)) {
+                            if (pre[y][x] == MOD) pre[Y][X] = 64 * X + Y;
+                            else pre[Y][X] = pre[y][x];
+                            L.add(64 * X + Y);
+                        }
                     }
                 }
         }
@@ -268,13 +270,32 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     Action moveHome() {
-        if (myCastle.size() == 0) return null;
-        for (Robot R : robots)
-            if (R.unit == CASTLE && R.team == me.team && adjacent(R) && (me.fuel > 25 || me.karbonite > 5))
-                return give(R.x - me.x, R.y - me.y, me.fuel, me.karbonite);
-        int x = myCastle.get(0);
-        return moveToward((x - (x % 64)) / 64, x % 64);
+        for (Robot R: robots) 
+            if ((R.unit == SPECS.CASTLE || R.unit == SPECS.CHURCH) && R.team == me.team && adjacent(R) && (me.fuel > 25 || me.karbonite > 5)) 
+                return give(R.x-me.x,R.y-me.y,me.karbonite,me.fuel);
+        int x = Math.min(getClosestUnit(CASTLE,true), getClosestUnit(CHURCH,true));
+        return moveToward((x-(x%64))/64,x%64);
     }
+    
+    int getClosestUnit(int type, boolean ourteam) {
+		int bestDist = MOD; int bestPos = MOD;
+		for(Robot r: robots) {
+			if(r.unit == type) {
+				if(ourteam && r.team == me.team) {
+					if(dist[r.y][r.x] < bestDist) {
+						bestPos = r.x*64 + r.y;
+						bestDist = dist[r.y][r.x];
+					}
+				} else if(!ourteam && r.team != me.team) {
+					if(dist[r.y][r.x] < bestDist) {
+						bestPos = r.x*64 + r.y;
+						bestDist = dist[r.y][r.x];
+					}
+				}
+			}
+		}
+		return bestPos;
+	}
 
     // ATTACK
     boolean canAttack(int dx, int dy) {
