@@ -1,13 +1,16 @@
 package bc19;
 
 import static bc19.Consts.*;
+import java.util.*;
 
 public class Pilgrim {
 
     MyRobot Z;
+    Queue<Integer> possibleSites;
 
     public Pilgrim(MyRobot z) {
         this.Z = z;
+        possibleSites = new LinkedList<>();
     }
     
     boolean shouldBuildChurch() {
@@ -40,6 +43,39 @@ public class Pilgrim {
 		}
 		return false;
 	}
+	
+	boolean shouldMine(int x, int y) { // checks if this 5x5 square is a good spot to mine
+		int numr = 0; // number of resource squares
+		int nump = 0; // number of pilgrims
+		for(int dx = -2; dx <= 2; dx++) {
+			for(int dy = -2; dy <= 2; dy++) {
+				if(Z.karboniteMap[y+dy][x+dx] || Z.fuelMap[y+dy][x+dx]) numr++;
+				if(Z.valid(x+dx,y+dy) && Z.robotMap[y+dy][x+dx] != -1 && Z.robotMap[y+dy][x+dx] != Z.me.id) {
+					Robot r = Z.getRobot(Z.robotMap[y+dy][x+dx]);
+					if(r.unit == PILGRIM) nump++;
+				}
+			}
+		}
+		return nump < numr;
+	}
+	
+	Action runFirst() { // find a suitable spot to mine
+		if(possibleSites.isEmpty()) { // put stuff back in possibleSites
+			ArrayList<pii> sites;
+			for(int i = 0; i < Z.h; i++) for(int j = 0; j < Z.w; j++) {
+				if(Z.karboniteMap[i][j] || Z.fuelMap[i][j]) sites.add(new pii(Z.dist[i][j], 64*j+i));
+			}
+			Collections.sort(sites);
+			for(pii p: sites) possibleSites.add(p.s);
+		}
+		int site = possibleSites.peek();
+		int sitey = site%64;
+		int sitex = (site-sitey)/64;
+		int d = Z.dist[sitey][sitex];
+		if(d > 5) return Z.nextMove(sitex,sitey); // will keep moving to site until 5 away, then next round it will look at next site in queue
+		possibleSites.poll();
+		return null;
+	}
 
     Action run() {
         if (Z.resource == -1) Z.resource = Z.me.id % 2;
@@ -49,6 +85,10 @@ public class Pilgrim {
             Z.goHome = true;
             return Z.moveAway(R);
         }
+        if(!shouldMine(Z.me.x, Z.me.y)) {
+			Action A = runFirst();
+			if(A != null) return A;
+		}
         if(Z.canBuild(CHURCH) && shouldBuildChurch()) {
         	Action A = Z.tryBuild(CHURCH);
         	if(A != null) {
