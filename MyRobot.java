@@ -53,11 +53,11 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     boolean isNotEmpty(int x, int y) {
-        return valid(x, y) && robotMap[y][x] >= 0;
+        return valid(x, y) && robotMap[y][x] > 0;
     }
 
     boolean isEmpty(int x, int y) {
-        return valid(x, y) && robotMap[y][x] < 0;
+        return valid(x, y) && robotMap[y][x] <= 0;
     }
 
     boolean adjacent(Robot r) {
