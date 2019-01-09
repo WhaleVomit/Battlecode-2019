@@ -13,7 +13,7 @@ public class MyRobot extends BCAbstractRobot {
     int[][] robotMap, seenMap, dist, pre; // note that arrays are by y and tthen x
     Robot[][] seenRobot;
     ArrayList<Integer> myCastle = new ArrayList<>(), otherCastle = new ArrayList<>();
-    int numCastles, numPilgrims, numAttack;
+    int numCastles=0, numPilgrims=0, numAttack=0, numChurches=0, numCrusaders=0;
     int resource = -1;
 
     boolean goHome;

@@ -52,7 +52,7 @@ public class Pilgrim {
         if(Z.canBuild(CHURCH) && shouldBuildChurch()) {
         	Action A = Z.tryBuild(CHURCH);
         	if(A != null) {
-				numChurches++;
+				Z.numChurches++;
 				Z.log("Built church");
 				return A;
 			}
