@@ -48,7 +48,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     boolean valid(int x, int y) {
-        if (!inMap(x,y) || robotMap[y][x] > 0) return false;
+        if (!inMap(x,y)) return false;
         return map[y][x];
     }
 
@@ -218,7 +218,7 @@ public class MyRobot extends BCAbstractRobot {
         int bestDist = MOD, bestPos = MOD;
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j)
-                if (B[i][j] && dist[i][j] < bestDist && valid(j, i)) {
+                if (B[i][j] && dist[i][j] < bestDist && isEmpty(j, i)) {
                     bestDist = dist[i][j];
                     bestPos = 64 * j + i;
                 }
@@ -239,6 +239,7 @@ public class MyRobot extends BCAbstractRobot {
 
     Action nextMove(int x, int y) {
         if (pre[y][x] == MOD) return null;
+        if (dist[y][x] == 1 && !isEmpty(x,y)) return null;
         int Y = pre[y][x] % 64;
         int X = (pre[y][x] - Y) / 64;
         return move(X - me.x, Y - me.y);
