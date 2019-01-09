@@ -284,8 +284,9 @@ public class MyRobot extends BCAbstractRobot {
 
     Action moveHome() {
         for (Robot R: robots) 
-            if ((R.unit == SPECS.CASTLE || R.unit == SPECS.CHURCH) && R.team == me.team && adjacent(R) && (me.fuel > 25 || me.karbonite > 5)) 
-                return give(R.x-me.x,R.y-me.y,me.karbonite,me.fuel);
+            if ((R.unit == SPECS.CASTLE || R.unit == SPECS.CHURCH) && R.team == me.team && adjacent(R) && (me.fuel > 25 || me.karbonite > 5)) {
+                return give(R.x - me.x, R.y - me.y, me.karbonite, me.fuel);
+            }
         int x = getClosestUnit(true);
         return moveToward((x-(x%64))/64,x%64);
     }
