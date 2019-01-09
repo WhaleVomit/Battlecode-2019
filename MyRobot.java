@@ -114,9 +114,9 @@ public class MyRobot extends BCAbstractRobot {
                     int X = x + dx, Y = y + dy;
                     if (withinMoveRadius(me, dx, dy) && valid(X, Y) && dist[Y][X] == MOD) {
                         dist[Y][X] = dist[y][x] + 1;
+                        if (pre[y][x] == MOD) pre[Y][X] = 64 * X + Y;
+                        else pre[Y][X] = pre[y][x];
                         if (isEmpty(X,Y)) {
-                            if (pre[y][x] == MOD) pre[Y][X] = 64 * X + Y;
-                            else pre[Y][X] = pre[y][x];
                             L.add(64 * X + Y);
                         }
                     }
