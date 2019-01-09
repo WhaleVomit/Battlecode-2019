@@ -27,6 +27,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     boolean isAttacker(Robot r) {
+        return r.team != me.team && !isStructure(r) && r.unit != SPECS.PILGRIM;
         return r.team != me.team && !isStructure(r);
     }
 
@@ -364,24 +365,23 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     public Action makePilgrim() {
-        if (!canBuild(PILGRIM)) return null;
-        // log("???"); signal(10,2); -> this works
-        Action A = tryBuild(PILGRIM);
-        if (A == null) return A;
-        numPilgrims ++;
-        log("Built pilgrim");
-        int t = 0;
-        if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) {
-            type0 ++; t = 1;
-            log("KARBONITE");
-        } else {
-            type1 ++; t = 2;
-            log("FUEL");
-        }
-        // log("NEW?");
-        signal(t,2); // -> this doesn't work
-        return A;
-    }
+         if (!canBuild(PILGRIM)) return null; 
+         int t = 0;
+         if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) t = 1;
+         else t = 2;
+         signal(t,2); // -> this works?
+
+         Action A = tryBuild(PILGRIM); if (A == null) return A;
+         if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) {
+             type0 ++; log("KARBONITE");
+         } else {
+             type1 ++; log("FUEL");
+         }
+
+         numPilgrims ++;
+         log("Built pilgrim");
+         return A;
+     }
 
     Map<Integer,Integer> castleX = new HashMap<>();
     Map<Integer,Integer> castleY = new HashMap<>();
