@@ -2,6 +2,7 @@ package bc19;
 
 import static bc19.Consts.*;
 import java.util.*;
+import java.awt.*;
 
 public class Pilgrim {
 
@@ -58,7 +59,7 @@ public class Pilgrim {
 				}
 			}
 		}
-		return nump < numr;
+		return nump < numr+2;
 	}
 	
 	void bubblesort(ArrayList<Integer> arr) {
@@ -70,7 +71,7 @@ public class Pilgrim {
 				
 				int y1 = arr.get(j+1)%64;
 				int x1 = (arr.get(j+1)-y1)/64;
-				if(Z.dist[y1][x1] > Z.dist[y][x]) {
+				if(Z.dist[y][x] > Z.dist[y1][x1]) {
 					int temp = arr.get(j);
 					arr.set(j,arr.get(j+1));
 					arr.set(j+1,temp);
@@ -79,13 +80,24 @@ public class Pilgrim {
 		}
 	}
 	
+	void fakeshuffle(ArrayList<Integer> arr) {
+		for(int i = 0; i < arr.size()-1; i++) {
+			if(Math.random() < .3) {
+				int a = arr.get(i);
+				arr.set(i,arr.get(i+1));
+				arr.set(i+1,a);
+			}
+		}
+	}
+	
 	Action runFirst() { // find a suitable spot to mine
 		if(possibleSites.isEmpty()) { // put stuff back in possibleSites
 			ArrayList<Integer> sites = new ArrayList<>();
-			for(int i = 0; i < Z.h; i++) for(int j = 0; j < Z.w; j++) {
-				if(Z.karboniteMap[i][j] || Z.fuelMap[i][j]) sites.add(64*j+i);
+			for(int y = 0; y < Z.h; y++) for(int x = 0; x < Z.w; x++) {
+				if(Z.karboniteMap[y][x] || Z.fuelMap[y][x]) sites.add(64*x+y);
 			}
 			bubblesort(sites);
+			fakeshuffle(sites);
 			for(int p: sites) possibleSites.add(p);
 		}
 		int site = possibleSites.peek();
