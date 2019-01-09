@@ -28,7 +28,6 @@ public class MyRobot extends BCAbstractRobot {
 
     boolean isAttacker(Robot r) {
         return r.team != me.team && !isStructure(r) && r.unit != SPECS.PILGRIM;
-        return r.team != me.team && !isStructure(r);
     }
 
     // SQUARES
