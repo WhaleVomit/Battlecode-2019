@@ -64,7 +64,7 @@ public class Pilgrim {
 		}
 		return numr - nump;
 	}
-	
+
 	double getfuelscore(int x, int y) { // checks if this 5x5 square is a good spot to mine
 		double numr = 0, nump = 0; // number of resource squares, number of pilgrims
 		for(int dx = -2; dx <= 2; dx++) {
