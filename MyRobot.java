@@ -23,11 +23,11 @@ public class MyRobot extends BCAbstractRobot {
 
     // UNIT TYPES
     boolean isStructure(Robot r) {
-         return r.unit == CASTLE || r.unit == CHURCH;
+        return r.unit == CASTLE || r.unit == CHURCH;
     }
 
     boolean isAttacker(Robot r) {
-        return r.team != me.team && !isStructure(r) && r.unit != SPECS.PILGRIM;
+        return r.team != me.team && !isStructure(r);
     }
 
     // SQUARES
@@ -42,10 +42,10 @@ public class MyRobot extends BCAbstractRobot {
             for (int j = 0; j < w - 1 - j; ++j) if (map[i][j] != map[i][w - 1 - j]) return false;
         return true;
     }
-    
+
     boolean inMap(int x, int y) {
-		return x >= 0 && x < w && y >= 0 && y < h;
-	}
+        return x >= 0 && x < w && y >= 0 && y < h;
+    }
 
     boolean valid(int x, int y) {
         if (!inMap(x,y)) return false;
@@ -114,7 +114,7 @@ public class MyRobot extends BCAbstractRobot {
                     int X = x + dx, Y = y + dy;
                     if (withinMoveRadius(me, dx, dy) && valid(X, Y) && dist[Y][X] == MOD) {
                         dist[Y][X] = dist[y][x] + 1;
-                        if (pre[y][x] == MOD) pre[Y][X] = 64 * X + Y;
+                        if (pre[y][x] == MOD && isEmpty(X, Y)) pre[Y][X] = 64 * X + Y;
                         else pre[Y][X] = pre[y][x];
                         if (isEmpty(X,Y)) {
                             L.add(64 * X + Y);
@@ -168,7 +168,7 @@ public class MyRobot extends BCAbstractRobot {
         A.clear();
         for (Integer i : B) A.add(i);
     }
-    
+
 
     // LOOKING FOR DESTINATION
     Robot closestEnemy() {
@@ -214,6 +214,17 @@ public class MyRobot extends BCAbstractRobot {
         return pos;
     }
 
+    int getClosestUnused(boolean[][] B) {
+        int bestDist = MOD, bestPos = MOD;
+        for (int i = 0; i < h; ++i)
+            for (int j = 0; j < w; ++j) 
+                if (B[i][j] && dist[i][j] < bestDist && robotMap[i][j] <= 0) {
+                    bestDist = dist[i][j];
+                    bestPos = 64 * j + i;
+                }
+        return bestPos;
+    }
+
     int distHome() {
         return getDist(closest(myCastle));
     }
@@ -228,6 +239,7 @@ public class MyRobot extends BCAbstractRobot {
 
     Action nextMove(int x, int y) {
         if (pre[y][x] == MOD) return null;
+        if (dist[y][x] == 1 && !isEmpty(x,y)) return null;
         int Y = pre[y][x] % 64;
         int X = (pre[y][x] - Y) / 64;
         return move(X - me.x, Y - me.y);
@@ -283,14 +295,14 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     Action moveHome() {
-        for (Robot R: robots) 
-            if ((R.unit == SPECS.CASTLE || R.unit == SPECS.CHURCH) && R.team == me.team && adjacent(R) && (me.fuel > 25 || me.karbonite > 5)) 
+        for (Robot R: robots)
+            if ((R.unit == CASTLE || R.unit == CHURCH) && R.team == me.team && adjacent(R) && (me.fuel > 25 || me.karbonite > 5))
                 return give(R.x-me.x,R.y-me.y,me.karbonite,me.fuel);
-        int x = getClosestUnit(true);
+        int x = getClosestStruct(true);
         return moveToward((x-(x%64))/64,x%64);
     }
-    
-    int getClosestUnit (boolean ourteam) {
+
+    int getClosestStruct (boolean ourteam) {
         int bestDist = MOD; int bestPos = MOD;
         ArrayList<Integer> A;
         if (ourteam) A = myCastle;
@@ -302,8 +314,8 @@ public class MyRobot extends BCAbstractRobot {
                 bestPos = i;
             }
         }
-		return bestPos;
-	}
+        return bestPos;
+    }
 
     // ATTACK
     boolean canAttack(int dx, int dy) {
@@ -352,21 +364,22 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     public Action makePilgrim() {
-        if (!canBuild(PILGRIM)) return null; 
-        int t = 0;
-        if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) t = 1;
-        else t = 2;
-        signal(t,2); // -> this works?
-
-        Action A = tryBuild(PILGRIM); if (A == null) return A;
-        if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) {
-            type0 ++; log("KARBONITE");
-        } else {
-            type1 ++; log("FUEL");
-        }
-
+        if (!canBuild(PILGRIM)) return null;
+        // log("???"); signal(10,2); -> this works
+        Action A = tryBuild(PILGRIM);
+        if (A == null) return A;
         numPilgrims ++;
         log("Built pilgrim");
+        int t = 0;
+        if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) {
+            type0 ++; t = 1;
+            log("KARBONITE");
+        } else {
+            type1 ++; t = 2;
+            log("FUEL");
+        }
+        // log("NEW?");
+        signal(t,2); // -> this doesn't work
         return A;
     }
 
@@ -411,7 +424,7 @@ public class MyRobot extends BCAbstractRobot {
                 if (robotMap[i][j] != -1) {
                     seenMap[i][j] = robotMap[i][j];
                     if (robotMap[i][j] == 0) {
-                        emp[i][j] = true; 
+                        emp[i][j] = true;
                         seenRobot[i][j] = null;
                     } else {
                         seenRobot[i][j] = getRobot(robotMap[i][j]);
