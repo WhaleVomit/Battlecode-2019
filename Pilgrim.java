@@ -50,9 +50,9 @@ public class Pilgrim {
 		int numr = 0; // number of resource squares
 		int nump = 0; // number of pilgrims
 		for(int dx = -2; dx <= 2; dx++) {
-			for(int dy = -2; dy <= 2; dy++) if(Z.valid(x+dx,y+dy)) {
+			for(int dy = -2; dy <= 2; dy++) {
 				if(Z.karboniteMap[y+dy][x+dx] || Z.fuelMap[y+dy][x+dx]) numr++;
-				if(Z.isNotEmpty(x+dx,y+dy) && Z.robotMap[y+dy][x+dx] != Z.me.id) {
+				if(Z.valid(x+dx,y+dy) && Z.robotMap[y+dy][x+dx] != -1 && Z.robotMap[y+dy][x+dx] != Z.me.id) {
 					Robot r = Z.getRobot(Z.robotMap[y+dy][x+dx]);
 					if(r.unit == PILGRIM) nump++;
 				}
@@ -61,38 +61,20 @@ public class Pilgrim {
 		return nump < numr;
 	}
 	
-	void bubblesort(ArrayList<Integer> arr) {
-		int n = arr.size();
-		for(int i = 0; i < n-1; i++) {
-			for(int j = 0; j < n-i-1; j++) {
-				int y = arr.get(j)%64;
-				int x = (arr.get(j)-y)/64;
-				
-				int y1 = arr.get(j+1)%64;
-				int x1 = (arr.get(j+1)-y1)/64;
-				if(Z.dist[y1][x1] > Z.dist[y][x]) {
-					int temp = arr.get(j);
-					arr.set(j,arr.get(j+1));
-					arr.set(j+1,temp);
-				}
-			}
-		}
-	}
-	
 	Action runFirst() { // find a suitable spot to mine
 		if(possibleSites.isEmpty()) { // put stuff back in possibleSites
-			ArrayList<Integer> sites = new ArrayList<>();
+			ArrayList<pii> sites;
 			for(int i = 0; i < Z.h; i++) for(int j = 0; j < Z.w; j++) {
-				if(Z.karboniteMap[i][j] || Z.fuelMap[i][j]) sites.add(64*j+i);
+				if(Z.karboniteMap[i][j] || Z.fuelMap[i][j]) sites.add(new pii(Z.dist[i][j], 64*j+i));
 			}
-			bubblesort(sites);
-			for(int p: sites) possibleSites.add(p);
+			Collections.sort(sites);
+			for(pii p: sites) possibleSites.add(p.s);
 		}
 		int site = possibleSites.peek();
 		int sitey = site%64;
 		int sitex = (site-sitey)/64;
 		int d = Z.dist[sitey][sitex];
-		if(d > 1) return Z.nextMove(sitex,sitey); // will keep moving to site until 1 away, then next round it will look at next site in queue
+		if(d > 1) return Z.nextMove(sitex,sitey); // will keep moving to site until 5 away, then next round it will look at next site in queue
 		possibleSites.poll();
 		return null;
 	}
@@ -122,7 +104,7 @@ public class Pilgrim {
             Z.goHome = true;
             return Z.moveAway(R);
         }
-        if(!Z.fuelMap[Z.me.y][Z.me.x] && !Z.karboniteMap[Z.me.y][Z.me.x] && !Z.goHome && !shouldMine(Z.me.x, Z.me.y)) {
+        if(!shouldMine(Z.me.x, Z.me.y)) {
 			Action A = runFirst();
 			if(A != null) return A;
 		}
