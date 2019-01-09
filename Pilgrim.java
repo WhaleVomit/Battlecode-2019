@@ -51,66 +51,32 @@ public class Pilgrim {
 		return false;
 	}
 
-	boolean ok(int x, int y) { // checks if this 5x5 square is a good spot to mine
-		int numr = 0, nump = 0; // number of resource squares, number of pilgrims
+	double getkarboscore(int x, int y) { // checks if this 5x5 square is a good spot to mine
+		double numr = 0, nump = 0; // number of resource squares, number of pilgrims
 		for(int dx = -2; dx <= 2; dx++) {
 			for(int dy = -2; dy <= 2; dy++) if(Z.valid(x+dx,y+dy)) {
-				if(Z.karboniteMap[y+dy][x+dx] || Z.fuelMap[y+dy][x+dx]) numr++;
-				if(Z.isNotEmpty(x+dx,y+dy) && Z.robotMap[y+dy][x+dx] != Z.me.id) {
-					Robot r = Z.getRobot(Z.robotMap[y+dy][x+dx]);
+				if(Z.karboniteMap[y+dy][x+dx]) numr++;
+				if(Z.seenRobot[y+dy][x+dx] != null && Z.seenMap[y+dy][x+dx] != Z.me.id) {
+					Robot r = Z.seenRobot[y+dy][x+dx];
 					if (r.unit == PILGRIM) nump++;
 				}
 			}
 		}
-		return nump < numr+1;
+		return numr - nump;
 	}
-
-	void bubblesort(ArrayList<Integer> arr) {
-		int n = arr.size();
-		for(int i = 0; i < n-1; i++) {
-			for(int j = 0; j < n-i-1; j++) {
-				int y = arr.get(j)%64;
-				int x = (arr.get(j)-y)/64;
-
-				int y1 = arr.get(j+1)%64;
-				int x1 = (arr.get(j+1)-y1)/64;
-				if(Z.dist[y][x] < Z.dist[y1][x1]) {
-					int temp = arr.get(j);
-					arr.set(j,arr.get(j+1));
-					arr.set(j+1,temp);
+	
+	double getfuelscore(int x, int y) { // checks if this 5x5 square is a good spot to mine
+		double numr = 0, nump = 0; // number of resource squares, number of pilgrims
+		for(int dx = -2; dx <= 2; dx++) {
+			for(int dy = -2; dy <= 2; dy++) if(Z.valid(x+dx,y+dy)) {
+				if(Z.fuelMap[y+dy][x+dx]) numr++;
+				if(Z.seenMap[y+dy][x+dx] != -1 && Z.seenMap[y+dy][x+dx] != Z.me.id) {
+					Robot r = Z.seenRobot[y+dy][x+dx];
+					if (r.unit == PILGRIM) nump++;
 				}
 			}
 		}
-	}
-	void fakeshuffle(ArrayList<Integer> arr) {
-		for(int i = 0; i < arr.size()-1; i++) {
-			if(Math.random() < .3) {
-				int a = arr.get(i);
-				arr.set(i,arr.get(i+1));
-				arr.set(i+1,a);
-			}
-		}
-	}
-
-	Action runFirst() { // find a suitable spot to mine
-		if(sites.isEmpty()) { // put stuff back in sites
-			sites = new ArrayList<>();
-			for(int y = 0; y < Z.h; y++) for(int x = 0; x < Z.w; x++) {
-				if(Z.karboniteMap[y][x] || Z.fuelMap[y][x]) sites.add(64*x+y);
-			}
-			bubblesort(sites); // reversed order
-			fakeshuffle(sites);
-		}
-		int site = sites.get(sites.size()-1);
-		int sitey = site%64;
-		int sitex = (site-sitey)/64;
-		int d = Z.dist[sitey][sitex];
-
-		if(d > 1) {
-			return Z.nextMove(sitex,sitey); // will keep moving to site until 1 away, then next round it will look at next site in queue
-		}
-		sites.remove(sites.size()-1);
-		return null;
+		return numr - nump;
 	}
 
 
@@ -135,11 +101,6 @@ public class Pilgrim {
             return Z.moveAway(R);
         }
 
-		if(!Z.fuelMap[Z.me.y][Z.me.x] && !Z.karboniteMap[Z.me.y][Z.me.x] && !Z.goHome && !shouldMine()) {
-			Action A = runFirst();
-			if(A != null) return A;
-		}
-
         if (Z.canBuild(CHURCH) && shouldBuildChurch()) {
         	Action A = Z.tryBuild(CHURCH);
         	if(A != null) {
@@ -154,7 +115,17 @@ public class Pilgrim {
         if (Z.me.karbonite > 16 || Z.me.fuel > 80) Z.goHome = true;
         if (Z.goHome) return Z.moveHome();
 
-        if (Z.resource == 0 || Z.karbonite < 50) return Z.nextMove(Z.getClosestUnused(Z.karboniteMap));
-        else return Z.nextMove(Z.getClosestUnused(Z.fuelMap));
+        if (Z.resource == 0 || Z.karbonite < 50) {
+			if(getkarboscore(Z.me.x, Z.me.y) > 0) return Z.nextMove(Z.getClosestUnused(Z.karboniteMap));
+			boolean[][] karboMap = new boolean[Z.h][Z.w];
+			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) karboMap[y][x] = (getkarboscore(x,y) > 0);
+			return Z.nextMove(Z.getClosestUnused(karboMap));
+		}
+        else {
+			if(getfuelscore(Z.me.x, Z.me.y) > 0) return Z.nextMove(Z.getClosestUnused(Z.fuelMap));
+			boolean[][] fuelMap = new boolean[Z.h][Z.w];
+			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) fuelMap[y][x] = (getfuelscore(x,y) > 0);
+			return Z.nextMove(Z.getClosestUnused(fuelMap));
+		}
     }
 }
