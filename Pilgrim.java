@@ -31,14 +31,14 @@ public class Pilgrim {
 		if(!isNextToEmpty) return false;
 
 		// has to be at least 4 away from nearest deposit
-		int closeChurch = Z.getClosestUnit(true);
+		int closeChurch = Z.getClosestStruct(true);
 		int closeChurchX = (closeChurch-(closeChurch%64))/64;
 		int closeChurchY = closeChurch%64;
 		int d1 = MOD;
 		if(closeChurch != MOD) d1 = Z.dist[closeChurchY][closeChurchX];
 
 		/*
-		int closeCastle = Z.getClosestUnit(CASTLE,true);
+		int closeCastle = Z.getClosestStruct(CASTLE,true);
 		int closeCastleX = (closeCastle-(closeCastle%64))/64;
 		int closeCastleY = closeCastle%64;
 		int d2 = MOD;
@@ -154,7 +154,7 @@ public class Pilgrim {
         if (Z.me.karbonite > 16 || Z.me.fuel > 80) Z.goHome = true;
         if (Z.goHome) return Z.moveHome();
 
-        if (Z.resource == 0 || Z.karbonite < 50) return Z.nextMove(Z.getClosestValid(Z.karboniteMap));
-        else return Z.nextMove(Z.getClosestValid(Z.fuelMap));
+        if (Z.resource == 0 || Z.karbonite < 50) return Z.nextMove(Z.getClosestUnused(Z.karboniteMap));
+        else return Z.nextMove(Z.getClosestUnused(Z.fuelMap));
     }
 }

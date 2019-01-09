@@ -48,7 +48,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     boolean valid(int x, int y) {
-        if (!inMap(x,y) || robotMap[y][x] > 0) return false;
+        if (!inMap(x,y)) return false;
         return map[y][x];
     }
 
@@ -114,7 +114,7 @@ public class MyRobot extends BCAbstractRobot {
                     int X = x + dx, Y = y + dy;
                     if (withinMoveRadius(me, dx, dy) && valid(X, Y) && dist[Y][X] == MOD) {
                         dist[Y][X] = dist[y][x] + 1;
-                        if (pre[y][x] == MOD) pre[Y][X] = 64 * X + Y;
+                        if (pre[y][x] == MOD && isEmpty(X, Y)) pre[Y][X] = 64 * X + Y;
                         else pre[Y][X] = pre[y][x];
                         if (isEmpty(X,Y)) {
                             L.add(64 * X + Y);
@@ -214,11 +214,11 @@ public class MyRobot extends BCAbstractRobot {
         return pos;
     }
 
-    int getClosestValid(boolean[][] B) {
+    int getClosestUnused(boolean[][] B) {
         int bestDist = MOD, bestPos = MOD;
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j)
-                if (B[i][j] && dist[i][j] < bestDist && valid(j, i)) {
+                if (B[i][j] && dist[i][j] < bestDist && robotMap[i][j] <= 0) {
                     bestDist = dist[i][j];
                     bestPos = 64 * j + i;
                 }
@@ -295,13 +295,13 @@ public class MyRobot extends BCAbstractRobot {
 
     Action moveHome() {
         for (Robot R: robots)
-            if ((R.unit == SPECS.CASTLE || R.unit == SPECS.CHURCH) && R.team == me.team && adjacent(R) && (me.fuel > 25 || me.karbonite > 5))
+            if ((R.unit == CASTLE || R.unit == CHURCH) && R.team == me.team && adjacent(R) && (me.fuel > 25 || me.karbonite > 5))
                 return give(R.x-me.x,R.y-me.y,me.karbonite,me.fuel);
-        int x = getClosestUnit(true);
+        int x = getClosestStruct(true);
         return moveToward((x-(x%64))/64,x%64);
     }
 
-    int getClosestUnit (boolean ourteam) {
+    int getClosestStruct (boolean ourteam) {
         int bestDist = MOD; int bestPos = MOD;
         ArrayList<Integer> A;
         if (ourteam) A = myCastle;
