@@ -1,11 +1,13 @@
 package bc19;
 
-public class Crusader extends MyRobot {
-	MyRobot Z;
-	
-	public Crusader(MyRobot z) {
-		this.Z = z;
-	}
+import static bc19.Consts.*;
+
+public class Crusader {
+    MyRobot Z;
+
+    public Crusader(MyRobot z) {
+        this.Z = z;
+    }
 
     Action run() {
         Action A = Z.tryAttack();

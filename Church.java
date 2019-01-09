@@ -1,13 +1,15 @@
 package bc19;
 
-public class Church {
-	MyRobot myRobot;
-	
-	public Church(MyRobot k) {
-		this.myRobot = k;
-	}
+import static bc19.Consts.*;
 
-	public Action run() {
+public class Church {
+    MyRobot Z;
+
+    public Church(MyRobot z) {
+        this.Z = z;
+    }
+
+    public Action run() {
         return null;
 
     }

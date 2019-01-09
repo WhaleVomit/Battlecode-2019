@@ -1,20 +1,22 @@
 package bc19;
 
-public class Pilgrim extends MyRobot {
-	MyRobot Z;
-	
-	public Pilgrim(MyRobot z) {
-		this.Z = z;
-	}
+import static bc19.Consts.*;
 
-    Action run() { // errors?
+public class Pilgrim {
+
+    MyRobot Z;
+
+    public Pilgrim(MyRobot z) {
+        this.Z = z;
+    }
+
+    Action run() {
         if (Z.resource == -1) Z.resource = Z.me.id % 2;
         Robot R = Z.closestAttacker();
-        // if (R != null) log(getInfo(R));
-        if (dist(Z.me,R) <= 100) {
-            // log("RUN");
+
+        if (R != null && Z.dist(R) <= 100) {
             Z.goHome = true;
-            return moveAway(R);
+            return Z.moveAway(R);
         }
         if (Z.me.karbonite < 5 && Z.me.fuel < 25) Z.goHome = false;
         if (Z.me.karbonite > 15 || Z.me.fuel > 75) Z.goHome = true;
