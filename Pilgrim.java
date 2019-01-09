@@ -74,7 +74,7 @@ public class Pilgrim {
 		int sitey = site%64;
 		int sitex = (site-sitey)/64;
 		int d = Z.dist[sitey][sitex];
-		if(d > 5) return Z.nextMove(sitex,sitey); // will keep moving to site until 5 away, then next round it will look at next site in queue
+		if(d > 1) return Z.nextMove(sitex,sitey); // will keep moving to site until 5 away, then next round it will look at next site in queue
 		possibleSites.poll();
 		return null;
 	}
