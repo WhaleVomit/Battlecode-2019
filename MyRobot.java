@@ -48,7 +48,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     boolean valid(int x, int y) {
-        if (!inMap(x,y)) return false;
+        if (!inMap(x,y) || robotMap[y][x] > 0) return false;
         return map[y][x];
     }
 
@@ -214,11 +214,11 @@ public class MyRobot extends BCAbstractRobot {
         return pos;
     }
 
-    int getClosest(boolean[][] B) {
+    int getClosestValid(boolean[][] B) {
         int bestDist = MOD, bestPos = MOD;
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j)
-                if (B[i][j] && dist[i][j] < bestDist) {
+                if (B[i][j] && dist[i][j] < bestDist && valid(j, i)) {
                     bestDist = dist[i][j];
                     bestPos = 64 * j + i;
                 }

@@ -13,7 +13,11 @@ public class Pilgrim {
         this.Z = z;
         sites = new ArrayList<>();
     }
-    
+
+    boolean shouldMine() {
+        return Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x] || Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x];
+    }
+
     boolean shouldBuildChurch() {
 		// has to be on resource square with no resource next to it
 		if(!Z.karboniteMap[Z.me.y][Z.me.x] && !Z.fuelMap[Z.me.y][Z.me.x]) return false;
@@ -25,14 +29,14 @@ public class Pilgrim {
 			}
 		}
 		if(!isNextToEmpty) return false;
-		
+
 		// has to be at least 4 away from nearest deposit
 		int closeChurch = Z.getClosestUnit(true);
 		int closeChurchX = (closeChurch-(closeChurch%64))/64;
 		int closeChurchY = closeChurch%64;
 		int d1 = MOD;
 		if(closeChurch != MOD) d1 = Z.dist[closeChurchY][closeChurchX];
-		
+
 		/*
 		int closeCastle = Z.getClosestUnit(CASTLE,true);
 		int closeCastleX = (closeCastle-(closeCastle%64))/64;
@@ -43,10 +47,10 @@ public class Pilgrim {
 			Z.log(d1 + " " + d2);
 			return true;
 		}*/
-		
+
 		return false;
 	}
-	
+
 	boolean ok(int x, int y) { // checks if this 5x5 square is a good spot to mine
 		int numr = 0, nump = 0; // number of resource squares, number of pilgrims
 		for(int dx = -2; dx <= 2; dx++) {
@@ -60,18 +64,6 @@ public class Pilgrim {
 		}
 		return nump < numr+1;
 	}
-	
-    int getClosest(boolean[][] B) {
-        int bestDist = MOD, bestPos = MOD;
-        for (int i = 0; i < Z.h; ++i)
-            for (int j = 0; j < Z.w; ++j)
-                if (B[i][j] && ok(j,i) && Z.dist[i][j] < bestDist) {
-                    bestDist = Z.dist[i][j];
-                    bestPos = 64 * j + i;
-                }
-        // Z.log("AH "+bestDist+" "+bestPos);
-        return bestPos;
-    }
 
 	void bubblesort(ArrayList<Integer> arr) {
 		int n = arr.size();
@@ -79,7 +71,7 @@ public class Pilgrim {
 			for(int j = 0; j < n-i-1; j++) {
 				int y = arr.get(j)%64;
 				int x = (arr.get(j)-y)/64;
-				
+
 				int y1 = arr.get(j+1)%64;
 				int x1 = (arr.get(j+1)-y1)/64;
 				if(Z.dist[y][x] < Z.dist[y1][x1]) {
@@ -99,7 +91,7 @@ public class Pilgrim {
 			}
 		}
 	}
-	
+
 	Action runFirst() { // find a suitable spot to mine
 		if(sites.isEmpty()) { // put stuff back in sites
 			sites = new ArrayList<>();
@@ -122,7 +114,7 @@ public class Pilgrim {
 	}
 
 
-	void setResource() { 
+	void setResource() {
     	for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
     		int x = Z.me.x+dx, y = Z.me.y+dy;
     		if (Z.valid(x,y)) {
@@ -133,7 +125,7 @@ public class Pilgrim {
     	if (Z.resource == -1) Z.resource = 1;
     	Z.log("RESOURCE: "+Z.resource);
 	}
-	
+
     Action run() {
         if (Z.resource == -1) setResource();
 
@@ -142,8 +134,8 @@ public class Pilgrim {
             Z.goHome = true;
             return Z.moveAway(R);
         }
-		
-		if(!Z.fuelMap[Z.me.y][Z.me.x] && !Z.karboniteMap[Z.me.y][Z.me.x] && !Z.goHome && !shouldMine(Z.me.x, Z.me.y)) {
+
+		if(!Z.fuelMap[Z.me.y][Z.me.x] && !Z.karboniteMap[Z.me.y][Z.me.x] && !Z.goHome && !shouldMine()) {
 			Action A = runFirst();
 			if(A != null) return A;
 		}
@@ -152,7 +144,6 @@ public class Pilgrim {
         	Action A = Z.tryBuild(CHURCH);
         	if(A != null) {
 				Z.numChurches++;
-				Z.log("Built church");
 				return A;
 			}
         }
@@ -163,7 +154,7 @@ public class Pilgrim {
         if (Z.me.karbonite > 16 || Z.me.fuel > 80) Z.goHome = true;
         if (Z.goHome) return Z.moveHome();
 
-        if (Z.resource == 0 || Z.karbonite < 50) return Z.nextMove(getClosest(Z.karboniteMap));
-        else return Z.nextMove(getClosest(Z.fuelMap));
+        if (Z.resource == 0 || Z.karbonite < 50) return Z.nextMove(Z.getClosestValid(Z.karboniteMap));
+        else return Z.nextMove(Z.getClosestValid(Z.fuelMap));
     }
 }
