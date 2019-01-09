@@ -9,22 +9,33 @@ public class Castle {
         this.Z = z;
     }
 
-    Action run() {
-        if (Z.numCastles == 0) Z.numCastles = Math.min(3, Z.robots.length);
+    void determineLoc() {
+        for (Robot R: Z.robots) if (R.castle_talk > 0 && R.castle_talk <= 64) 
+            Z.castleX.put(R.id,R.castle_talk-1);
 
-        /*if (turn == 1) {
-            castleTalk(me.x);
-            for (Robot R: robots) M.put(,);
+        for (Robot R: Z.robots) if (R.castle_talk > 64 && R.castle_talk <= 128) {
+            if (Z.castleY.get(R.id) == null) {
+                Z.castleY.put(R.id,R.castle_talk-65);
+                Z.myCastle.add(64*Z.castleX.get(R.id)+Z.castleY.get(R.id));
+            }
         }
-        if (turn == 2) {
-            castleTalk(me.y);
 
-        } else {
+        if (Z.me.turn == 1) Z.castleTalk(Z.me.x+1);
+        else if (Z.me.turn == 2) Z.castleTalk(64+Z.me.y+1);
+        else if (Z.me.turn == 3) Z.castleTalk(0);
 
+        /*if (Z.turn <= 3) {
+            log("HA: "+Z.turn);
+            for (Robot R: Z.robots) log(Z.getInfo(R));
+            for (int R: Z.myCastle) log("HUH "+R);
         }*/
+    }
+
+    Action run() {
+        determineLoc();
         /*
         String S = ""; S += getInfo(me);
-        for (Robot R: robots) S += getInfo(R);;
+        for (Robot R: robots) S += getInfo(R);
 
         log(S);*/
         if (2 * Z.numPilgrims <= Z.numAttack) {

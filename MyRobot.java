@@ -347,9 +347,11 @@ public class MyRobot extends BCAbstractRobot {
         return false;
     }
 
-    public Action turn() {
-        w = map[0].length;
-        h = map.length;
+    Map<Integer,Integer> castleX = new HashMap<>();
+    Map<Integer,Integer> castleY = new HashMap<>();
+
+    void updateData() {
+        w = map[0].length; h = map.length;
         robots = getVisibleRobots();
         robotMap = getVisibleRobotMap();
 
@@ -372,30 +374,33 @@ public class MyRobot extends BCAbstractRobot {
                     }
                 }
 
-        bfs();
-        for (Robot R : robots)
-            if (R.unit == SPECS.CASTLE) {
-                if (R.team == me.team) myCastle.add(64 * R.x + R.y);
-                else otherCastle.add(64 * R.x + R.y);
-            }
-        removeDup(myCastle);
-        if (me.turn == 2) {
-            if (hsim()) {
-                for (Integer R : myCastle) { // note: this does not include all of your team's castles
-                    int y = R % 64;
-                    int x = (R - y) / 64;
-                    otherCastle.add(64 * x + (h - 1 - y));
-                }
-            }
+        for (Robot R: robots) if (R.unit == SPECS.CASTLE) {
+            if (R.team == me.team) myCastle.add(64*R.x+R.y);
+            else otherCastle.add(64*R.x+R.y);
+        }
+
+        if (me.unit != SPECS.CASTLE && me.turn == 1) {
             if (wsim()) {
-                for (Integer R : myCastle) {
-                    int y = R % 64;
-                    int x = (R - y) / 64;
-                    otherCastle.add(64 * (w - 1 - x) + y);
+                for (Integer R: myCastle) { // note: this does not include all of your team's castles
+                    int y = R%64; int x = (R-y)/64;
+                    otherCastle.add(64*(w-1-x)+y);
+                }
+            } 
+            if (hsim()) {
+                for (Integer R: myCastle) {
+                    int y = R%64; int x = (R-y)/64;
+                    otherCastle.add(64*x+(h-1-y));
                 }
             }
         }
+
+        removeDup(myCastle);
         removeDup(otherCastle);
+    }
+
+    public Action turn() {
+        updateData();
+        bfs();
         switch (me.unit) {
             case CASTLE: {
                 Castle C = new Castle(this);
