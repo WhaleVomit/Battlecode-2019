@@ -8,7 +8,7 @@ import static bc19.Consts.*;
 public class MyRobot extends BCAbstractRobot {
 
     // DATA
-    int type0 = 0, type1 = 0;
+    int type0 = 0, type1 = 0, turn = 0;
     int w, h;
     Robot[] robots;
     int[][] robotMap, seenMap, dist, pre; // note that arrays are by y and tthen x
@@ -21,13 +21,16 @@ public class MyRobot extends BCAbstractRobot {
     boolean[][] emp;
     // Random ran = new Random();
 
+    int fdiv(int a, int b) {
+        return (a-(a%b))/b;
+    }
     // UNIT TYPES
     boolean isStructure(Robot r) {
-        return r.unit == CASTLE || r.unit == CHURCH;
+        return r != null && r.unit == CASTLE || r.unit == CHURCH;
     }
 
     boolean isAttacker(Robot r) {
-        return r.team != me.team && !isStructure(r) && r.unit != SPECS.PILGRIM;
+        return r != null && r.team != me.team && !isStructure(r) && r.unit != SPECS.PILGRIM;
     }
 
     // SQUARES
@@ -368,7 +371,7 @@ public class MyRobot extends BCAbstractRobot {
          int t = 0;
          if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) t = 1;
          else t = 2;
-         signal(t,2); // -> this works?
+         signal(4*me.turn+t,2); 
 
          Action A = tryBuild(PILGRIM); if (A == null) return A;
          if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) {
@@ -407,6 +410,18 @@ public class MyRobot extends BCAbstractRobot {
         w = map[0].length; h = map.length;
         robots = getVisibleRobots();
         robotMap = getVisibleRobotMap();
+        if (turn == 0 && me.unit != SPECS.CASTLE) {
+            for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
+                int x = me.x+dx, y = me.y+dy;
+                if (valid(x,y) && robotMap[y][x] > 0) {
+                    Robot R = getRobot(robotMap[y][x]);
+                    if (isStructure(R) && R.team == me.team && R.signal > 0) turn = fdiv(R.signal,4);
+                }
+            }
+            log("TURN: "+turn);
+        } else {
+            turn ++;
+        }
 
         if (seenMap == null) {
             seenMap = new int[h][w];

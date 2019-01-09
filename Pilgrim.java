@@ -117,9 +117,9 @@ public class Pilgrim {
 	void setResource() {
     	for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
     		int x = Z.me.x+dx, y = Z.me.y+dy;
-    		if (Z.valid(x,y)) {
+    		if (Z.valid(x,y) && Z.robotMap[y][x] > 0) {
     			Robot R = Z.getRobot(Z.robotMap[y][x]);
-    			if (R != null && Z.isStructure(R) && R.signal > 0) Z.resource = R.signal-1;
+    			if (R != null && Z.isStructure(R) && R.signal > 0) Z.resource = (R.signal%4)-1;
     		}
     	}
     	if (Z.resource == -1) Z.resource = 1;

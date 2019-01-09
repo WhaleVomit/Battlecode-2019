@@ -19,7 +19,7 @@ public class Prophet {
             if (Z.dist(R) < 16) A = Z.moveAway(R);
             return A;
         }
-        if (Z.me.turn <= 100 && Z.distHome() >= 4) return null;
+        if (Z.turn <= 100 && Z.distHome() >= 4) return null;
         A = Z.moveTowardCastle();
         if (A != null) return A;
         return Z.nextMove(Z.closestUnseen());

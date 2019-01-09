@@ -50,6 +50,7 @@ public class Castle {
             if (A != null) return A;
         } else {
             if (Z.canBuild(PROPHET)) {
+                Z.signal(4*Z.turn,2);
                 Action A = Z.tryBuild(PROPHET);
                 if (A != null) {
                     Z.numAttack++;
