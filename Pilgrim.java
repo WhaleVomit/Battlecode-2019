@@ -67,13 +67,7 @@ public class Pilgrim {
 			for(int i = 0; i < Z.h; i++) for(int j = 0; j < Z.w; j++) {
 				if(Z.karboniteMap[i][j] || Z.fuelMap[i][j]) sites.add(new pii(Z.dist[i][j], 64*j+i));
 			}
-			Collections.sort(sites, new Comparator<pii>() {
-				@Override
-				public int compare(pii o1, pii o2) {
-					if(o1.f == o2.f)return ((Integer)o1.s).compareTo(o2.s);
-					return ((Integer)o1.f).compareTo(o2.f);
-				}
-		});
+			Collections.sort(sites);
 			for(pii p: sites) possibleSites.add(p.s);
 		}
 		int site = possibleSites.peek();
@@ -133,23 +127,4 @@ public class Pilgrim {
             return Z.nextMove(Z.getClosest(Z.fuelMap));
         }
     }
-	static class pii {
-		public int f, s;
-
-		public pii() {
-			f = 0;
-			s = 0;
-		}
-
-		public pii(int a, int b) {
-			f = a;
-			s = b;
-		}
-
-		public int compareTo(pii x) {
-			if (f != x.f) return Integer.valueOf(f).compareTo(x.f);
-			return Integer.valueOf(s).compareTo(x.s);
-		}
-	}
-
 }
