@@ -32,6 +32,6 @@ public class Consts {
 
     public static final boolean[] CAN_ATTACK = {false, false, false, true, true, true};
     public static final int[] MIN_ATTACK_R = {-1, -1, -1, 1, 4, 1};
-    public static final int[] MAX_ATTACK_R = {-1, -1, -1, 4, 8, 4};
+    public static final int[] MAX_ATTACK_R = {-1, -1, -1, 4, 64, 4};
     public static final int[] ATTACK_F_COST = {-1, -1, -1, 10, 25, 15};
 }
