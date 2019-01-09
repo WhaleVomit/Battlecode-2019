@@ -129,7 +129,7 @@ public class MyRobot extends BCAbstractRobot {
         if (me.turn == 1) {
             log("POS: " + me.x + " " + me.y);
             for (int i = me.x - 5; i <= me.x + 5; ++i) {
-                String t;
+                String t = "";
                 for (int j = me.x - 5; j <= me.x + 5; ++j) {
                     t += (char) ('0' + (map[i][j] ? 1 : 0));
                 }
