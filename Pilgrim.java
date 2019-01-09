@@ -7,11 +7,11 @@ import java.awt.*;
 public class Pilgrim {
 
     MyRobot Z;
-    Queue<Integer> possibleSites;
+    ArrayList<Integer> sites;
 
     public Pilgrim(MyRobot z) {
         this.Z = z;
-        possibleSites = new LinkedList<>();
+        sites = new ArrayList<>();
     }
     
     boolean shouldBuildChurch() {
@@ -58,7 +58,7 @@ public class Pilgrim {
 				}
 			}
 		}
-		return nump < numr+2;
+		return nump < numr+1;
 	}
 	
     int getClosest(boolean[][] B) {
@@ -82,7 +82,7 @@ public class Pilgrim {
 				
 				int y1 = arr.get(j+1)%64;
 				int x1 = (arr.get(j+1)-y1)/64;
-				if(Z.dist[y][x] > Z.dist[y1][x1]) {
+				if(Z.dist[y][x] < Z.dist[y1][x1]) {
 					int temp = arr.get(j);
 					arr.set(j,arr.get(j+1));
 					arr.set(j+1,temp);
@@ -101,21 +101,23 @@ public class Pilgrim {
 	}
 	
 	Action runFirst() { // find a suitable spot to mine
-		if(possibleSites.isEmpty()) { // put stuff back in possibleSites
- 			ArrayList<Integer> sites = new ArrayList<>();
+		if(sites.isEmpty()) { // put stuff back in sites
+			sites = new ArrayList<>();
 			for(int y = 0; y < Z.h; y++) for(int x = 0; x < Z.w; x++) {
 				if(Z.karboniteMap[y][x] || Z.fuelMap[y][x]) sites.add(64*x+y);
 			}
- 			bubblesort(sites);
+			bubblesort(sites); // reversed order
 			fakeshuffle(sites);
- 			for(int p: sites) possibleSites.add(p);
- 		}
-		int site = possibleSites.peek();
+		}
+		int site = sites.get(sites.size()-1);
 		int sitey = site%64;
 		int sitex = (site-sitey)/64;
 		int d = Z.dist[sitey][sitex];
-		if(d > 1) return Z.nextMove(sitex,sitey); // will keep moving to site until 1 away, then next round it will look at next site in queue
-		possibleSites.poll();
+
+		if(d > 1) {
+			return Z.nextMove(sitex,sitey); // will keep moving to site until 1 away, then next round it will look at next site in queue
+		}
+		sites.remove(sites.size()-1);
 		return null;
 	}
 
@@ -140,6 +142,11 @@ public class Pilgrim {
             Z.goHome = true;
             return Z.moveAway(R);
         }
+		
+		if(!Z.fuelMap[Z.me.y][Z.me.x] && !Z.karboniteMap[Z.me.y][Z.me.x] && !Z.goHome && !shouldMine(Z.me.x, Z.me.y)) {
+			Action A = runFirst();
+			if(A != null) return A;
+		}
 
         if (Z.canBuild(CHURCH) && shouldBuildChurch()) {
         	Action A = Z.tryBuild(CHURCH);
