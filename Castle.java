@@ -42,14 +42,13 @@ public class Castle {
 
     Action run() {
         determineLoc();
-        Action A = Z.makePilgrim();
-        if (A != null) return A;
-            /*
+        // Action A = Z.makePilgrim();
+        // if (A != null) return A;
         // Z.log("HA "+Z.me.signal);
         if (2 * Z.numPilgrims <= Z.numAttack) {
             Action A = Z.makePilgrim();
             if (A != null) return A;
-        } else if (true) {
+        } else {
             if (Z.canBuild(PROPHET)) {
                 Action A = Z.tryBuild(PROPHET);
                 if (A != null) {
@@ -58,7 +57,7 @@ public class Castle {
                     return A;
                 }
             }
-        } else {
+        } /*else {
             if (Z.canBuild(CRUSADER)) {
                 Action A = Z.tryBuild(CRUSADER);
                 if (A != null) {
