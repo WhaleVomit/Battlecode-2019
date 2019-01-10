@@ -50,16 +50,35 @@ public class Castle {
             Action A = Z.makePilgrim();
             if (A != null) return A;
         } else {
-            boolean canTake = Z.fuel >= CONSTRUCTION_F[CHURCH] + CONSTRUCTION_F[PROPHET] && Z.karbonite >= CONSTRUCTION_K[CHURCH] + CONSTRUCTION_K[PROPHET];
-            if((Z.numAttack < 6 && Z.canBuild(PROPHET)) || canTake) {
-                Z.signal(4*Z.turn,2);
-                Action A = Z.tryBuild(PROPHET);
-                if (A != null) {
-                    Z.numAttack++;
-                    Z.log("Built prophet");
-                    return A;
-                }
-            }
+			if(Z.turn <= 20) {
+				if (Z.canBuild(PREACHER)) {
+					Action A = Z.tryBuild(PREACHER);
+					if (A != null) {
+						Z.numAttack ++;
+						Z.log("Built preacher");
+						return A;
+					}
+				}
+				if (Z.canBuild(CRUSADER)) {
+					Action A = Z.tryBuild(CRUSADER);
+					if (A != null) {
+						Z.numAttack ++;
+						Z.log("Built crusader");
+						return A;
+					}
+				}
+			} else {
+				boolean canTake = Z.fuel >= CONSTRUCTION_F[CHURCH] + CONSTRUCTION_F[PROPHET] && Z.karbonite >= CONSTRUCTION_K[CHURCH] + CONSTRUCTION_K[PROPHET];
+				if((Z.numAttack < 6 && Z.canBuild(PROPHET)) || canTake) {
+					Z.signal(4*Z.turn,2);
+					Action A = Z.tryBuild(PROPHET);
+					if (A != null) {
+						Z.numAttack++;
+						Z.log("Built prophet");
+						return A;
+					}
+				}
+			}
         } /*else {
             if (Z.canBuild(CRUSADER)) {
                 Action A = Z.tryBuild(CRUSADER);

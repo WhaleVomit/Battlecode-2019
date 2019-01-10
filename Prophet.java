@@ -12,7 +12,7 @@ public class Prophet {
     Action react() {
         Action A = Z.tryAttack(); if (A != null) return A;
         Robot R = Z.closestEnemy();
-        if (R != null && Z.euclidDist(R) < 16) return Z.moveAway(R);
+		if (R != null && Z.euclidDist(R) < 16) return Z.moveAway(R);
         return null;
     }
 

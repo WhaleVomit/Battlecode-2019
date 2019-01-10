@@ -191,7 +191,7 @@ public class MyRobot extends BCAbstractRobot {
         Robot bes = null;
         for (Robot R : robots)
             if (R.team == me.team && R.unit > 1)
-                if (bes == null || dist(R) < dist(bes))
+                if (bes == null || euclidDist(R) < euclidDist(bes))
                     bes = R;
         return bes;
     }
