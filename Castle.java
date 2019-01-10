@@ -14,7 +14,7 @@ public class Castle {
             Z.log("HA "+Z.robots.length);
         }*/
 
-        for (Robot R: Z.robots) if (R.castle_talk > 0 && R.castle_talk <= 64) 
+        for (Robot R: Z.robots) if (R.castle_talk > 0 && R.castle_talk <= 64)
             Z.castleX.put(R.id,R.castle_talk-1);
 
         for (Robot R: Z.robots) if (R.castle_talk > 64 && R.castle_talk <= 128) {
@@ -49,7 +49,7 @@ public class Castle {
             Action A = Z.makePilgrim();
             if (A != null) return A;
         } else {
-            if (Z.canBuild(PROPHET)) {
+            if (/*Z.canBuild(PROPHET)*/ Z.fuel >= CONSTRUCTION_F[CHURCH] + CONSTRUCTION_F[PROPHET] && Z.karbonite >= CONSTRUCTION_K[CHURCH] + CONSTRUCTION_K[PROPHET]) {
                 Z.signal(4*Z.turn,2);
                 Action A = Z.tryBuild(PROPHET);
                 if (A != null) {

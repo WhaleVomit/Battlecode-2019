@@ -31,22 +31,21 @@ public class Pilgrim {
 		if(!isNextToEmpty) return false;
 
 		// has to be at least 4 away from nearest deposit
-		int closeChurch = Z.getClosestStruct(true);
+		int closeChurch = Z.getClosestChurch(true);
 		int closeChurchX = (closeChurch-(closeChurch%64))/64;
 		int closeChurchY = closeChurch%64;
 		int d1 = MOD;
 		if(closeChurch != MOD) d1 = Z.dist[closeChurchY][closeChurchX];
 
-		/*
-		int closeCastle = Z.getClosestStruct(CASTLE,true);
+		int closeCastle = Z.getClosestCastle(true);
 		int closeCastleX = (closeCastle-(closeCastle%64))/64;
 		int closeCastleY = closeCastle%64;
 		int d2 = MOD;
 		if(closeCastle != MOD) d2 = Z.dist[closeCastleY][closeCastleX];
-		if(Math.min(d1,d2) >= 4) {
-			Z.log(d1 + " " + d2);
+
+		if(Math.min(d1,d2) >= 4 && Z.canBuild(CHURCH)) {
 			return true;
-		}*/
+		}
 
 		return false;
 	}
@@ -70,7 +69,7 @@ public class Pilgrim {
 		for(int dx = -2; dx <= 2; dx++) {
 			for(int dy = -2; dy <= 2; dy++) if(Z.valid(x+dx,y+dy)) {
 				if(Z.fuelMap[y+dy][x+dx]) numr++;
-				if(Z.seenMap[y+dy][x+dx] != -1 && Z.seenMap[y+dy][x+dx] != Z.me.id) {
+				if(Z.seenMap[y+dy][x+dx] > 0 && Z.seenMap[y+dy][x+dx] != Z.me.id) {
 					Robot r = Z.seenRobot[y+dy][x+dx];
 					if (r.unit == PILGRIM) nump++;
 				}
@@ -111,6 +110,7 @@ public class Pilgrim {
 
         if (Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
         if (Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
+
         if (Z.me.karbonite < 5 && Z.me.fuel < 25) Z.goHome = false;
         if (Z.me.karbonite > 16 || Z.me.fuel > 80) Z.goHome = true;
         if (Z.goHome) return Z.moveHome();

@@ -14,8 +14,8 @@ public class Consts {
     public static final int RED = 0;
     public static final int BLUE = 1;
 
-    public static final int[] CONTRUCTION_K = {-1, -1, 10, 20, 25, 30};
-    public static final int CONTRUCTION_F = 50;
+    public static final int[] CONSTRUCTION_K = {-1, 50, 10, 20, 25, 30};
+    public static final int[] CONSTRUCTION_F = {-1, 200, 50, 50, 50, 50};
 
     public static final int K_CARRY_CAP = 20;
     public static final int F_CARRY_CAP = 100;

@@ -14,6 +14,7 @@ public class MyRobot extends BCAbstractRobot {
     int[][] robotMap, seenMap, dist, pre; // note that arrays are by y and tthen x
     Robot[][] seenRobot;
     ArrayList<Integer> myCastle = new ArrayList<>(), otherCastle = new ArrayList<>();
+    ArrayList<Integer> myChurch = new ArrayList<>(), otherChurch = new ArrayList<>();
     int numCastles=0, numPilgrims=0, numAttack=0, numChurches=0, numCrusaders=0;
     int resource = -1;
 
@@ -80,7 +81,8 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     int getDist(int x) {
-        return dist[x % 64][x / 64];
+        if(x == MOD) return MOD;
+        return dist[x % 64][(x - x % 64) / 64];
     }
 
     int closest(ArrayList<Integer> A) {
@@ -305,24 +307,40 @@ public class MyRobot extends BCAbstractRobot {
         for (Robot R: robots)
             if ((R.unit == CASTLE || R.unit == CHURCH) && R.team == me.team && adjacent(R) && enoughResources())
                 return give(R.x-me.x,R.y-me.y,me.karbonite,me.fuel);
-        int x = getClosestStruct(true);
+        int x = getClosestCastle(true);
         return moveToward((x-(x%64))/64,x%64);
     }
 
-    int getClosestStruct (boolean ourteam) {
+    int getClosestChurch(boolean ourteam) {
+        int bestDist = MOD; int bestPos = MOD;
+        ArrayList<Integer> A;
+        if (ourteam) A = myChurch;
+        else A = otherChurch;
+        for(int i : myChurch) if(getDist(i) < bestDist) {
+            bestDist = getDist(i);
+            bestPos = i;
+        }
+        return bestPos;
+    }
+
+    int getClosestCastle(boolean ourteam) {
         int bestDist = MOD; int bestPos = MOD;
         ArrayList<Integer> A;
         if (ourteam) A = myCastle;
         else A = otherCastle;
-        for (int i: A) {
-            int y = i%64; int x = (i-y)/64;
-            if (dist[y][x] < bestDist) {
-                bestDist = dist[y][x];
-                bestPos = i;
-            }
+        for(int i : myChurch) if(getDist(i) < bestDist) {
+            bestDist = getDist(i);
+            bestPos = i;
         }
         return bestPos;
     }
+
+    int getClosestStruct(boolean ourteam) {
+        int bestCastle = getClosestCastle(ourteam);
+        int bestChurch = getClosestChurch(ourteam);
+        if(getDist(bestCastle) < getDist(bestChurch)) return bestCastle;
+        else return bestChurch;
+     }
 
     // ATTACK
     boolean canAttack(int dx, int dy) {
@@ -363,20 +381,15 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     boolean canBuild(int t) {
-        if (fuel < 50) return false;
-        if (t == SPECS.PILGRIM) return karbonite >= 10;
-        if (t == SPECS.CRUSADER) return karbonite >= 20;
-        if (t == SPECS.PROPHET) return karbonite >= 25;
-        if (t == SPECS.PREACHER) return karbonite >= 30;
-        return false;
+        return fuel >= CONSTRUCTION_F[t] && karbonite >= CONSTRUCTION_K[t];
     }
 
     public Action makePilgrim() {
-         if (!canBuild(PILGRIM)) return null; 
+         if (!canBuild(PILGRIM)) return null;
          int t = 0;
          if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) t = 1;
          else t = 2;
-         signal(4*me.turn+t,2); 
+         signal(4*me.turn+t,2);
 
          Action A = tryBuild(PILGRIM); if (A == null) return A;
          if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) {
@@ -394,16 +407,16 @@ public class MyRobot extends BCAbstractRobot {
     Map<Integer,Integer> castleY = new HashMap<>();
 
     void addStruct(Robot R) {
-        if (R.team == me.team) {
-            int t = 64*R.x+R.y;
-            if (!myCastle.contains(t)) {
+        int t = 64*R.x+R.y;
+        if(R.unit == CHURCH) {
+            if(R.team == me.team && !myChurch.contains(t)) myChurch.add(t);
+            else if(R.team != me.team && !otherChurch.contains(t)) otherChurch.add(t);
+        } else {
+            if (R.team == me.team && !myCastle.contains(t)) {
                 myCastle.add(t);
                 if (wsim() && R.unit == 0 && !emp[R.y][w-1-R.x]) otherCastle.add(64*(w-1-R.x)+R.y);
                 if (hsim() && R.unit == 0 && !emp[h-1-R.y][R.x]) otherCastle.add(64*R.x+(h-1-R.y));
-            }
-        } else {
-            int t = 64*R.x+R.y;
-            if (!otherCastle.contains(t)) {
+            } else if(R.team != me.team && !otherCastle.contains(t)){
                 otherCastle.add(t);
                 if (wsim() && R.unit == 0 && !emp[R.y][w-1-R.x]) myCastle.add(64*(w-1-R.x)+R.y);
                 if (hsim() && R.unit == 0 && !emp[h-1-R.y][R.x]) myCastle.add(64*R.x+(h-1-R.y));
@@ -423,7 +436,6 @@ public class MyRobot extends BCAbstractRobot {
                     if (isStructure(R) && R.team == me.team && R.signal > 0) turn = fdiv(R.signal,4);
                 }
             }
-            log("TURN: "+turn);
         } else {
             turn ++;
         }
