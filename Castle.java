@@ -6,10 +6,6 @@ public class Castle extends Building {
     public Castle(MyRobot z) { super(z); }
 
     void determineLoc() {
-        /*if (Z.me.turn == 1) {
-            Z.log("HA "+Z.robots.length);
-        }*/
-
         for (Robot R: Z.robots) if (R.castle_talk > 0 && R.castle_talk <= 64)
             Z.castleX.put(R.id,R.castle_talk-1);
 
@@ -28,12 +24,6 @@ public class Castle extends Building {
         if (Z.me.turn == 1) Z.castleTalk(Z.me.x+1);
         else if (Z.me.turn == 2) Z.castleTalk(64+Z.me.y+1);
         else if (Z.me.turn == 3) Z.castleTalk(0);
-
-        /*if (Z.turn <= 3) {
-            log("HA: "+Z.turn);
-            for (Robot R: Z.robots) log(Z.getInfo(R));
-            for (int R: Z.myCastle) log("HUH "+R);
-        }*/
     }
 
     Action run() {
@@ -61,7 +51,6 @@ public class Castle extends Building {
         } else {
             boolean canTake = Z.fuel >= CONSTRUCTION_F[CHURCH] + CONSTRUCTION_F[PROPHET] && Z.karbonite >= CONSTRUCTION_K[CHURCH] + CONSTRUCTION_K[PROPHET];
             if((Z.numAttack < 6 && Z.canBuild(PROPHET)) || canTake) {
-                Z.signal(4*Z.turn,2);
                 Action A = Z.tryBuild(PROPHET);
                 if (A != null) {
                     Z.numAttack++;

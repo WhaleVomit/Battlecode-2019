@@ -8,10 +8,9 @@ import static bc19.Consts.*;
 public class MyRobot extends BCAbstractRobot {
 
     // DATA
-    int type0 = 0; // units collecting karbonite
-    int type1 = 0; // units collecting fuel
     int turn = 0; // turns since start of game
     int w, h; // width, height
+    int myUnits = 0;
     int numCastles = 0, numPilgrims = 0, numAttack = 0, numChurches = 0, numCrusaders = 0;
 
     int resource = -1; // karbonite or fuel
@@ -288,6 +287,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     public Action tryBuild(int type) {
+        signal(4*turn,2);
         for (int dx = -1; dx <= 1; ++dx)
             for (int dy = -1; dy <= 1; ++dy)
                 if (passable(me.x + dx, me.y + dy))
@@ -356,7 +356,11 @@ public class MyRobot extends BCAbstractRobot {
                     }
                 }
 
-        for (Robot R: robots) if (isStructure(R)) addStruct(R);
+        myUnits = 0;
+        for (Robot R: robots) {
+            if (isStructure(R)) addStruct(R);
+            if (R.id <= 0 || R.team == me.team) myUnits ++;
+        }
         rem(myCastle); rem(otherCastle);
     }
 

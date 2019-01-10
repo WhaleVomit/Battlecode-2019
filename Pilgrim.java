@@ -76,7 +76,14 @@ public class Pilgrim extends Movable {
 
 
 	void setResource() {
-    	for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
+        if (Z.resource != -1) return;
+        double a = Z.karbonite, b = (Z.fuel-100*Z.myUnits)/5.0;
+        if (a+100 < b) {
+        	Z.resource = 0;
+        } else if (b+100 < a) {
+        	Z.resource = 1;
+        } else Z.resource = Z.id % 2;
+    	/*for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
     		int x = Z.me.x+dx, y = Z.me.y+dy;
     		if (Z.valid(x,y) && Z.robotMap[y][x] > 0) {
     			Robot R = Z.getRobot(Z.robotMap[y][x]);
@@ -84,12 +91,11 @@ public class Pilgrim extends Movable {
     		}
     	}
     	if (Z.resource == -1) Z.resource = 1;
-    	Z.log("RESOURCE: "+Z.resource);
+    	Z.log("RESOURCE: "+Z.resource);*/
 	}
 
     Action run() {
-        if (Z.resource == -1) setResource();
-
+    	setResource();
         Robot R = Z.closestAttacker();
         if (R != null) {
             Z.goHome = true;
@@ -98,8 +104,7 @@ public class Pilgrim extends Movable {
 
         if (Z.canBuild(CHURCH) && shouldBuildChurch()) {
         	Action A = Z.tryBuild(CHURCH);
-        	if(A != null) {
-				Z.numChurches++;
+        	if (A != null) { Z.numChurches++;
 				return A;
 			}
         }
@@ -111,13 +116,12 @@ public class Pilgrim extends Movable {
         if (Z.me.karbonite > 16 || Z.me.fuel > 80) Z.goHome = true;
         if (Z.goHome) return moveHome();
 
-        if (Z.resource == 0 || Z.karbonite < 50) {
+        if (Z.resource == 0) {
 			if(getkarboscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.karboniteMap));
 			boolean[][] karboMap = new boolean[Z.h][Z.w];
 			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) karboMap[y][x] = (getkarboscore(x,y) > 0);
 			return nextMove(Z.getClosestUnused(karboMap));
-		}
-        else {
+		} else {
 			if(getfuelscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.fuelMap));
 			boolean[][] fuelMap = new boolean[Z.h][Z.w];
 			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) fuelMap[y][x] = (getfuelscore(x,y) > 0);

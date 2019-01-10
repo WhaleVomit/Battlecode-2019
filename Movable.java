@@ -59,8 +59,10 @@ public class Movable {
 
     public Action moveHome() {
         for (Robot R: Z.robots)
-            if (Z.isStructure(R) && R.team == Z.me.team && Z.adjacent(R) && enoughResources())
+            if (Z.isStructure(R) && R.team == Z.me.team && Z.adjacent(R) && enoughResources()) {
+                Z.resource = -1;
                 return Z.give(R.x-Z.me.x,R.y-Z.me.y,Z.me.karbonite,Z.me.fuel);
+            }
         int x = Z.getClosestStruct(true);
         return moveToward(Z.fdiv(x,64),x%64);
     }

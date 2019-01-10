@@ -47,6 +47,4 @@ public class Attackable extends Movable {
             }
         return bes;
     }
-
-
 }
