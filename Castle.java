@@ -3,6 +3,7 @@ package bc19;
 import static bc19.Consts.*;
 
 public class Castle {
+
     MyRobot Z;
 
     public Castle(MyRobot z) {
@@ -49,7 +50,10 @@ public class Castle {
             Action A = Z.makePilgrim();
             if (A != null) return A;
         } else {
-            if (/*Z.canBuild(PROPHET)*/ Z.fuel >= CONSTRUCTION_F[CHURCH] + CONSTRUCTION_F[PROPHET] && Z.karbonite >= CONSTRUCTION_K[CHURCH] + CONSTRUCTION_K[PROPHET]) {
+            boolean canTake = Z.fuel >= CONSTRUCTION_F[CHURCH] + CONSTRUCTION_F[PROPHET] && Z.karbonite >= CONSTRUCTION_K[CHURCH] + CONSTRUCTION_K[PROPHET];
+            if(Z.canBuild(CHURCH)) Z.churchesMaxed = Math.min(2, Z.churchesMaxed + 1);
+            else if(Z.churchesMaxed == 1) Z.churchesMaxed = 0;
+            if (canTake || (Z.churchesMaxed == 2 && Z.canBuild(PROPHET))) {
                 Z.signal(4*Z.turn,2);
                 Action A = Z.tryBuild(PROPHET);
                 if (A != null) {

@@ -19,6 +19,7 @@ public class MyRobot extends BCAbstractRobot {
     int resource = -1;
 
     boolean goHome;
+    int churchesMaxed;
     boolean[][] emp;
     // Random ran = new Random();
 
@@ -307,7 +308,7 @@ public class MyRobot extends BCAbstractRobot {
         for (Robot R: robots)
             if ((R.unit == CASTLE || R.unit == CHURCH) && R.team == me.team && adjacent(R) && enoughResources())
                 return give(R.x-me.x,R.y-me.y,me.karbonite,me.fuel);
-        int x = getClosestCastle(true);
+        int x = getClosestStruct(true);
         return moveToward((x-(x%64))/64,x%64);
     }
 
@@ -316,7 +317,7 @@ public class MyRobot extends BCAbstractRobot {
         ArrayList<Integer> A;
         if (ourteam) A = myChurch;
         else A = otherChurch;
-        for(int i : myChurch) if(getDist(i) < bestDist) {
+        for(int i : A) if(getDist(i) < bestDist) {
             bestDist = getDist(i);
             bestPos = i;
         }
@@ -328,7 +329,7 @@ public class MyRobot extends BCAbstractRobot {
         ArrayList<Integer> A;
         if (ourteam) A = myCastle;
         else A = otherCastle;
-        for(int i : myChurch) if(getDist(i) < bestDist) {
+        for(int i : A) if(getDist(i) < bestDist) {
             bestDist = getDist(i);
             bestPos = i;
         }
