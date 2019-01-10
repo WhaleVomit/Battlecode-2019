@@ -23,9 +23,10 @@ public class MyRobot extends BCAbstractRobot {
     boolean[][] emp;
     // Random ran = new Random();
 
-    int fdiv(int a, int b) {
-        return (a-(a%b))/b;
-    }
+    // MATH
+    int fdiv(int a, int b) { return (a-(a%b))/b; }
+    int sq(int x) { return x*x; }
+
     // UNIT TYPES
     boolean isStructure(Robot r) {
         return r != null && r.unit == CASTLE || r.unit == CHURCH;
@@ -69,8 +70,20 @@ public class MyRobot extends BCAbstractRobot {
         return Math.abs(me.x - r.x) <= 1 && Math.abs(me.y - r.y) <= 1;
     }
 
+    int numOpen(int t) {
+        int y = t % 64; int x = fdiv(t,64);
+        int ret = 0;
+        for (int i = x-1; i <= x+1; ++i)
+            for (int j = y-1; j <= y+1; ++j)
+                if (valid(i,j) && robotMap[j][i] == 0) ret ++;
+        return ret;
+    }
     int dist(Robot B) {
-        return (me.x - B.x) * (me.x - B.x) + (me.y - B.y) * (me.y - B.y);
+        return sq(me.x - B.x) + sq(me.y - B.y);
+    }
+
+    int euclidDist(int x, int y) {
+        return sq(me.x-x)+sq(me.y-y);
     }
 
     int moveDist(Robot r) {
@@ -287,18 +300,6 @@ public class MyRobot extends BCAbstractRobot {
         return moveAway(R.x, R.y);
     }
 
-    Action moveTowardCastle() {
-        while (otherCastle.size() > 0) {
-            int y = otherCastle.get(0) % 64;
-            int x = (otherCastle.get(0) - y) / 64;
-            if (robotMap[y][x] == 0) {
-                otherCastle.remove(0);
-                continue;
-            }
-            return nextMove(x, y);
-        }
-        return null;
-    }
 
     boolean enoughResources() {
         return me.fuel > 25 || (me.fuel > 0 && !fuelMap[me.y][me.x]) || me.karbonite > 5 || (me.karbonite > 0 && !karboniteMap[me.y][me.y]);
@@ -310,6 +311,28 @@ public class MyRobot extends BCAbstractRobot {
                 return give(R.x-me.x,R.y-me.y,me.karbonite,me.fuel);
         int x = getClosestStruct(true);
         return moveToward((x-(x%64))/64,x%64);
+    }
+
+    Action moveTowardCastle() {
+        while (otherCastle.size() > 0) {
+            int y = otherCastle.get(0) % 64;
+            int x = (otherCastle.get(0) - y) / 64;
+            if (robotMap[y][x] == 0) {
+                otherCastle.remove(0);
+                continue;
+            }
+            return nextMove(x, y);
+        }
+        while (otherChurch.size() > 0) {
+            int y = otherChurch.get(0) % 64;
+            int x = (otherChurch.get(0) - y) / 64;
+            if (robotMap[y][x] == 0) {
+                otherChurch.remove(0);
+                continue;
+            }
+            return nextMove(x, y);
+        }
+        return null;
     }
 
     int getClosestChurch(boolean ourteam) {
@@ -388,7 +411,7 @@ public class MyRobot extends BCAbstractRobot {
     public Action makePilgrim() {
          if (!canBuild(PILGRIM)) return null;
          int t = 0;
-         if (2*type0 < type1 || (5*karbonite < fuel && 2*type1 >= type0)) t = 1;
+         if (2*type0 < type1 || (10*karbonite < fuel && 2*type1 >= type0)) t = 1;
          else t = 2;
          signal(4*me.turn+t,2);
 
