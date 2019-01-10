@@ -2,21 +2,26 @@ package bc19;
 
 import static bc19.Consts.*;
 
-public class Preacher extends Attackable {
-    public Preacher(MyRobot z) { super(z); }
+public class Preacher {
+    MyRobot Z;
+
+    public Preacher(MyRobot z) {
+        this.Z = z;
+    }
 
     int getVal(int x, int y) {
         int t = 0;
-        for (int i = x - 1; i <= x + 1; ++i)
-            for (int j = y - 1; j <= y + 1; ++j)
-                if (Z.valid(i,j) && Z.seenMap[j][i] > 0) {
-                    Robot R = Z.seenRobot[j][i];
+        for (int i = x - 1; i <= x + 1; ++i) {
+            for (int j = y - 1; j <= y + 1; ++j) {
+                if (Z.valid(i, j) && Z.robotMap[j][i] > 0) {
+                    Robot R = Z.getRobot(Z.robotMap[j][i]);
                     int sgn = (R.team == Z.me.team) ? -2 : 1;
                     if (Z.isAttacker(R)) sgn *= 2;
-                    else if (Z.isStructure(R)) sgn *= 3;
+                    else if (Z.isStructure(R)) sgn *= 10;
                     t += sgn;
                 }
-
+			}
+		}
         return t;
     }
 
@@ -24,7 +29,7 @@ public class Preacher extends Attackable {
         int bes = 0, DX = MOD, DY = MOD;
         for (int dx = -4; dx <= 4; ++dx)
             for (int dy = -4; dy <= 4; ++dy)
-                if (canAttack(dx, dy) != -MOD) {
+                if (Z.canAttack(dx, dy) != -MOD) {
                     int t = getVal(Z.me.x + dx, Z.me.y + dy);
                     if (t > bes) {
                         bes = t;
@@ -37,10 +42,15 @@ public class Preacher extends Attackable {
     }
 
     public Action run() {
-        Action A = tryAttack(); if (A != null) return A;
-        return patrol();
-        /*if (A != null) return A;
-        if (Z.distHome() > 25) return moveHome();
-        return nextMove(Z.closestUnseen());*/
+        Action A = tryAttack();
+        if (A != null) {
+			return A;
+		}
+        int pos = Z.getClosestCastle(false);
+        if(Z.euclidDist((pos-(pos%64))/64,pos%64) > 16) {
+			A = Z.moveTowardCastle();
+			if (A != null) return A;
+			return Z.nextMove(Z.closestUnseen());
+		}
     }
 }
