@@ -34,7 +34,6 @@ public class MyRobot extends BCAbstractRobot {
     boolean isAttacker(Robot r) {
         return r != null && r.team != me.team && CAN_ATTACK[r.unit];
     }
-
     // SQUARES
     boolean hsim() {
         for (int i = 0; i < h - 1 - i; ++i)
@@ -187,6 +186,15 @@ public class MyRobot extends BCAbstractRobot {
         for (Integer i : B) A.add(i);
     }
 
+    //closest allied soldier
+    Robot closestAlly() {
+        Robot bes = null;
+        for (Robot R : robots)
+            if (R.team == me.team && R.unit > 1)
+                if (bes == null || dist(R) < dist(bes))
+                    bes = R;
+        return bes;
+    }
 
     // LOOKING FOR DESTINATION
     Robot closestEnemy() {
