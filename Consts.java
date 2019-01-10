@@ -1,7 +1,7 @@
 package bc19;
 
 public class Consts {
-    public static final int INF = Integer.MAX_VALUE;
+    
     public static final int MOD = 1000000007;
 
     public static final int CASTLE = 0;

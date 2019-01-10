@@ -51,9 +51,9 @@ public class Castle {
             if (A != null) return A;
         } else {
             boolean canTake = Z.fuel >= CONSTRUCTION_F[CHURCH] + CONSTRUCTION_F[PROPHET] && Z.karbonite >= CONSTRUCTION_K[CHURCH] + CONSTRUCTION_K[PROPHET];
-            if(Z.canBuild(CHURCH)) Z.churchesMaxed = Math.min(2, Z.churchesMaxed + 1);
-            else if(Z.churchesMaxed == 1) Z.churchesMaxed = 0;
-            if (canTake || (Z.churchesMaxed == 2 && Z.canBuild(PROPHET))) {
+            if(Z.canBuild(CHURCH)) Z.churchesMaxed = Math.min(10, Z.churchesMaxed + 1);
+            else if(Z.churchesMaxed < 10) Z.churchesMaxed = Math.max(0, Z.churchesMaxed - 1);
+            if(canTake || (Z.churchesMaxed == 10 && Z.canBuild(PROPHET))) {
                 Z.signal(4*Z.turn,2);
                 Action A = Z.tryBuild(PROPHET);
                 if (A != null) {

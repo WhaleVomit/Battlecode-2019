@@ -33,7 +33,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     boolean isAttacker(Robot r) {
-        return r != null && r.team != me.team && !isStructure(r) && r.unit != SPECS.PILGRIM;
+        return r != null && r.team != me.team && CAN_ATTACK[r.unit];
     }
 
     // SQUARES
@@ -281,7 +281,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     Action moveAway(int x, int y) {
-        int farthest = INF;
+        int farthest = MOD;
         Action best;
         for(int i = -3; i <= 3; i++)
             for(int j = -3; j <= 3; j++)
