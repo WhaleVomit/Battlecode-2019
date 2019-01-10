@@ -2,13 +2,8 @@ package bc19;
 
 import static bc19.Consts.*;
 
-public class Castle {
-
-    MyRobot Z;
-
-    public Castle(MyRobot z) {
-        this.Z = z;
-    }
+public class Castle extends Building {
+    public Castle(MyRobot z) { super(z); }
 
     void determineLoc() {
         /*if (Z.me.turn == 1) {
@@ -47,7 +42,7 @@ public class Castle {
         // if (A != null) return A;
         // Z.log("HA "+Z.me.signal);
         if (2 * Z.numPilgrims <= Z.numAttack) {
-            Action A = Z.makePilgrim();
+            Action A = makePilgrim();
             if (A != null) return A;
         } else {
             boolean canTake = Z.fuel >= CONSTRUCTION_F[CHURCH] + CONSTRUCTION_F[PROPHET] && Z.karbonite >= CONSTRUCTION_K[CHURCH] + CONSTRUCTION_K[PROPHET];

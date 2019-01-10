@@ -2,20 +2,16 @@ package bc19;
 
 import static bc19.Consts.*;
 
-public class Crusader {
-    MyRobot Z;
-
-    public Crusader(MyRobot z) {
-        this.Z = z;
-    }
+public class Crusader extends Attackable {
+    public Crusader(MyRobot z) { super(z); }
 
     Action run() {
-        Action A = Z.tryAttack();
+        Action A = tryAttack();
         if (A != null) return A;
-        A = Z.moveToward(Z.closestEnemy());
+        A = moveToward(Z.closestEnemy());
         if (A != null) return A;
-        A = Z.moveTowardCastle();
+        A = moveTowardCastle();
         if (A != null) return A;
-        return Z.nextMove(Z.closestUnseen());
+        return nextMove(Z.closestUnseen());
     }
 }

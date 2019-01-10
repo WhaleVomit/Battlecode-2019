@@ -4,15 +4,13 @@ import static bc19.Consts.*;
 import java.util.*;
 import java.awt.*;
 
-public class Pilgrim {
-
-    MyRobot Z;
+public class Pilgrim extends Movable {
     ArrayList<Integer> sites;
-
-    public Pilgrim(MyRobot z) {
-        this.Z = z;
-        sites = new ArrayList<>();
-    }
+    
+    public Pilgrim (MyRobot z) { 
+    	super(z); 
+	    sites = new ArrayList<>();
+	}
 
     boolean shouldMine() {
         return Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x] || Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x];
@@ -24,9 +22,7 @@ public class Pilgrim {
 		boolean isNextToEmpty = false;
 		for(int dx = -1; dx <= 1; dx++) for(int dy = -1; dy <= 1; dy++) {
 			int newx = Z.me.x+dx; int newy = Z.me.y+dy;
-			if(Z.isEmpty(newx, newy)) {
-				if(!Z.karboniteMap[newy][newx] && !Z.fuelMap[newy][newx]) isNextToEmpty = true;
-			}
+			if(Z.passable(newx, newy) && !Z.karboniteMap[newy][newx] && !Z.fuelMap[newy][newx]) isNextToEmpty = true;
 		}
 		if(!isNextToEmpty) return false;
 
@@ -97,7 +93,7 @@ public class Pilgrim {
         Robot R = Z.closestAttacker();
         if (R != null) {
             Z.goHome = true;
-            return Z.moveAway(R);
+            return moveAway(R);
         }
 
         if (Z.canBuild(CHURCH) && shouldBuildChurch()) {
@@ -113,19 +109,19 @@ public class Pilgrim {
 
         if (Z.me.karbonite < 5 && Z.me.fuel < 25) Z.goHome = false;
         if (Z.me.karbonite > 16 || Z.me.fuel > 80) Z.goHome = true;
-        if (Z.goHome) return Z.moveHome();
+        if (Z.goHome) return moveHome();
 
         if (Z.resource == 0 || Z.karbonite < 50) {
-			if(getkarboscore(Z.me.x, Z.me.y) > 0) return Z.nextMove(Z.getClosestUnused(Z.karboniteMap));
+			if(getkarboscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.karboniteMap));
 			boolean[][] karboMap = new boolean[Z.h][Z.w];
 			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) karboMap[y][x] = (getkarboscore(x,y) > 0);
-			return Z.nextMove(Z.getClosestUnused(karboMap));
+			return nextMove(Z.getClosestUnused(karboMap));
 		}
         else {
-			if(getfuelscore(Z.me.x, Z.me.y) > 0) return Z.nextMove(Z.getClosestUnused(Z.fuelMap));
+			if(getfuelscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.fuelMap));
 			boolean[][] fuelMap = new boolean[Z.h][Z.w];
 			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) fuelMap[y][x] = (getfuelscore(x,y) > 0);
-			return Z.nextMove(Z.getClosestUnused(fuelMap));
+			return nextMove(Z.getClosestUnused(fuelMap));
 		}
     }
 }
