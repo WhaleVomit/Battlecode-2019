@@ -19,7 +19,6 @@ public class MyRobot extends BCAbstractRobot {
     int resource = -1;
 
     boolean goHome;
-    int churchesMaxed;
     boolean[][] emp;
     // Random ran = new Random();
 
