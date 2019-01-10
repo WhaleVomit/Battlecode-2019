@@ -74,15 +74,15 @@ public class Pilgrim extends Movable {
 		return numr - nump;
 	}
 
+	double a,b;
 
 	void setResource() {
         if (Z.resource != -1) return;
-        double a = Z.karbonite, b = (Z.fuel-100*Z.myUnits)/5.0;
         if (a+100 < b) {
         	Z.resource = 0;
         } else if (b+100 < a) {
         	Z.resource = 1;
-        } else Z.resource = Z.id % 2;
+        } else Z.resource = (Z.id+Z.turn) % 2;
         Z.log("RESOURCE: "+a+" "+b+" "+Z.resource);
     	/*for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
     		int x = Z.me.x+dx, y = Z.me.y+dy;
@@ -96,6 +96,7 @@ public class Pilgrim extends Movable {
 	}
 
     Action run() {
+        a = Z.karbonite; b = (Z.fuel-100*Z.myUnits)/5.0;
     	setResource();
         
         Robot R = Z.closestAttacker();
@@ -121,7 +122,8 @@ public class Pilgrim extends Movable {
         }
 
         if (Z.me.karbonite < 5 && Z.me.fuel < 25) Z.goHome = false;
-        if (Z.me.karbonite > 16 || Z.me.fuel > 80) Z.goHome = true;
+        if (Z.me.karbonite > 16 && b+100 >= a) Z.goHome = true;
+        if (Z.me.fuel > 80 && a+100 >= b) Z.goHome = true;
         if (Z.goHome) return moveHome();
 
         if (Z.resource == 0) {
