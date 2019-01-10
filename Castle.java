@@ -51,7 +51,7 @@ public class Castle {
             if (A != null) return A;
         } else {
             boolean canTake = Z.fuel >= CONSTRUCTION_F[CHURCH] + CONSTRUCTION_F[PROPHET] && Z.karbonite >= CONSTRUCTION_K[CHURCH] + CONSTRUCTION_K[PROPHET];
-            if(canTake) {
+            if((Z.numAttack < 6 && Z.canBuild(PROPHET)) || canTake) {
                 Z.signal(4*Z.turn,2);
                 Action A = Z.tryBuild(PROPHET);
                 if (A != null) {
