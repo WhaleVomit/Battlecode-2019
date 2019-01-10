@@ -78,17 +78,12 @@ public class Pilgrim {
 		return numr - nump;
 	}
 
-
 	void setResource() {
-    	for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
-    		int x = Z.me.x+dx, y = Z.me.y+dy;
-    		if (Z.valid(x,y) && Z.robotMap[y][x] > 0) {
-    			Robot R = Z.getRobot(Z.robotMap[y][x]);
-    			if (R != null && Z.isStructure(R) && R.signal > 0) Z.resource = (R.signal%4)-1;
-    		}
-    	}
-    	if (Z.resource == -1) Z.resource = 1;
-    	Z.log("RESOURCE: "+Z.resource);
+		for (Robot R: Z.robots) 
+			if (Z.isStructure(R) && R.team == Z.me.team && R.signal >= 0 && R.signal % 4 != 0) 
+				Z.resource = (R.signal%4)-1;
+    	if (Z.resource == -1) Z.resource = 2;
+    	Z.log("RESOURCE: "+Z.me.turn+" "+Z.resource);
 	}
 
     Action run() {
@@ -115,17 +110,23 @@ public class Pilgrim {
         if (Z.me.karbonite > 16 || Z.me.fuel > 80) Z.goHome = true;
         if (Z.goHome) return Z.moveHome();
 
-        if (Z.resource == 0 || Z.karbonite < 50) {
-			if(getkarboscore(Z.me.x, Z.me.y) > 0) return Z.nextMove(Z.getClosestUnused(Z.karboniteMap));
+        if (Z.resource == 0) {
+			if(getkarboscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.karboniteMap));
 			boolean[][] karboMap = new boolean[Z.h][Z.w];
 			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) karboMap[y][x] = (getkarboscore(x,y) > 0);
-			return Z.nextMove(Z.getClosestUnused(karboMap));
-		}
-        else {
-			if(getfuelscore(Z.me.x, Z.me.y) > 0) return Z.nextMove(Z.getClosestUnused(Z.fuelMap));
+			return nextMove(Z.getClosestUnused(karboMap));
+		} else if (Z.resource == 1) {
+			if(getfuelscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.fuelMap));
 			boolean[][] fuelMap = new boolean[Z.h][Z.w];
 			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) fuelMap[y][x] = (getfuelscore(x,y) > 0);
-			return Z.nextMove(Z.getClosestUnused(fuelMap));
+			return nextMove(Z.getClosestUnused(fuelMap));
+		} else {
+			if (getkarboscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.karboniteMap));
+			if (getfuelscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.fuelMap));
+			boolean[][] resourceMap = new boolean[Z.h][Z.w];
+			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) 
+				resourceMap[y][x] = (getkarboscore(x,y) > 0) || (getfuelscore(x,y) > 0);
+			return nextMove(Z.getClosestUnused(resourceMap));
 		}
     }
 }

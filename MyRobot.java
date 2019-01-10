@@ -8,8 +8,19 @@ import static bc19.Consts.*;
 public class MyRobot extends BCAbstractRobot {
 
     // DATA
+<<<<<<< HEAD
+    int turn = 0; // turns since start of game
+    int w, h, myUnits = 0; // width, height
+    int numCastles = 0, numPilgrims = 0, numAttack = 0, numChurches = 0, numCrusaders = 0;
+
+    int resource = -1; // karbonite or fuel
+    boolean goHome; // whether unit is going home or not
+
+    // note that arrays are by y and then x
+=======
     int type0 = 0, type1 = 0, turn = 0;
     int w, h;
+>>>>>>> 3f32f234d506816eaf628ad85fd9a035d4136a80
     Robot[] robots;
     int[][] robotMap, seenMap, dist, pre; // note that arrays are by y and tthen x
     Robot[][] seenRobot;
@@ -244,7 +255,7 @@ public class MyRobot extends BCAbstractRobot {
         int bestDist = MOD, bestPos = MOD;
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j)
-                if (B[i][j] && dist[i][j] < bestDist && robotMap[i][j] <= 0) {
+                if (B[i][j] && dist[i][j] < bestDist && seenMap[i][j] <= 0) {
                     bestDist = dist[i][j];
                     bestPos = 64 * j + i;
                 }
@@ -510,7 +521,11 @@ public class MyRobot extends BCAbstractRobot {
                     }
                 }
 
-        for (Robot R: robots) if (isStructure(R)) addStruct(R);
+        myUnits = 0;
+        for (Robot R: robots) {
+            if (isStructure(R)) addStruct(R);
+            if (R.team == me.team) myUnits ++;
+        }
         rem(myCastle); rem(otherCastle);
     }
 

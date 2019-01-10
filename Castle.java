@@ -41,14 +41,49 @@ public class Castle {
         }*/
     }
 
+    boolean donePilgrim() {
+        for (int i = Z.me.x-1; i <= Z.me.x+1; ++i)
+            for (int j = Z.me.y-1; j <= Z.me.y+1; ++j)
+                if (Z.containsRobot(i,j)) {
+                    Robot R = Z.seenRobot[j][i];
+                    if (R.team == Z.me.team && R.unit == PILGRIM && R.karbonite == 0 && R.fuel == 0) return true;
+                }
+        return false;
+    }
+
     Action run() {
         determineLoc();
         // Action A = Z.makePilgrim();
         // if (A != null) return A;
         // Z.log("HA "+Z.me.signal);
+<<<<<<< HEAD
+        if (donePilgrim()) {
+            signalResource();
+            return null;
+        } else if (2 * Z.numPilgrims <= Z.numAttack) {
+            return makePilgrim();
+        } else if (Z.turn <= 20) {
+            if (Z.canBuild(PREACHER)) {
+                Action A = Z.tryBuild(PREACHER);
+                if (A != null) {
+                    Z.numAttack ++;
+                    Z.log("Built preacher");
+                    return A;
+                }
+            }
+            if (Z.canBuild(CRUSADER)) {
+                Action A = Z.tryBuild(CRUSADER);
+                if (A != null) {
+                    Z.numAttack ++;
+                    Z.log("Built crusader");
+                    return A;
+                }
+            }
+=======
         if (2 * Z.numPilgrims <= Z.numAttack) {
             Action A = Z.makePilgrim();
             if (A != null) return A;
+>>>>>>> 3f32f234d506816eaf628ad85fd9a035d4136a80
         } else {
 			if(Z.turn <= 20) {
 				if (Z.canBuild(PREACHER)) {
