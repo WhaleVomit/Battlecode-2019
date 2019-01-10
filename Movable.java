@@ -19,7 +19,7 @@ public class Movable {
 
     public Action nextMove(int x, int y) {
         if (Z.pre[y][x] == MOD) return null;
-        if (Z.dist[y][x] == 1 && Z.passable(x,y)) return null;
+        if (Z.dist[y][x] == 1 && !Z.passable(x,y)) return null;
         int Y = Z.pre[y][x] % 64, X = Z.fdiv(Z.pre[y][x],64);
         return Z.move(X - Z.me.x, Y - Z.me.y);
     }

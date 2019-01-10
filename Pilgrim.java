@@ -83,6 +83,7 @@ public class Pilgrim extends Movable {
         } else if (b+100 < a) {
         	Z.resource = 1;
         } else Z.resource = Z.id % 2;
+        Z.log("RESOURCE: "+a+" "+b+" "+Z.resource);
     	/*for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
     		int x = Z.me.x+dx, y = Z.me.y+dy;
     		if (Z.valid(x,y) && Z.robotMap[y][x] > 0) {
@@ -96,35 +97,40 @@ public class Pilgrim extends Movable {
 
     Action run() {
     	setResource();
+        
         Robot R = Z.closestAttacker();
-        if (R != null) {
-            Z.goHome = true;
-            return moveAway(R);
-        }
+        if (R != null) { Z.goHome = true; return moveAway(R); }
 
         if (Z.canBuild(CHURCH) && shouldBuildChurch()) {
         	Action A = Z.tryBuild(CHURCH);
-        	if (A != null) { Z.numChurches++;
-				return A;
-			}
+        	if (A != null) { Z.numChurches++; return A; }
         }
 
         if (Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
-        if (Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x] && Z.karbonite >= 50 && Z.fuel > 0) return Z.mine();
+        if (Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
+
+        // Z.log("HUH "+Z.turn+" "+Z.me.turn+" "+Z.bfsDist(Z.getClosestUnused(Z.karboniteMap))+" "+Z.bfsDist(Z.getClosestUnused(Z.fuelMap)));
+        // Z.log("WHAT "+Z.getClosestUnused(Z.karboniteMap)+" "+Z.getClosestUnused(Z.fuelMap));
+        // Z.log("RES "+nextMove(Z.getClosestUnused(Z.karboniteMap))+" "+nextMove(Z.getClosestUnused(Z.fuelMap)));
+        if (Z.resource == 0) {
+	        if (Z.me.karbonite <= 18 && Z.bfsDist(Z.getClosestUnused(Z.karboniteMap)) <= 2) return nextMove(Z.getClosestUnused(Z.karboniteMap));
+	        if (Z.me.fuel <= 90 && Z.bfsDist(Z.getClosestUnused(Z.fuelMap)) <= 2) return nextMove(Z.getClosestUnused(Z.fuelMap));
+        } else {
+	        if (Z.me.fuel <= 90 && Z.bfsDist(Z.getClosestUnused(Z.fuelMap)) <= 2) return nextMove(Z.getClosestUnused(Z.fuelMap));
+	        if (Z.me.karbonite <= 18 && Z.bfsDist(Z.getClosestUnused(Z.karboniteMap)) <= 2) return nextMove(Z.getClosestUnused(Z.karboniteMap));
+        }
 
         if (Z.me.karbonite < 5 && Z.me.fuel < 25) Z.goHome = false;
         if (Z.me.karbonite > 16 || Z.me.fuel > 80) Z.goHome = true;
         if (Z.goHome) return moveHome();
 
         if (Z.resource == 0) {
-			if(getkarboscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.karboniteMap));
 			boolean[][] karboMap = new boolean[Z.h][Z.w];
-			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) karboMap[y][x] = (getkarboscore(x,y) > 0);
+			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) karboMap[y][x] = (Z.seenMap[y][x] <= 0 && getkarboscore(x,y) > 0);
 			return nextMove(Z.getClosestUnused(karboMap));
 		} else {
-			if(getfuelscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.fuelMap));
 			boolean[][] fuelMap = new boolean[Z.h][Z.w];
-			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) fuelMap[y][x] = (getfuelscore(x,y) > 0);
+			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) fuelMap[y][x] = (Z.seenMap[y][x] <= 0 && getfuelscore(x,y) > 0);
 			return nextMove(Z.getClosestUnused(fuelMap));
 		}
     }

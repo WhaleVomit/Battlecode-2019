@@ -18,10 +18,9 @@ public class MyRobot extends BCAbstractRobot {
 
     // note that arrays are by y and then x
     Robot[] robots;
-    int[][] robotMap;
-    int[][] seenMap; // stores last id seen in pos
-    int[][] dist, pre; 
     Robot[][] seenRobot; // stores last robot seen in pos
+    int[][] robotMap, seenMap; // stores last id seen in pos
+    int[][] dist, pre; 
     boolean[][] emp; // whether square does not contain structure or not
 
     ArrayList<Integer> myCastle = new ArrayList<>(), otherCastle = new ArrayList<>();
@@ -57,26 +56,12 @@ public class MyRobot extends BCAbstractRobot {
         return true;
     }
 
-    boolean inMap(int x, int y) {
-        return x >= 0 && x < w && y >= 0 && y < h;
-    }
+    boolean inMap(int x, int y) { return x >= 0 && x < w && y >= 0 && y < h; }
+    boolean valid(int x, int y) { return inMap(x,y) && map[y][x]; }
+    boolean containsRobot(int x, int y) { return valid(x, y) && seenMap[y][x] > 0; }
+    boolean passable(int x, int y) { return valid(x, y) && seenMap[y][x] <= 0; }
 
-    boolean valid(int x, int y) {
-        if (!inMap(x,y)) return false;
-        return map[y][x];
-    }
-
-    boolean containsRobot(int x, int y) {
-        return valid(x, y) && seenMap[y][x] > 0;
-    }
-
-    boolean passable(int x, int y) {
-        return valid(x, y) && seenMap[y][x] <= 0;
-    }
-
-    boolean adjacent(Robot r) {
-        return Math.abs(me.x - r.x) <= 1 && Math.abs(me.y - r.y) <= 1;
-    }
+    boolean adjacent(Robot r) { return Math.abs(me.x - r.x) <= 1 && Math.abs(me.y - r.y) <= 1; }
 
     int numOpen(int t) { // how many squares around t are free
         int y = t % 64; int x = fdiv(t,64);
@@ -89,7 +74,6 @@ public class MyRobot extends BCAbstractRobot {
 
     int euclidDist(int x, int y) { return sq(me.x-x)+sq(me.y-y); }
     int euclidDist(Robot B) { return euclidDist(B.x,B.y); }
-
     int moveSpeed(Robot r) { return MOVE_SPEED[r.unit]; }
 
     boolean withinMoveRadius(Robot r, int dx, int dy) {
@@ -237,7 +221,7 @@ public class MyRobot extends BCAbstractRobot {
         int bestDist = MOD, bestPos = MOD;
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j)
-                if (B[i][j] && dist[i][j] < bestDist && robotMap[i][j] <= 0) {
+                if (B[i][j] && dist[i][j] < bestDist && seenMap[i][j] <= 0) {
                     bestDist = dist[i][j];
                     bestPos = 64 * j + i;
                 }
@@ -317,30 +301,18 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     void updateData() {
-        w = map[0].length; h = map.length;
+        h = map.length; w = map[0].length; 
         robots = getVisibleRobots();
         robotMap = getVisibleRobotMap();
-        if (turn == 0 && me.unit != SPECS.CASTLE) {
-            for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
-                int x = me.x+dx, y = me.y+dy;
-                if (valid(x,y) && robotMap[y][x] > 0) {
-                    Robot R = getRobot(robotMap[y][x]);
-                    if (isStructure(R) && R.team == me.team && R.signal > 0) turn = fdiv(R.signal,4);
-                }
-            }
-        } else {
-            turn ++;
-        }
 
         if (seenMap == null) {
             seenMap = new int[h][w];
             seenRobot = new Robot[h][w];
+            emp = new boolean[h][w];
             for (int i = 0; i < h; ++i)
                 for (int j = 0; j < w; ++j)
                     seenMap[i][j] = -1;
         }
-
-        if (emp == null) emp = new boolean[h][w];
 
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j)
@@ -361,10 +333,24 @@ public class MyRobot extends BCAbstractRobot {
             if (isStructure(R)) addStruct(R);
             if (R.id <= 0 || R.team == me.team) myUnits ++;
         }
+        
         rem(myCastle); rem(otherCastle);
+
+        if (turn == 0 && me.unit != SPECS.CASTLE) {
+            for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
+                int x = me.x+dx, y = me.y+dy;
+                if (containsRobot(x,y)) {
+                    Robot R = getRobot(robotMap[y][x]);
+                    if (isStructure(R) && R.team == me.team && R.signal > 0) turn = fdiv(R.signal,4);
+                }
+            }
+        } else {
+            turn ++;
+        }
     }
 
     public Action turn() {
+        if (me.turn == 1) log("TYPE: "+me.unit);
         updateData();
         bfs();
         // log(me.turn+" "+me.unit+" "+myCastle.size()+" "+otherCastle.size());

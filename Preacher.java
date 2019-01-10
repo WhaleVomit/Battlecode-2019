@@ -9,8 +9,8 @@ public class Preacher extends Attackable {
         int t = 0;
         for (int i = x - 1; i <= x + 1; ++i)
             for (int j = y - 1; j <= y + 1; ++j)
-                if (Z.containsRobot(i,j)) {
-                    Robot R = Z.getRobot(Z.robotMap[i][j]);
+                if (Z.valid(i,j) && Z.seenMap[j][i] > 0) {
+                    Robot R = Z.seenRobot[j][i];
                     int sgn = (R.team == Z.me.team) ? -2 : 1;
                     if (Z.isAttacker(R)) sgn *= 2;
                     else if (Z.isStructure(R)) sgn *= 3;
@@ -38,9 +38,9 @@ public class Preacher extends Attackable {
 
     public Action run() {
         Action A = tryAttack(); if (A != null) return A;
-        A = moveToward(Z.closestEnemy());
-        if (A != null) return A;
+        return patrol();
+        /*if (A != null) return A;
         if (Z.distHome() > 25) return moveHome();
-        return nextMove(Z.closestUnseen());
+        return nextMove(Z.closestUnseen());*/
     }
 }
