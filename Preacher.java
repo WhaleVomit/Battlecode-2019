@@ -2,12 +2,8 @@ package bc19;
 
 import static bc19.Consts.*;
 
-public class Preacher {
-    MyRobot Z;
-
-    public Preacher(MyRobot z) {
-        this.Z = z;
-    }
+public class Preacher extends Attackable {
+    public Preacher(MyRobot z) { super(z); }
 
     int getVal(int x, int y) {
         int t = 0;
@@ -29,7 +25,7 @@ public class Preacher {
         int bes = 0, DX = MOD, DY = MOD;
         for (int dx = -4; dx <= 4; ++dx)
             for (int dy = -4; dy <= 4; ++dy)
-                if (Z.canAttack(dx, dy) != -MOD) {
+                if (canAttack(dx, dy) != -MOD) {
                     int t = getVal(Z.me.x + dx, Z.me.y + dy);
                     if (t > bes) {
                         bes = t;
@@ -48,9 +44,9 @@ public class Preacher {
 		}
         int pos = Z.getClosestCastle(false);
         if(Z.euclidDist((pos-(pos%64))/64,pos%64) > 16) {
-			A = Z.moveTowardCastle();
+			A = moveTowardCastle();
 			if (A != null) return A;
-			return Z.nextMove(Z.closestUnseen());
+			return nextMove(Z.closestUnseen());
 		}
     }
 }
