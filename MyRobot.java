@@ -281,7 +281,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     Action moveAway(int x, int y) {
-        int farthest = MOD;
+        int farthest = 0;
         Action best;
         for(int i = -3; i <= 3; i++)
             for(int j = -3; j <= 3; j++)
