@@ -196,7 +196,7 @@ public class MyRobot extends BCAbstractRobot {
         int bestDist = MOD, bestPos = MOD;
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j)
-                if (passable(j, i) && dist[i][j] < bestDist) {
+                if (passable(j, i) && dist[i][j] < bestDist && seenMap[i][j] == -1) {
                     bestDist = dist[i][j];
                     bestPos = 64 * j + i;
                 }
@@ -271,7 +271,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     public Action tryBuild(int type) {
-        signal(4*turn,2);
+        signal(turn,2);
         for (int dx = -1; dx <= 1; ++dx)
             for (int dy = -1; dy <= 1; ++dy)
                 if (passable(me.x + dx, me.y + dy))
@@ -341,7 +341,7 @@ public class MyRobot extends BCAbstractRobot {
                 int x = me.x+dx, y = me.y+dy;
                 if (containsRobot(x,y)) {
                     Robot R = getRobot(robotMap[y][x]);
-                    if (isStructure(R) && R.team == me.team && R.signal > 0) turn = fdiv(R.signal,4);
+                    if (isStructure(R) && R.team == me.team && R.signal > 0) turn = R.signal;
                 }
             }
         } else {

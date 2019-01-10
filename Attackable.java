@@ -6,11 +6,11 @@ public class Attackable extends Movable {
     public Attackable(MyRobot z) { super(z); }
 
     int attackPriority(Robot R) {
-        if (R.unit == PREACHER) return 5;
-        if (R.unit == PROPHET) return 4;
-        if (R.unit == CRUSADER) return 3;
-        if (R.unit == PILGRIM) return 2;
-        return 1;
+        if (R.unit == PREACHER) return 10;
+        if (R.unit == PROPHET) return 7;
+        if (R.unit == CRUSADER) return 6;
+        if (R.unit == PILGRIM) return 5;
+        return 4;
     }
     
     int canAttack(int dx, int dy) {

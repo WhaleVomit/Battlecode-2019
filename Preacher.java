@@ -7,17 +7,15 @@ public class Preacher extends Attackable {
 
     int getVal(int x, int y) {
         int t = 0;
-        for (int i = x - 1; i <= x + 1; ++i) {
-            for (int j = y - 1; j <= y + 1; ++j) {
-                if (Z.valid(i, j) && Z.robotMap[j][i] > 0) {
-                    Robot R = Z.getRobot(Z.robotMap[j][i]);
-                    int sgn = (R.team == Z.me.team) ? -2 : 1;
-                    if (Z.isAttacker(R)) sgn *= 2;
-                    else if (Z.isStructure(R)) sgn *= 10;
-                    t += sgn;
+        for (int i = x - 1; i <= x + 1; ++i) 
+            for (int j = y - 1; j <= y + 1; ++j) 
+                if (Z.valid(i, j) && Z.seenMap[j][i] > 0) {
+                    Robot R = Z.seenRobot[j][i];
+                    int val = attackPriority(R);
+                    val *= (R.team == Z.me.team) ? -2 : 1;
+                    if (Z.isStructure(R)) val *= 2;
+                    t += val;
                 }
-			}
-		}
         return t;
     }
 
