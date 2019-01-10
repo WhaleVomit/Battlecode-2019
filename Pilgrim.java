@@ -4,15 +4,13 @@ import static bc19.Consts.*;
 import java.util.*;
 import java.awt.*;
 
-public class Pilgrim {
-
-    MyRobot Z;
+public class Pilgrim extends Movable {
     ArrayList<Integer> sites;
-
-    public Pilgrim(MyRobot z) {
-        this.Z = z;
-        sites = new ArrayList<>();
-    }
+    
+    public Pilgrim (MyRobot z) { 
+    	super(z); 
+	    sites = new ArrayList<>();
+	}
 
     boolean shouldMine() {
         return Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x] || Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x];
@@ -24,9 +22,7 @@ public class Pilgrim {
 		boolean isNextToEmpty = false;
 		for(int dx = -1; dx <= 1; dx++) for(int dy = -1; dy <= 1; dy++) {
 			int newx = Z.me.x+dx; int newy = Z.me.y+dy;
-			if(Z.isEmpty(newx, newy)) {
-				if(!Z.karboniteMap[newy][newx] && !Z.fuelMap[newy][newx]) isNextToEmpty = true;
-			}
+			if(Z.passable(newx, newy) && !Z.karboniteMap[newy][newx] && !Z.fuelMap[newy][newx]) isNextToEmpty = true;
 		}
 		if(!isNextToEmpty) return false;
 
@@ -78,12 +74,17 @@ public class Pilgrim {
 		return numr - nump;
 	}
 
+
 	void setResource() {
-		for (Robot R: Z.robots) 
-			if (Z.isStructure(R) && R.team == Z.me.team && R.signal >= 0 && R.signal % 4 != 0) 
-				Z.resource = (R.signal%4)-1;
-    	if (Z.resource == -1) Z.resource = 2;
-    	Z.log("RESOURCE: "+Z.me.turn+" "+Z.resource);
+    	for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
+    		int x = Z.me.x+dx, y = Z.me.y+dy;
+    		if (Z.valid(x,y) && Z.robotMap[y][x] > 0) {
+    			Robot R = Z.getRobot(Z.robotMap[y][x]);
+    			if (R != null && Z.isStructure(R) && R.signal > 0) Z.resource = (R.signal%4)-1;
+    		}
+    	}
+    	if (Z.resource == -1) Z.resource = 1;
+    	Z.log("RESOURCE: "+Z.resource);
 	}
 
     Action run() {
@@ -92,7 +93,7 @@ public class Pilgrim {
         Robot R = Z.closestAttacker();
         if (R != null) {
             Z.goHome = true;
-            return Z.moveAway(R);
+            return moveAway(R);
         }
 
         if (Z.canBuild(CHURCH) && shouldBuildChurch()) {
@@ -108,25 +109,19 @@ public class Pilgrim {
 
         if (Z.me.karbonite < 5 && Z.me.fuel < 25) Z.goHome = false;
         if (Z.me.karbonite > 16 || Z.me.fuel > 80) Z.goHome = true;
-        if (Z.goHome) return Z.moveHome();
+        if (Z.goHome) return moveHome();
 
-        if (Z.resource == 0) {
+        if (Z.resource == 0 || Z.karbonite < 50) {
 			if(getkarboscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.karboniteMap));
 			boolean[][] karboMap = new boolean[Z.h][Z.w];
 			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) karboMap[y][x] = (getkarboscore(x,y) > 0);
 			return nextMove(Z.getClosestUnused(karboMap));
-		} else if (Z.resource == 1) {
+		}
+        else {
 			if(getfuelscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.fuelMap));
 			boolean[][] fuelMap = new boolean[Z.h][Z.w];
 			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) fuelMap[y][x] = (getfuelscore(x,y) > 0);
 			return nextMove(Z.getClosestUnused(fuelMap));
-		} else {
-			if (getkarboscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.karboniteMap));
-			if (getfuelscore(Z.me.x, Z.me.y) > 0) return nextMove(Z.getClosestUnused(Z.fuelMap));
-			boolean[][] resourceMap = new boolean[Z.h][Z.w];
-			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) 
-				resourceMap[y][x] = (getkarboscore(x,y) > 0) || (getfuelscore(x,y) > 0);
-			return nextMove(Z.getClosestUnused(resourceMap));
 		}
     }
 }
