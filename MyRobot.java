@@ -19,7 +19,6 @@ public class MyRobot extends BCAbstractRobot {
     int resource = -1;
 
     boolean goHome;
-    int churchesMaxed;
     boolean[][] emp;
     // Random ran = new Random();
 
@@ -33,7 +32,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     boolean isAttacker(Robot r) {
-        return r != null && r.team != me.team && !isStructure(r) && r.unit != SPECS.PILGRIM;
+        return r != null && r.team != me.team && CAN_ATTACK[r.unit];
     }
 
     // SQUARES

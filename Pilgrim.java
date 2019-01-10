@@ -43,7 +43,7 @@ public class Pilgrim {
 		int d2 = MOD;
 		if(closeCastle != MOD) d2 = Z.dist[closeCastleY][closeCastleX];
 
-		if(Math.min(d1,d2) >= 4 && Z.canBuild(CHURCH)) {
+		if(Math.min(d1,d2) >= 4) {
 			return true;
 		}
 
@@ -109,7 +109,7 @@ public class Pilgrim {
         }
 
         if (Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
-        if (Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
+        if (Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x] && Z.karbonite >= 50 && Z.fuel > 0) return Z.mine();
 
         if (Z.me.karbonite < 5 && Z.me.fuel < 25) Z.goHome = false;
         if (Z.me.karbonite > 16 || Z.me.fuel > 80) Z.goHome = true;
