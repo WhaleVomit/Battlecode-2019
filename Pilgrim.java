@@ -95,7 +95,7 @@ public class Pilgrim {
         if (Z.resource == -1) setResource();
 
         Robot R = Z.closestAttacker();
-        if (R != null && Z.dist(R) <= 100) {
+        if (R != null) {
             Z.goHome = true;
             return Z.moveAway(R);
         }

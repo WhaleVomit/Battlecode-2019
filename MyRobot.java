@@ -78,7 +78,7 @@ public class MyRobot extends BCAbstractRobot {
                 if (valid(i,j) && robotMap[j][i] == 0) ret ++;
         return ret;
     }
-    int dist(Robot B) {
+    int euclidDist(Robot B) {
         return sq(me.x - B.x) + sq(me.y - B.y);
     }
 
@@ -194,7 +194,7 @@ public class MyRobot extends BCAbstractRobot {
         Robot bes = null;
         for (Robot R : robots)
             if (R.team != me.team)
-                if (bes == null || dist(R) < dist(bes))
+                if (bes == null || euclidDist(R) < euclidDist(bes))
                     bes = R;
         return bes;
     }
@@ -203,7 +203,7 @@ public class MyRobot extends BCAbstractRobot {
         Robot best = null;
         for (Robot R : robots)
             if(isAttacker(R))
-                if(best == null || dist(R) < dist(best))
+                if(best == null || euclidDist(R) < euclidDist(best))
                     best = R;
         return best;
     }
@@ -281,12 +281,12 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     Action moveAway(int x, int y) {
-        int farthest = INF;
-        Action best;
+        int farthest = -MOD;
+        Action best = null;
         for(int i = -3; i <= 3; i++)
             for(int j = -3; j <= 3; j++)
                 if(isEmpty(me.x + i, me.y + j) && withinMoveRadius(me, i, j)) {
-                    int dis = (x - me.x - i) * (x - me.x - i) + (y - me.y - j) * (y - me.y - j);
+                    int dis = sq(x - me.x - i) + sq(y - me.y - j);
                     if(dis > farthest) {
                         farthest = dis;
                         best = move(i, j);
@@ -364,35 +364,50 @@ public class MyRobot extends BCAbstractRobot {
         int bestChurch = getClosestChurch(ourteam);
         if(getDist(bestCastle) < getDist(bestChurch)) return bestCastle;
         else return bestChurch;
-     }
+    }
+
+    int attackPriority(Robot R) {
+        if (R.unit == PREACHER) return 5;
+        if (R.unit == PROPHET) return 4;
+        if (R.unit == CRUSADER) return 3;
+        if (R.unit == PILGRIM) return 2;
+        return 1;
+    }
 
     // ATTACK
-    boolean canAttack(int dx, int dy) {
-        if(ATTACK_F_COST[me.unit] > fuel) return false;
+    int canAttack(int dx, int dy) {
+        if(ATTACK_F_COST[me.unit] > fuel) return -MOD;
         int x = me.x + dx, y = me.y + dy;
-        if (!inMap(x,y)) return false;
-        if (!isNotEmpty(x, y)) return false;
-        if (getRobot(robotMap[y][x]).team == me.team) return false;
+        if (!inMap(x,y) || !isNotEmpty(x, y)) return -MOD;
+        if (getRobot(robotMap[y][x]).team == me.team) return -MOD;
 
         int dist = dx * dx + dy * dy;
         if (me.unit == CRUSADER) {
-            if (dist < 1 || dist > 16) return false;
-            return true;
+            if (dist < 1 || dist > 16) return -MOD;
+            return attackPriority(getRobot(robotMap[y][x]));
         } else if (me.unit == PROPHET) {
-            if (dist < 16 || dist > 64) return false;
-            return true;
+            if (dist < 16 || dist > 64) return -MOD;
+            return attackPriority(getRobot(robotMap[y][x]));
         } else if (me.unit == PREACHER) {
-            if (dist < 3 || dist > 16) return false;
-            return true;
+            if (dist < 3 || dist > 16) return -MOD;
+            return 1;
         }
-        return false;
+
+        return -MOD;
     }
 
     Action tryAttack() {
+        int besPri = -MOD;
+        Action bes = null;
         for (int dx = -8; dx <= 8; ++dx)
-            for (int dy = -8; dy <= 8; ++dy)
-                if (canAttack(dx, dy)) return attack(dx, dy);
-        return null;
+            for (int dy = -8; dy <= 8; ++dy) {
+                int t = canAttack(dx, dy);
+                if (t > besPri) {
+                    besPri = t;
+                    bes = attack(dx,dy);
+                }
+            }
+        return bes;
     }
 
     // BUILD

@@ -28,7 +28,7 @@ public class Preacher {
         int bes = 0, DX = MOD, DY = MOD;
         for (int dx = -4; dx <= 4; ++dx)
             for (int dy = -4; dy <= 4; ++dy)
-                if (Z.canAttack(dx, dy)) {
+                if (Z.canAttack(dx, dy) != -MOD) {
                     int t = getVal(Z.me.x + dx, Z.me.y + dy);
                     if (t > bes) {
                         bes = t;
