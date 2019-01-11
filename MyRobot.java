@@ -24,6 +24,7 @@ public class MyRobot extends BCAbstractRobot {
     boolean updEnemy = false;
     int[][][] enemyDist = null;
     boolean[][] emp; // whether square does not contain structure or not
+    Queue Q = new Queue(8192);
 
     ArrayList<Integer> myCastle = new ArrayList<>(), otherCastle = new ArrayList<>();
     ArrayList<Integer> myChurch = new ArrayList<>(), otherChurch = new ArrayList<>();
@@ -33,6 +34,11 @@ public class MyRobot extends BCAbstractRobot {
     int sq(int x) { return x*x; }
 
     // ROBOT
+    Robot2 makeRobot(int unit, int team, int x, int y) {
+        Robot2 R = new Robot2(null);
+        R.unit = unit; R.team = team; R.x = x; R.y = y;
+        return R;
+    }
     Robot2 getRobot2(int id) { return new Robot2(getRobot(id)); }
     boolean withinMoveRadius(Robot2 R, int dx, int dy) { return R != null && R.withinMoveRadius(dx,dy,fuel); }
 
@@ -105,11 +111,12 @@ public class MyRobot extends BCAbstractRobot {
                 pre[i][j] = MOD;
             }
 
-        LinkedList<Integer> L = new LinkedList<>();
-
-        dist[me.y][me.x] = 0; L.push(64 * me.x + me.y);
-        while (!L.isEmpty()) {
-            int x = L.poll(); int y = x % 64; x = fdiv(x,64);
+        Q.reset();
+        dist[me.y][me.x] = 0; Q.push(64 * me.x + me.y);
+        int t = 0;
+        while (Q.size() > 0) {
+            t ++;
+            int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
             for (int dx = -3; dx <= 3; ++dx)
                 for (int dy = -3; dy <= 3; ++dy) {
                     int X = x + dx, Y = y + dy;
@@ -117,7 +124,7 @@ public class MyRobot extends BCAbstractRobot {
                         dist[Y][X] = dist[y][x] + 1;
                         if (pre[y][x] == MOD) pre[Y][X] = 64 * X + Y;
                         else pre[Y][X] = pre[y][x];
-                        if (passable(X,Y)) L.add(64 * X + Y);
+                        if (passable(X,Y)) Q.push(64 * X + Y);
                     }
                 }
         }
@@ -132,25 +139,25 @@ public class MyRobot extends BCAbstractRobot {
                         enemyDist[i][j][k] = MOD;
         }
         if (!updEnemy) return;
-
-        LinkedList<Integer> todo = new LinkedList<Integer>();
+        log("UPDATING ENEMY");
+        Q.reset();
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j) 
                 for (int k = 0; k < 2; ++k)
                     enemyDist[i][j][k] = MOD;
             
         for (int i: otherCastle) {
-            todo.push(2*i);
+            Q.push(2*i);
             enemyDist[i%64][fdiv(i,64)][0] = 0;
         }
         for (int i: otherChurch) {
-            todo.push(2*i);
+            Q.push(2*i);
             enemyDist[i%64][fdiv(i,64)][0] = 0;
         }
-        int[] xd = {1,0,-1,0};
-        int[] yd = {0,1,0,-1};
-        while (!todo.isEmpty()) {
-            int t = todo.poll(); 
+
+        int[] xd = {1,0,-1,0}, yd = {0,1,0,-1};
+        while (Q.size() > 0) {
+            int t = Q.poll();
             int k = t % 2; t = fdiv(t,2);
             int y = t % 64; 
             int x = fdiv(t,64);
@@ -160,7 +167,7 @@ public class MyRobot extends BCAbstractRobot {
                     int K = k+1; if (valid(X,Y)) K = 0;
                     if (K == 2 || enemyDist[Y][X][K] != MOD) continue;
                     enemyDist[Y][X][K] = enemyDist[y][x][k]+1;
-                    todo.push(2*(64*X+Y)+K);
+                    Q.push(2*(64*X+Y)+K);
                 }
             }
         }
@@ -230,15 +237,20 @@ public class MyRobot extends BCAbstractRobot {
     // LOOKING FOR DESTINATION
     Robot2 closestEnemy() {
         Robot2 bes = null;
-        for (Robot2 R : robots) if (R.team == 1-me.team)
-            if (euclidDist(R) < euclidDist(bes)) bes = R;
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (containsRobot(j,i)) {
+            Robot2 R = seenRobot[i][j];
+            if (R.team == 1-me.team && euclidDist(R) < euclidDist(bes)) bes = R;
+            // if (me.unit == PREACHER && euclidDist(R) > 16) log("WHOA");
+        }
         return bes;
     }
     Robot2 closestAttacker(int t) {
-        Robot2 best = null;
-        for (Robot2 R : robots) if (R.isAttacker(t))
-            if (euclidDist(R) < euclidDist(best)) best = R;
-        return best;
+        Robot2 bes = null;
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (containsRobot(j,i)) {
+            Robot2 R = seenRobot[i][j];
+            if (R.isAttacker(1-me.team) && euclidDist(R) < euclidDist(bes)) bes = R;
+        }
+        return bes;
     }
 
     // MOVEMENT
@@ -318,8 +330,9 @@ public class MyRobot extends BCAbstractRobot {
 
     void updateData() {
         h = map.length; w = map[0].length; 
+        Robot[] tmp = getVisibleRobots();
         robots = new Robot2[getVisibleRobots().length];
-        for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
+        for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(tmp[i]);
         robotMap = getVisibleRobotMap();
 
         if (seenMap == null) {
@@ -331,6 +344,20 @@ public class MyRobot extends BCAbstractRobot {
                     seenMap[i][j] = -1;
         }
 
+        myUnits = 0;
+        for (Robot2 R: robots) {
+            if (R.isStructure()) addStruct(R);
+            if (R.team == me.team) myUnits ++;
+            if (R.isStructure() && R.team == me.team && 1000 < R.signal && R.signal <= 1441) {
+                int t = R.signal-1001;
+                int y = (t%21)-10; y += R.y;
+                int x = fdiv(t,21)-10; x += R.x;
+                seenMap[y][x] = MOD;
+                seenRobot[y][x] = makeRobot(3,1-me.team,x,y);
+                log("OH "+me.x+" "+me.y+" "+x+" "+y);
+            }
+        }
+        
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j)
                 if (robotMap[i][j] != -1) {
@@ -345,12 +372,7 @@ public class MyRobot extends BCAbstractRobot {
                     }
                 }
 
-        myUnits = 0;
-        for (Robot2 R: robots) {
-            if (R.isStructure()) addStruct(R);
-            if (R.team == me.team) myUnits ++;
-        }
-        
+
         rem(myCastle); rem(otherCastle);
 
         if (turn == 0 && me.unit != CASTLE) {
@@ -369,21 +391,21 @@ public class MyRobot extends BCAbstractRobot {
     void sendInfo() {
         int res = me.unit;
         boolean seeEnemy = false;
-        for (Robot2 R: robots) if (R.team == 1-me.team) seeEnemy = true;
+        for (int i = -14; i <= 14; ++i) for (int j = -14; j <= 14; ++j) if (i*i+j*j <= 196) {
+            int X = me.x+i, Y = me.y+j;
+            if (containsRobot(X,Y) && seenRobot[Y][X].team != me.team) seeEnemy = true;
+        }
         if (seeEnemy) res += 6;
         if (otherCastle.size() == 0) res += 12;
         castleTalk(res);
     }
 
     public Action turn() {
+        if (me.turn == 1) log("TYPE: "+me.unit+" "+me.time);
         updateData();
         genBfsDist();
         genEnemyDist();
-        /*Robot2 R = new Robot2(me);
-        if (me.turn == 1) log("TYPE: "+me.unit+" "+enemyDist.length);*/
         if (me.unit != 0 && turn > 3) sendInfo();
-        // dumpRobots(); return null;
-        // log(me.turn+" "+me.unit+" "+myCastle.size()+" "+otherCastle.size());
         switch (me.unit) {
             case CASTLE: {
                 Castle C = new Castle(this);
@@ -410,6 +432,7 @@ public class MyRobot extends BCAbstractRobot {
                 return C.run();
             }
         }
+        return null;
     }
 }
 

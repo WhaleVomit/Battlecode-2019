@@ -28,7 +28,7 @@ public class Attackable extends Movable {
         if (!Z.containsRobot(x, y)) return -MOD;
 
         if (Z.me.unit == CRUSADER || Z.me.unit == PROPHET) {
-	        if (Z.seenRobot[y][x].team == Z.me.team) return -MOD;
+            if (Z.seenRobot[y][x].team == Z.me.team) return -MOD;
             return attackPriority(Z.seenRobot[y][x]);
         } else { // PREACHER
             if (dist < 3 || dist > 16) return -MOD;
@@ -36,29 +36,14 @@ public class Attackable extends Movable {
         }
     }
 
-    public int getEnemyLoc() {
-        for (Robot2 R: Z.robots) if (R.isStructure() && R.team == Z.me.team && 1000 < R.signal && R.signal <= 1441) {
-            int t = R.signal-1001;
-            int y = (t%21)-10; y += R.y;
-            int x = Z.fdiv(t,21)-10; x += R.x;
-            Z.log("OH "+Z.me.x+" "+Z.me.y+" "+x+" "+y);
-            return 64*x+y;
-        }
-        return MOD;
-    }
-
     public Action react() {
-        /*if (Z.unit == PROPHET && withinPreacherRange()) {
-            int t = ;
-            return nextMove(t);
-        }*/
         Action A = tryAttack(); if (A != null) return A;
         Robot2 R = Z.closestEnemy(); 
         if (R != null) {
             if (Z.me.unit == PROPHET && Z.euclidDist(R) < 16) return moveAway(R);
             return moveToward(R);
         }
-        return nextMove(getEnemyLoc());
+        return null;
     }
 
     int getValPreacher(int x, int y) {

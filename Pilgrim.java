@@ -100,7 +100,7 @@ public class Pilgrim extends Movable {
     	setResource();
         
         Robot2 R = Z.closestAttacker(1-Z.me.team);
-        if (R != null) { Z.goHome = true; return moveAway(R); }
+        if (Z.euclidDist(R) <= 100) { Z.goHome = true; return moveAway(R); }
 
         if (Z.canBuild(CHURCH) && shouldBuildChurch()) {
         	Action A = Z.tryBuild(CHURCH);
