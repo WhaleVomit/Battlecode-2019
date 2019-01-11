@@ -97,6 +97,7 @@ public class Pilgrim extends Movable {
 
     Action run() {
         if(Z.rx == -1){ // don't move until found destination
+        	if(Z.me.turn == 1)return null;
 			Z.castleTalk(2); // haven't been assigned!
             for(Robot r : Z.robots) {
 				int s = r.signal;

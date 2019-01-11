@@ -160,6 +160,8 @@ public class Castle extends Building {
     Action run() {
         if(Z.me.turn == 1) initVars();
         updateVars();
+        return makePilgrim();
+        /*
         if ( 2* Z.numPilgrims <= 100*  Z.numAttack) {
             Action A = makePilgrim();
             Z.numPilgrims++;
@@ -200,7 +202,8 @@ public class Castle extends Building {
                     return A;
                 }
             }
-        }*/
+        }
         return null;
+        */
     }
 }
