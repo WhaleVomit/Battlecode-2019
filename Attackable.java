@@ -49,23 +49,31 @@ public class Attackable extends Movable {
         return bes;
     }
 
+    int getVal(int X, int Y, int x, int y) {
+        if (((X == Z.me.x && Y == Z.me.y) || Z.passable(X,Y)) && (X+Y-x-y) % 2 == 0) {
+            if (Z.sq(X-x)+Z.sq(Y-y) <= 2 && Z.numOpen(64*x+y) <= 2) return MOD;
+            int val = Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
+            if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += 4;
+            return val;
+        } else return MOD;
+    }
+
     Action patrol() {
-        int t = Z.closest(Z.myCastle); if (t == MOD) return null;
+        int t = Z.getClosestStruct(true);
         if (Z.bfsDist(t) > 4) return moveHome();
         int y = t % 64; int x = Z.fdiv(t,64); 
-        if ((Z.me.x+Z.me.y-x-y) % 2 == 0) return null;
 
-        int bestDist = MOD, bestPos = MOD;
+        int bestVal = MOD, bestDist = MOD, pos = MOD;
         for (int X = x-5; X <= x+5; ++X) 
-            for (int Y = y-5; Y <= y+5; ++Y) 
-                if (Z.passable(X,Y) && (X+Y-x-y) % 2 == 0 && Z.dist[Y][X] < 5) {
-                    if (Z.sq(X-x)+Z.sq(Y-y) <= 2 && Z.numOpen(t) <= 2) continue;
-                    if (Z.sq(X-x)+Z.sq(Y-y) < bestDist || (Z.sq(X-x)+Z.sq(Y-y) == bestDist && !Z.karboniteMap[Y][X] && !Z.fuelMap[Y][X])) {
-                        bestDist = Z.sq(X-x)+Z.sq(Y-y);
-                        bestPos = 64*X+Y;
-                    }
+            for (int Y = y-5; Y <= y+5; ++Y) {
+                int val = getVal(X,Y,x,y);
+                if (val < bestVal || (val == bestVal && Z.dist[Y][X] < bestDist)) {
+                    bestVal = val; 
+                    bestDist = Z.dist[Y][X];
+                    pos = 64*X+Y;
                 }
+            }
 
-        return nextMove(bestPos);
+        return nextMove(pos);
     }
 }

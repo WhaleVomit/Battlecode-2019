@@ -6,7 +6,6 @@ import java.math.*;
 import static bc19.Consts.*;
 
 public class MyRobot extends BCAbstractRobot {
-
     // DATA
     int turn = 0; // turns since start of game
     int w, h; // width, height
@@ -21,6 +20,9 @@ public class MyRobot extends BCAbstractRobot {
     Robot[][] seenRobot; // stores last robot seen in pos
     int[][] robotMap, seenMap; // stores last id seen in pos
     int[][] dist, pre; 
+
+    boolean updEnemy = false;
+    int[][][] enemyDist = null;
     boolean[][] emp; // whether square does not contain structure or not
 
     ArrayList<Integer> myCastle = new ArrayList<>(), otherCastle = new ArrayList<>();
@@ -95,8 +97,11 @@ public class MyRobot extends BCAbstractRobot {
         return bestPos;
     }
 
-    void bfs() { 
-        dist = new int[h][w]; pre = new int[h][w];
+    void genBfsDist() { 
+        if (dist == null) {
+            dist = new int[h][w]; 
+            pre = new int[h][w];
+        }
 
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j) {
@@ -120,6 +125,52 @@ public class MyRobot extends BCAbstractRobot {
                     }
                 }
         }
+    }
+
+    void genEnemyDist() {
+        if (enemyDist == null) {
+            enemyDist = new int[h][w][2];
+
+            for (int i = 0; i < h; ++i)
+                for (int j = 0; j < w; ++j) 
+                    for (int k = 0; k < 2; ++k)
+                        enemyDist[i][j][k] = MOD;
+        }
+        if (!updEnemy) return;
+
+        LinkedList<Integer> todo = new LinkedList<Integer>();
+        for (int i = 0; i < h; ++i)
+            for (int j = 0; j < w; ++j) 
+                for (int k = 0; k < 2; ++k)
+                    enemyDist[i][j][k] = MOD;
+            
+        for (int i: otherCastle) {
+            todo.push(2*i);
+            enemyDist[i%64][fdiv(i,64)][0] = 0;
+        }
+        for (int i: otherChurch) {
+            todo.push(2*i);
+            enemyDist[i%64][fdiv(i,64)][0] = 0;
+        }
+        int[] xd = {1,0,-1,0};
+        int[] yd = {0,1,0,-1};
+        while (!todo.isEmpty()) {
+            int t = todo.poll(); 
+            int k = t % 2; t = fdiv(t,2);
+            int y = t % 64; 
+            int x = fdiv(t,64);
+            for (int z = 0; z < 4; ++z) {
+                int X = x+xd[z], Y = y+yd[z];
+                if (inMap(X,Y)) {
+                    int K = k+1; if (valid(X,Y)) K = 0;
+                    if (K == 2 || enemyDist[Y][X][K] != MOD) continue;
+                    enemyDist[Y][X][K] = enemyDist[y][x][k]+1;
+                    todo.push(2*(64*X+Y)+K);
+                }
+            }
+        }
+
+        updEnemy = false;
     }
 
     // DEBUG
@@ -228,9 +279,7 @@ public class MyRobot extends BCAbstractRobot {
         return bestPos;
     }
 
-    int distHome() {
-        return bfsDist(closest(myCastle));
-    }
+    int distHome() { return bfsDist(closest(myCastle)); }
 
     // MOVEMENT
 
@@ -285,14 +334,25 @@ public class MyRobot extends BCAbstractRobot {
     void addStruct(Robot R) {
         int t = 64*R.x+R.y;
         if(R.unit == CHURCH) {
-            if(R.team == me.team && !myChurch.contains(t)) myChurch.add(t);
-            else if(R.team != me.team && !otherChurch.contains(t)) otherChurch.add(t);
+            if(R.team == me.team && !myChurch.contains(t)) {
+                myChurch.add(t);
+            } else if(R.team != me.team && !otherChurch.contains(t)) {
+                otherChurch.add(t);
+                updEnemy = true;
+            }
         } else {
             if (R.team == me.team && !myCastle.contains(t)) {
                 myCastle.add(t);
-                if (wsim() && R.unit == 0 && !emp[R.y][w-1-R.x]) otherCastle.add(64*(w-1-R.x)+R.y);
-                if (hsim() && R.unit == 0 && !emp[h-1-R.y][R.x]) otherCastle.add(64*R.x+(h-1-R.y));
-            } else if(R.team != me.team && !otherCastle.contains(t)){
+                if (wsim() && R.unit == 0 && !emp[R.y][w-1-R.x]) {
+                    updEnemy = true;
+                    otherCastle.add(64*(w-1-R.x)+R.y);
+                }
+                if (hsim() && R.unit == 0 && !emp[h-1-R.y][R.x]) {
+                    updEnemy = true;
+                    otherCastle.add(64*R.x+(h-1-R.y));
+                }
+            } else if(R.team != me.team && !otherCastle.contains(t)) {
+                updEnemy = true;
                 otherCastle.add(t);
                 if (wsim() && R.unit == 0 && !emp[R.y][w-1-R.x]) myCastle.add(64*(w-1-R.x)+R.y);
                 if (hsim() && R.unit == 0 && !emp[h-1-R.y][R.x]) myCastle.add(64*R.x+(h-1-R.y));
@@ -352,7 +412,8 @@ public class MyRobot extends BCAbstractRobot {
     public Action turn() {
         if (me.turn == 1) log("TYPE: "+me.unit);
         updateData();
-        bfs();
+        genBfsDist();
+        genEnemyDist();
         // log(me.turn+" "+me.unit+" "+myCastle.size()+" "+otherCastle.size());
         switch (me.unit) {
             case CASTLE: {

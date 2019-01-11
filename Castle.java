@@ -26,12 +26,16 @@ public class Castle extends Building {
         else if (Z.me.turn == 3) Z.castleTalk(0);
     }
 
+    boolean shouldMakePilgrim() {
+        return 2 * Z.numPilgrims <= Z.numAttack;
+    }
+    
     Action run() {
         determineLoc();
-        if (2 * Z.numPilgrims <= Z.numAttack) {
+        if (shouldMakePilgrim()) {
             Action A = makePilgrim();
             if (A != null) return A;
-        } else if(Z.turn <= 20) {
+        } else if (Z.turn <= 20) {
             if (Z.canBuild(PREACHER)) {
                 Action A = Z.tryBuild(PREACHER);
                 if (A != null) {
@@ -58,7 +62,8 @@ public class Castle extends Building {
                     return A;
                 }
             }
-        }/*else {
+        }
+        /*else {
             if (Z.canBuild(CRUSADER)) {
                 Action A = Z.tryBuild(CRUSADER);
                 if (A != null) {
