@@ -141,7 +141,7 @@ public class Pilgrim extends Movable {
         if (Z.me.fuel > 80 && a+100 >= b) Z.goHome = true;
         if (Z.goHome) return moveHome();
 
-		if(Z.seenMap[Z.ry][Z.rx] == 0 && nextMove(Z.rx , Z.ry) != null) return nextMove(Z.rx , Z.ry);
+		if(Z.seenMap[Z.ry][Z.rx] <= 0 && nextMove(Z.rx , Z.ry) != null) return nextMove(Z.rx , Z.ry);
 		return closeFreeResource();
     }
 }
