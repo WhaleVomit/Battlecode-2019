@@ -280,7 +280,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     public Action tryBuild(int type) {
-        signal(turn,2);
+        //signal(turn,2);
         for (int dx = -1; dx <= 1; ++dx)
             for (int dy = -1; dy <= 1; ++dy)
                 if (passable(me.x + dx, me.y + dy))
