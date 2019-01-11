@@ -66,9 +66,7 @@ public class Castle extends Building {
         return 2 * Z.numPilgrims <= Z.numAttack;
     }
     
-    Action run() {
-        determineLoc();
-        warnDefenders();
+    Action build() {
         if (shouldMakePilgrim()) {
             Action A = makePilgrim();
             if (A != null) return A;
@@ -100,17 +98,42 @@ public class Castle extends Building {
                 }
             }
         }
-        /*else {
-            if (Z.canBuild(CRUSADER)) {
-                Action A = Z.tryBuild(CRUSADER);
-                if (A != null) {
-                    Z.numAttack ++;
-                    Z.log("Built crusader");
-                    return A;
+        return null;
+    }
+
+    Action testPreacherDefense() {
+        if (shouldMakePilgrim()) {
+            Action A = makePilgrim();
+            if (A != null) return A;
+        } else {
+            if (Z.me.team == 0) {
+                if (Z.canBuild(PREACHER)) {
+                    Action A = Z.tryBuild(PREACHER);
+                    if (A != null) {
+                        Z.numAttack ++;
+                        Z.log("Built preacher");
+                        return A;
+                    }
+                }
+            } else {
+                if (Z.canBuild(PROPHET)) {
+                    Action A = Z.tryBuild(PROPHET);
+                    if (A != null) {
+                        Z.numAttack++;
+                        Z.log("Built prophet");
+                        return A;
+                    }
                 }
             }
-        }*/
+        }
         return null;
+    }
+
+    Action run() {
+        determineLoc();
+        warnDefenders();
+        return testPreacherDefense();
+        // return build();
 
     }
 }

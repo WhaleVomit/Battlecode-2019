@@ -139,7 +139,7 @@ public class MyRobot extends BCAbstractRobot {
                         enemyDist[i][j][k] = MOD;
         }
         if (!updEnemy) return;
-        log("UPDATING ENEMY");
+        // log("UPDATING ENEMY");
         Q.reset();
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j) 

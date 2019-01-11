@@ -36,8 +36,53 @@ public class Attackable extends Movable {
         }
     }
 
+    public boolean enemyPreacher(int x, int y) {
+        if (!Z.containsRobot(x,y)) return false;
+        Robot2 R = Z.seenRobot[y][x];
+        return R.team == 1-Z.me.team && R.unit == PREACHER;
+    }
+
+    public boolean attackedByPreacher(int x, int y) {
+        for (int I = -1; I <= 1; ++I) for (int J = -1; J <= 1; ++J) {
+            boolean ok = false;
+            if (I == 0 && J == 0) ok = true;
+            else if (x+I == Z.me.x && y+J == Z.me.y) ok = false;
+            else if (Z.containsRobot(x+I,y+J)) ok = true;
+            if (!ok) continue;
+            for (int i = -4; i <= 4; ++i) for (int j = -4; j <= 4; ++j) 
+                if (i*i+j*j <= 16 && enemyPreacher(x+i,y+j)) 
+                    return true;
+        }
+        return false;
+    }
+
+    public boolean attacked(int x, int y) {
+        if (attackedByPreacher(x,y)) return true;
+        for (int i = -8; i <= 8; ++i) for (int j = -8; j <= 8; ++j)
+            if (Z.containsRobot(x+i,y+j)) {
+                if (x+i == Z.me.x && y+j == Z.me.y && (i != 0 || j != 0)) continue;
+                int d = i*i+j*j;
+                Robot2 R = Z.seenRobot[y+j][x+i];
+                if (R.isAttacker(1-Z.me.team) && d <= MAX_ATTACK_R[R.unit]) return true;
+            }
+        return false;
+    }
+
+    public Action avoidPreacher() {
+        if (Z.me.unit != PROPHET || !attackedByPreacher(Z.me.x,Z.me.y)) return null;
+        Z.log(Z.turn+" "+Z.me.x+" "+Z.me.y);
+        for (int i = -2; i <= 2; ++i) for (int j = -Math.abs(2-Math.abs(i)); j <= Math.abs(2-Math.abs(i)); ++j)
+            if (Z.passable(Z.me.x+i,Z.me.y+j) && !attacked(Z.me.x+i,Z.me.y+j)) {
+                Z.log("BACK UP");
+                return Z.move(i,j);
+            }
+        Z.log("OOPS");
+        return null;
+    }
+
     public Action react() {
-        Action A = tryAttack(); if (A != null) return A;
+        Action A = avoidPreacher(); if (A != null) return A;
+        A = tryAttack(); if (A != null) return A;
         Robot2 R = Z.closestEnemy(); 
         if (R != null) {
             if (Z.me.unit == PROPHET && Z.euclidDist(R) < 16) return moveAway(R);
@@ -91,9 +136,10 @@ public class Attackable extends Movable {
 
     public int getVal(int X, int Y, int x, int y) {
         if (((X == Z.me.x && Y == Z.me.y) || Z.passable(X,Y)) && (X+Y-x-y) % 2 == 0) {
-            if (Z.sq(X-x)+Z.sq(Y-y) <= 2 && Z.numOpen(64*x+y) <= 2) return MOD;
+            if (Z.sq(X-x)+Z.sq(Y-y) <= 2 && Z.numOpen(64*x+y) <= 2 && !(X == Z.me.x && Y == Z.me.y)) return MOD;
             int val = Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
             if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += 4;
+            if (X == Z.me.x && Y == Z.me.y) val -= 2;
             return val;
         } else return MOD;
     }
