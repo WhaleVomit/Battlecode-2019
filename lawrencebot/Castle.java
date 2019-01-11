@@ -35,8 +35,7 @@ public class Castle extends Building {
     void sortKarb(){
         for (int i = 0; i < Z.karbcount-1; i++) {
             for (int j = 0; j < Z.karbcount - i - 1; j++) {
-				Z.log(Z.bfsDist(Z.sortedKarb[j]) + " " + Z.bfsDist(Z.sortedKarb[j+1]));
-                if (Z.bfsDist(Z.sortedKarb[j]) > Z.bfsDist(Z.sortedKarb[j+1])) {
+                if (Z.bfsDist(Z.karbPos[Z.sortedKarb[j]]) > Z.bfsDist(Z.karbPos[Z.sortedKarb[j+1]])) {
                     // swap arr[j+1] and arr[i]
                     int temp = Z.sortedKarb[j];
                     Z.sortedKarb[j] = Z.sortedKarb[j + 1];
@@ -48,7 +47,7 @@ public class Castle extends Building {
     void sortFuel(){
         for (int i = 0; i < Z.fuelcount-1; i++) {
             for (int j = 0; j < Z.fuelcount - i - 1; j++) {
-                if (Z.bfsDist(Z.sortedFuel[j]) > Z.bfsDist(Z.sortedFuel[j+1])) {
+                if (Z.bfsDist(Z.fuelPos[Z.sortedFuel[j]]) > Z.bfsDist(Z.fuelPos[Z.sortedFuel[j+1]])) {
                     // swap arr[j+1] and arr[i]
                     int temp = Z.sortedFuel[j];
                     Z.sortedFuel[j] = Z.sortedFuel[j + 1];
@@ -96,12 +95,6 @@ public class Castle extends Building {
             }
         }
         sortKarb();
-        Z.log(Z.me.x + " " + Z.me.y + "!!!");
-        for(int i: Z.sortedKarb) {
-			int pos = Z.karbPos[i];
-			Z.log(Z.fdiv(pos,64)+" "+pos%64);
-		}
-		Z.log("----");
         sortFuel();
     }
     void updateVars() {
