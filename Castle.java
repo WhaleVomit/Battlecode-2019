@@ -258,7 +258,7 @@ public class Castle extends Building {
             Z.isOccupiedFuel[ind] = true;
         }
         
-        if(Z.numPilgrims%2 == 0) { // assign new pilgrims to karbonite
+        if(Z.me.turn <= 10 || Z.numPilgrims%2 == 0) { // assign new pilgrims to karbonite
 			for (Robot2 R: Z.robots) if(R.castle_talk == 24) {            
 				int d = Z.euclidDist(R);
 				if(d <= 2) { // make sure this is the castle that spawned it
