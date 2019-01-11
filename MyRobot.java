@@ -33,9 +33,8 @@ public class MyRobot extends BCAbstractRobot {
     int sq(int x) { return x*x; }
 
     // UNIT TYPES
-    boolean isStructure(Robot r) { return r != null && (r.unit == CASTLE || r.unit == CHURCH); }
-
-    boolean isAttacker(Robot r) { return r != null && r.id > 0 && r.team != me.team && CAN_ATTACK[r.unit]; }
+    boolean isStructure(Robot r) { return r != null && r.unit <= 1; }
+    boolean isAttacker(Robot r) { return r != null && r.team != me.team && CAN_ATTACK[r.unit]; }
 
     // SQUARES
     boolean hsim() { // symmetric with respect to y
@@ -62,7 +61,6 @@ public class MyRobot extends BCAbstractRobot {
     boolean valid(int x, int y) { return inMap(x,y) && map[y][x]; }
     boolean containsRobot(int x, int y) { return valid(x, y) && seenMap[y][x] > 0; }
     boolean passable(int x, int y) { return valid(x, y) && seenMap[y][x] <= 0; }
-
     boolean adjacent(Robot r) { return Math.abs(me.x - r.x) <= 1 && Math.abs(me.y - r.y) <= 1; }
 
     int numOpen(int t) { // how many squares around t are free
@@ -76,7 +74,10 @@ public class MyRobot extends BCAbstractRobot {
 
     int euclidDist(int x, int y) { return sq(me.x-x)+sq(me.y-y); }
     int euclidDist(Robot B) { return euclidDist(B.x,B.y); }
-    int moveSpeed(Robot r) { return MOVE_SPEED[r.unit]; }
+    int moveSpeed(Robot r) { 
+        if (r.unit == CRUSADER) return 9; 
+        return 4;
+    }
 
     boolean withinMoveRadius(Robot r, int dx, int dy) {
         return dx * dx + dy * dy <= moveSpeed(r) && MOVE_F_COST[r.unit] * (dx * dx + dy * dy) <= fuel;
@@ -105,7 +106,8 @@ public class MyRobot extends BCAbstractRobot {
 
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j) {
-                dist[i][j] = MOD; pre[i][j] = MOD;
+                dist[i][j] = MOD; 
+                pre[i][j] = MOD;
             }
 
         LinkedList<Integer> L = new LinkedList<>();
@@ -113,7 +115,6 @@ public class MyRobot extends BCAbstractRobot {
         dist[me.y][me.x] = 0; L.push(64 * me.x + me.y);
         while (!L.isEmpty()) {
             int x = L.poll(); int y = x % 64; x = fdiv(x,64);
-
             for (int dx = -3; dx <= 3; ++dx)
                 for (int dy = -3; dy <= 3; ++dy) {
                     int X = x + dx, Y = y + dy;
@@ -188,6 +189,7 @@ public class MyRobot extends BCAbstractRobot {
     String getInfo(Robot R) {
         String res = R.id+" "+R.unit + " " + R.team + " " + R.x + " " + R.y;
         res += " " + R.castle_talk+" "+R.signal;
+        // res += " " + (int)R.unit+" "+ (R.unit == 1) +" " + (R.unit == 0)+" "+(R.unit >= 0);
         res += " |\n";
         return res;
     }
@@ -282,7 +284,6 @@ public class MyRobot extends BCAbstractRobot {
     int distHome() { return bfsDist(closest(myCastle)); }
 
     // MOVEMENT
-
 
     int getClosestChurch(boolean ourteam) {
         int bestDist = MOD; int bestPos = MOD;
@@ -391,7 +392,7 @@ public class MyRobot extends BCAbstractRobot {
         myUnits = 0;
         for (Robot R: robots) {
             if (isStructure(R)) addStruct(R);
-            if (R.id <= 0 || R.team == me.team) myUnits ++;
+            if (R.team == me.team) myUnits ++;
         }
         
         rem(myCastle); rem(otherCastle);
@@ -410,10 +411,11 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     public Action turn() {
-        if (me.turn == 1) log("TYPE: "+me.unit);
         updateData();
         genBfsDist();
         genEnemyDist();
+        if (me.turn == 1) log("TYPE: "+me.unit+" "+enemyDist.length);
+        // dumpRobots(); return null;
         // log(me.turn+" "+me.unit+" "+myCastle.size()+" "+otherCastle.size());
         switch (me.unit) {
             case CASTLE: {

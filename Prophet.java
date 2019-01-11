@@ -5,12 +5,6 @@ import static bc19.Consts.*;
 public class Prophet extends Attackable {
     public Prophet(MyRobot z) { super(z); }
 
-    Action react() {
-        Action A = tryAttack(); if (A != null) return A;
-        Robot R = Z.closestEnemy(); if (R != null && Z.euclidDist(R) < 16) return moveAway(R);
-        return null;
-    }
-
     Action run() {
         Z.castleTalk(0);
         Action A = react(); if (A != null) return A;

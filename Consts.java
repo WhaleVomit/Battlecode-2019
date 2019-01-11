@@ -26,7 +26,7 @@ public class Consts {
 
     public static final int[] START_HEALTH = {-1, -1, 10, 40, 20, 60};
 
-    public static final int[] VISION_R = {2, 2, 10, 36, 64, 16};
+    public static final int[] VISION_R = {100, 100, 100, 36, 64, 16};
 
     public static final int[] DAMAGE = {-1, -1, 10, 10, 20};
 
