@@ -130,34 +130,6 @@ public class MyRobot extends BCAbstractRobot {
 			}
         }
     }
-    
-    void bfs(int maxdis) { // warning: changes results of normal bfs
-        dist = new int[h][w]; pre = new int[h][w];
-
-        for (int i = 0; i < h; ++i)
-            for (int j = 0; j < w; ++j) {
-                dist[i][j] = MOD; pre[i][j] = MOD;
-            }
-
-        LinkedList<Integer> L = new LinkedList<>();
-
-        dist[me.y][me.x] = 0; L.add(64 * me.x + me.y);
-        while (!L.isEmpty()) {
-            int x = L.poll(); int y = x % 64; x = fdiv(x,64);
-
-            for (int dx = -3; dx <= 3; ++dx) {
-                for (int dy = -3; dy <= 3; ++dy) {
-                    int X = x + dx, Y = y + dy;
-                    if (dx*dx+dy*dy <= maxdis && valid(X, Y) && dist[Y][X] == MOD) {
-                        dist[Y][X] = dist[y][x] + 1;
-                        if (pre[y][x] == MOD) pre[Y][X] = 64 * X + Y;
-                        else pre[Y][X] = pre[y][x];
-                        if (passable(X,Y)) L.add(64 * X + Y);
-                    }
-                }
-			}
-        }
-    }
 
     // DEBUG
     void dumpSurroundings() {

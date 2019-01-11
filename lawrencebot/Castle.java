@@ -5,6 +5,33 @@ import java.lang.*;
 
 public class Castle extends Building {
     public Castle(MyRobot z) { super(z); }
+    void bfs2(int maxdis) { // only used by castle
+        Z.dist = new int[Z.h][Z.w]; Z.pre = new int[Z.h][Z.w];
+
+        for (int i = 0; i < Z.h; ++i)
+            for (int j = 0; j < Z.w; ++j) {
+                Z.dist[i][j] = MOD; Z.pre[i][j] = MOD;
+            }
+
+        LinkedList<Integer> L = new LinkedList<>();
+
+        Z.dist[Z.me.y][Z.me.x] = 0; L.add(64 * Z.me.x + Z.me.y);
+        while (!L.isEmpty()) {
+            int x = L.poll(); int y = x % 64; x = Z.fdiv(x,64);
+
+            for (int dx = -3; dx <= 3; ++dx) {
+                for (int dy = -3; dy <= 3; ++dy) {
+                    int X = x + dx, Y = y + dy;
+                    if (dx*dx+dy*dy <= maxdis && Z.valid(X, Y) && Z.dist[Y][X] == MOD) {
+                        Z.dist[Y][X] = Z.dist[y][x] + 1;
+                        if (Z.pre[y][x] == MOD) Z.pre[Y][X] = 64 * X + Y;
+                        else Z.pre[Y][X] = Z.pre[y][x];
+                        L.add(64 * X + Y);
+                    }
+                }
+			}
+        }
+    }
     void sortKarb(){
         for (int i = 0; i < Z.karbcount-1; i++) {
             for (int j = 0; j < Z.karbcount - i - 1; j++) {
@@ -32,7 +59,7 @@ public class Castle extends Building {
     }
     
     void initVars() {
-		Z.bfs(MOVE_SPEED[PILGRIM]);
+		bfs2(MOVE_SPEED[PILGRIM]);
         for(int x = 0;x < Z.w; x++){
             for(int y = 0;y < Z.h; y++){
                 if(Z.karboniteMap[y][x]){
