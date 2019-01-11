@@ -127,6 +127,7 @@ public class Castle extends Building {
 					for (int i = 0; i < Z.karbcount; i++) {
 						if (!Z.isOccupiedKarb[Z.sortedKarb[i]]) {
 							Z.log("assigned " + R.id + " to " + Z.fdiv(Z.karbPos[Z.sortedKarb[i]],64) + "," + Z.karbPos[Z.sortedKarb[i]]%64 + " ("+i+")");
+							//Z.log("message: " + getMessage(Z.karbPos[Z.sortedKarb[i]]));
 							Z.signal(getMessage(Z.karbPos[Z.sortedKarb[i]]), d);
 							Z.karbToPil[Z.sortedKarb[i]] = R.id;
 							Z.isOccupiedKarb[Z.sortedKarb[i]] = true;
@@ -142,6 +143,7 @@ public class Castle extends Building {
 					for (int i = 0; i < Z.fuelcount; i++) {
 						if (!Z.isOccupiedFuel[Z.sortedFuel[i]]) {
 							Z.log("assigned " + R.id + " to " + Z.fdiv(Z.fuelPos[Z.sortedFuel[i]],64) + "," + Z.fuelPos[Z.sortedFuel[i]]%64 + " ("+i+")");
+							//Z.log("message: " + getMessage(Z.fuelPos[Z.sortedFuel[i]]));
 							Z.signal(getMessage(Z.fuelPos[Z.sortedFuel[i]]), d);
 							Z.fuelToPil[Z.sortedFuel[i]] = R.id;
 							Z.isOccupiedFuel[Z.sortedFuel[i]] = true;
@@ -153,12 +155,12 @@ public class Castle extends Building {
 		}
     }
     int getMessage(int pos) {
-        return 11+16*pos;
+        return 11+(16*pos);
     }
     Action run() {
         if(Z.me.turn == 1) initVars();
         updateVars();
-        if ( 2* Z.numPilgrims <= 10*  Z.numAttack) {
+        if ( 2* Z.numPilgrims <= 100*  Z.numAttack) {
             Action A = makePilgrim();
             Z.numPilgrims++;
             if (A != null) return A;
