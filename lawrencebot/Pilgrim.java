@@ -106,6 +106,9 @@ public class Pilgrim extends Movable {
                 }
             }
             if(Z.rx == -1) return null;
+            else {
+				Z.log(Z.me.id + " recieved instructions to go to (" + Z.rx + "," + Z.ry+")");
+			}
         }
         
         Robot R = Z.closestAttacker();
