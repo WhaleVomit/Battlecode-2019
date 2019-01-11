@@ -14,7 +14,7 @@ public class Prophet extends Attackable {
     Action run() {
         Z.castleTalk(0);
         Action A = react(); if (A != null) return A;
-        if (Z.turn <= 100) return patrol();
+        if (Z.turn <= 200) return patrol();
         A = moveTowardCastle(); if (A != null) return A;
         if (Z.otherCastle.size() == 0) { Z.castleTalk(100); return patrol(); }
         return null;
