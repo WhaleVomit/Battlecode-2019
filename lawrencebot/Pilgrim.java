@@ -73,6 +73,16 @@ public class Pilgrim extends Movable {
 		}
 		return numr - nump;
 	}
+	
+	Action closeFreeKarbonite() {
+		boolean[][] b = new boolean[Z.h][Z.w];
+		for(int x = 0; x < Z.w; x++) {
+			for(int y = 0; y < Z.h; y++) {
+				if(Z.karboniteMap[y][x] && Z.seenMap[y][x] == 0) b[y][x] = true;
+			}
+		}
+		return nextMove(Z.getClosestUnused(b));
+	}
 
 	double a,b;
 
@@ -97,7 +107,7 @@ public class Pilgrim extends Movable {
 
     Action run() {
         if(Z.rx == -1){ // don't move until found destination
-        	if(Z.me.turn == 1)return null;
+			if(Z.me.turn == 1) return null;
 			Z.castleTalk(2); // haven't been assigned!
             for(Robot r : Z.robots) {
 				int s = r.signal;
@@ -131,6 +141,7 @@ public class Pilgrim extends Movable {
         if (Z.me.fuel > 80 && a+100 >= b) Z.goHome = true;
         if (Z.goHome) return moveHome();
 
-		return nextMove(Z.rx , Z.ry);
+		if(Z.seenMap[Z.ry][Z.rx] == 0) return nextMove(Z.rx , Z.ry);
+		return closeFreeKarbonite();
     }
 }
