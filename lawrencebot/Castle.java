@@ -32,10 +32,37 @@ public class Castle extends Building {
 			}
         }
     }
+    boolean ourSide(int pos) {
+		int x = Z.fdiv(pos,64); int y = pos%64;
+		if(Z.hsim()) {
+			int mid = Z.fdiv(Z.h,2);
+			if(Z.me.y >= mid) {
+				return y >= mid;
+			} else {
+				if(Z.h%2 == 1) return y <= mid;
+				else return y < mid;
+			}
+		} else {
+			int mid = Z.fdiv(Z.w,2);
+			if(Z.me.x >= mid) {
+				return x >= mid;
+			} else {
+				if(Z.w%2 == 1) return x <= mid;
+				else return x < mid;
+			}
+		}
+	}
+    boolean better(int pos1, int pos2) {
+		boolean b1 = ourSide(pos1);
+		boolean b2 = ourSide(pos2);
+		if(b1 && !b2) return true;
+		else if(!b1 && b2) return false;
+		return Z.bfsDist(pos1) < Z.bfsDist(pos2);
+	}
     void sortKarb(){
         for (int i = 0; i < Z.karbcount-1; i++) {
             for (int j = 0; j < Z.karbcount - i - 1; j++) {
-                if (Z.bfsDist(Z.karbPos[Z.sortedKarb[j]]) > Z.bfsDist(Z.karbPos[Z.sortedKarb[j+1]])) {
+                if (!better(Z.karbPos[Z.sortedKarb[j]],Z.karbPos[Z.sortedKarb[j+1]])) {
                     // swap arr[j+1] and arr[i]
                     int temp = Z.sortedKarb[j];
                     Z.sortedKarb[j] = Z.sortedKarb[j + 1];
@@ -47,7 +74,7 @@ public class Castle extends Building {
     void sortFuel(){
         for (int i = 0; i < Z.fuelcount-1; i++) {
             for (int j = 0; j < Z.fuelcount - i - 1; j++) {
-                if (Z.bfsDist(Z.fuelPos[Z.sortedFuel[j]]) > Z.bfsDist(Z.fuelPos[Z.sortedFuel[j+1]])) {
+                if (!better(Z.fuelPos[Z.sortedFuel[j]],Z.fuelPos[Z.sortedFuel[j+1]])) {
                     // swap arr[j+1] and arr[i]
                     int temp = Z.sortedFuel[j];
                     Z.sortedFuel[j] = Z.sortedFuel[j + 1];
@@ -97,6 +124,25 @@ public class Castle extends Building {
         sortKarb();
         sortFuel();
     }
+    
+    void assignRand(Robot R, int d) {
+		// assign to random if all positions have been filled
+		int tot = Z.karbcount+Z.fuelcount;
+		int i = (int)(Math.random()*tot);
+		if(i < Z.karbcount) {
+			Z.log("assigned " + R.id + " to " + Z.fdiv(Z.karbPos[Z.sortedKarb[i]],64) + "," + Z.karbPos[Z.sortedKarb[i]]%64 + " ("+i+")");
+			Z.signal(getMessage(Z.karbPos[Z.sortedKarb[i]]), d);
+			Z.karbToPil[Z.sortedKarb[i]] = R.id;
+			Z.isOccupiedKarb[Z.sortedKarb[i]] = true;
+		} else {
+			i -= Z.karbcount;
+			Z.log("assigned " + R.id + " to " + Z.fdiv(Z.fuelPos[Z.sortedFuel[i]],64) + "," + Z.fuelPos[Z.sortedFuel[i]]%64 + " ("+i+")");
+			Z.signal(getMessage(Z.fuelPos[Z.sortedFuel[i]]), d);
+			Z.fuelToPil[Z.sortedFuel[i]] = R.id;
+			Z.isOccupiedFuel[Z.sortedFuel[i]] = true;
+		}
+	}
+    
     void updateVars() {
         for(int i = 0; i < Z.karbcount; i++) {
             Z.isOccupiedKarb[i] = false;
@@ -124,32 +170,36 @@ public class Castle extends Building {
 			for (Robot R: Z.robots) if(R.castle_talk == 2) {            
 				int d = Z.euclidDist(R);
 				if(d <= 2) { // make sure this is the castle that spawned it
+					boolean assigned = false;
 					for (int i = 0; i < Z.karbcount; i++) {
 						if (!Z.isOccupiedKarb[Z.sortedKarb[i]]) {
 							Z.log("assigned " + R.id + " to " + Z.fdiv(Z.karbPos[Z.sortedKarb[i]],64) + "," + Z.karbPos[Z.sortedKarb[i]]%64 + " ("+i+")");
-							//Z.log("message: " + getMessage(Z.karbPos[Z.sortedKarb[i]]));
 							Z.signal(getMessage(Z.karbPos[Z.sortedKarb[i]]), d);
 							Z.karbToPil[Z.sortedKarb[i]] = R.id;
 							Z.isOccupiedKarb[Z.sortedKarb[i]] = true;
+							assigned = true;
 							break;
 						}
 					}
+					if(!assigned) assignRand(R, d);
 				}
 			}
 		} else { // assign new pilgrims to fuel
 			for (Robot R: Z.robots) if(R.castle_talk == 2) {
 				int d = Z.euclidDist(R);
 				if(d <= 2) { // make sure this is the castle that spawned it
+					boolean assigned = false;
 					for (int i = 0; i < Z.fuelcount; i++) {
 						if (!Z.isOccupiedFuel[Z.sortedFuel[i]]) {
 							Z.log("assigned " + R.id + " to " + Z.fdiv(Z.fuelPos[Z.sortedFuel[i]],64) + "," + Z.fuelPos[Z.sortedFuel[i]]%64 + " ("+i+")");
-							//Z.log("message: " + getMessage(Z.fuelPos[Z.sortedFuel[i]]));
 							Z.signal(getMessage(Z.fuelPos[Z.sortedFuel[i]]), d);
 							Z.fuelToPil[Z.sortedFuel[i]] = R.id;
 							Z.isOccupiedFuel[Z.sortedFuel[i]] = true;
+							assigned = true;
 							break;
 						}
 					}
+					if(!assigned) assignRand(R, d);
 				}
 			}
 		}
@@ -160,13 +210,11 @@ public class Castle extends Building {
     Action run() {
         if(Z.me.turn == 1) initVars();
         updateVars();
-        return makePilgrim();
-        /*
-        if ( 2* Z.numPilgrims <= 100*  Z.numAttack) {
+        if ( 2* Z.numPilgrims <= 100000) {
             Action A = makePilgrim();
             Z.numPilgrims++;
             if (A != null) return A;
-        } else if(Z.turn <= 20) {
+        } /*else if(Z.turn <= 20) {
             if (Z.canBuild(PREACHER)) {
                 Action A = Z.tryBuild(PREACHER);
                 if (A != null) {
@@ -202,8 +250,7 @@ public class Castle extends Building {
                     return A;
                 }
             }
-        }
+        }*/
         return null;
-        */
     }
 }
