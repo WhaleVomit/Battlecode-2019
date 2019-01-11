@@ -105,35 +105,25 @@ public class Castle extends Building {
             Z.isOccupiedFuel[i] = false;
         }
         // find current assignments
-        for (Robot R: Z.robots) if(R.castle_talk == PILGRIM) {
+        for (Robot R: Z.robots) if(R.castle_talk == 1) {
             int ind = -1;
             for(int i = 0; i < Z.karbcount; i++) {
                 if(Z.karbToPil[i] == R.id) ind = i;
             }
-            if(ind != -1) Z.isOccupiedKarb[ind] = true;
+            Z.isOccupiedKarb[ind] = true;
         }
-        for (Robot R: Z.robots) if(R.castle_talk == PILGRIM) {
+        for (Robot R: Z.robots) if(R.castle_talk == 1) {
             int ind = -1;
             for(int i = 0; i < Z.fuelcount; i++) {
                 if(Z.fuelToPil[i] == R.id) ind = i;
             }
-            if(ind != -1) Z.isOccupiedFuel[ind] = true;
+            Z.isOccupiedFuel[ind] = true;
         }
         
-        // for robots that are not yet assigned
-        for (Robot R: Z.robots) if(R.castle_talk == PILGRIM) {
-			int ind = -1;
-            for(int i = 0; i < Z.karbcount; i++) {
-                if(Z.karbToPil[i] == R.id) ind = i;
-            }
-            for(int i = 0; i < Z.fuelcount; i++) {
-                if(Z.fuelToPil[i] == R.id) ind = i;
-            }
-            if(ind != -1) continue; // already been assigned
-            
-            int d = Z.euclidDist(R);
-			if(d <= 2) { // make sure this is the castle that spawned it
-				if(Math.random() < 0.5) { // make half of them target karbonite
+        if(Z.numPilgrims%2 == 0) { // assign new pilgrims to karbonite
+			for (Robot R: Z.robots) if(R.castle_talk == 2) {            
+				int d = Z.euclidDist(R);
+				if(d <= 2) { // make sure this is the castle that spawned it
 					for (int i = 0; i < Z.karbcount; i++) {
 						if (!Z.isOccupiedKarb[Z.sortedKarb[i]]) {
 							Z.log("assigned " + R.id + " to " + Z.fdiv(Z.karbPos[Z.sortedKarb[i]],64) + "," + Z.karbPos[Z.sortedKarb[i]]%64 + " ("+i+")");
@@ -145,30 +135,22 @@ public class Castle extends Building {
 					}
 				}
 			}
-        }
-        for (Robot R: Z.robots) if(R.castle_talk == PILGRIM) {
-			int ind = -1;
-            for(int i = 0; i < Z.karbcount; i++) {
-                if(Z.karbToPil[i] == R.id) ind = i;
-            }
-            for(int i = 0; i < Z.fuelcount; i++) {
-                if(Z.fuelToPil[i] == R.id) ind = i;
-            }
-            if(ind != -1) continue; // already been assigned
-            
-            int d = Z.euclidDist(R);
-			if(d <= 2) { // make sure this is the castle that spawned it
-				for (int i = 0; i < Z.fuelcount; i++) {
-					if (!Z.isOccupiedFuel[Z.sortedFuel[i]]) {
-						Z.log("assigned " + R.id + " to " + Z.fdiv(Z.fuelPos[Z.sortedFuel[i]],64) + "," + Z.fuelPos[Z.sortedFuel[i]]%64 + " ("+i+")");
-						Z.signal(getMessage(Z.fuelPos[Z.sortedFuel[i]]), d);
-						Z.fuelToPil[Z.sortedFuel[i]] = R.id;
-						Z.isOccupiedFuel[Z.sortedFuel[i]] = true;
-						break;
+		} else { // assign new pilgrims to fuel
+			for (Robot R: Z.robots) if(R.castle_talk == 2) {
+				int d = Z.euclidDist(R);
+				if(d <= 2) { // make sure this is the castle that spawned it
+					for (int i = 0; i < Z.fuelcount; i++) {
+						if (!Z.isOccupiedFuel[Z.sortedFuel[i]]) {
+							Z.log("assigned " + R.id + " to " + Z.fdiv(Z.fuelPos[Z.sortedFuel[i]],64) + "," + Z.fuelPos[Z.sortedFuel[i]]%64 + " ("+i+")");
+							Z.signal(getMessage(Z.fuelPos[Z.sortedFuel[i]]), d);
+							Z.fuelToPil[Z.sortedFuel[i]] = R.id;
+							Z.isOccupiedFuel[Z.sortedFuel[i]] = true;
+							break;
+						}
 					}
 				}
 			}
-        }
+		}
     }
     int getMessage(int pos) {
         return 11+16*pos;
