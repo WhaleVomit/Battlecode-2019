@@ -28,6 +28,14 @@ public class MyRobot extends BCAbstractRobot {
 
     ArrayList<Integer> myCastle = new ArrayList<>(), otherCastle = new ArrayList<>();
     ArrayList<Integer> myChurch = new ArrayList<>(), otherChurch = new ArrayList<>();
+    
+    // FOR CASTLE
+    int[] sortedKarb , sortedFuel , karbToPil, fuelToPil , karbPos, fuelPos;
+    boolean[] isOccupiedKarb , isOccupiedFuel;
+    int karbcount=0, fuelcount=0;
+    
+    // FOR PILGRIM
+    int rx=-1, ry=-1;
 
     // MATH
     int fdiv(int a, int b) { return (a-(a%b))/b; }
@@ -288,7 +296,6 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     public Action tryBuild(int type) {
-        signal(turn,2);
         for (int dx = -1; dx <= 1; ++dx)
             for (int dy = -1; dy <= 1; ++dy)
                 if (passable(me.x + dx, me.y + dy))
