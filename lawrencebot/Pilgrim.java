@@ -74,11 +74,11 @@ public class Pilgrim extends Movable {
 		return numr - nump;
 	}
 	
-	Action closeFreeKarbonite() {
+	Action closeFreeResource() {
 		boolean[][] b = new boolean[Z.h][Z.w];
 		for(int x = 0; x < Z.w; x++) {
 			for(int y = 0; y < Z.h; y++) {
-				if(Z.karboniteMap[y][x] && Z.seenMap[y][x] == 0) b[y][x] = true;
+				if((Z.karboniteMap[y][x] || Z.fuelMap[y][x])) b[y][x] = true;
 			}
 		}
 		return nextMove(Z.getClosestUnused(b));
@@ -141,7 +141,7 @@ public class Pilgrim extends Movable {
         if (Z.me.fuel > 80 && a+100 >= b) Z.goHome = true;
         if (Z.goHome) return moveHome();
 
-		if(Z.seenMap[Z.ry][Z.rx] == 0) return nextMove(Z.rx , Z.ry);
-		return closeFreeKarbonite();
+		if(Z.seenMap[Z.ry][Z.rx] == 0 && nextMove(Z.rx , Z.ry) != null) return nextMove(Z.rx , Z.ry);
+		return closeFreeResource();
     }
 }
