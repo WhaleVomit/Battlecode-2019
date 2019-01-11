@@ -20,6 +20,8 @@ public class MyRobot extends BCAbstractRobot {
     Robot[][] seenRobot; // stores last robot seen in pos
     int[][] robotMap, seenMap; // stores last id seen in pos
     int[][] dist, pre; 
+
+    boolean updEnemy = false;
     int[][][] enemyDist = null;
     boolean[][] emp; // whether square does not contain structure or not
 
@@ -126,7 +128,16 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     void genEnemyDist() {
-        if (enemyDist == null) enemyDist = new int[h][w][2];
+        if (enemyDist == null) {
+            enemyDist = new int[h][w][2];
+
+            for (int i = 0; i < h; ++i)
+                for (int j = 0; j < w; ++j) 
+                    for (int k = 0; k < 2; ++k)
+                        enemyDist[i][j][k] = MOD;
+        }
+        if (!updEnemy) return;
+
         LinkedList<Integer> todo = new LinkedList<Integer>();
         for (int i = 0; i < h; ++i)
             for (int j = 0; j < w; ++j) 
@@ -158,7 +169,8 @@ public class MyRobot extends BCAbstractRobot {
                 }
             }
         }
-        // log("HA "+enemyDist.length);
+
+        updEnemy = false;
     }
 
     // DEBUG
@@ -322,14 +334,25 @@ public class MyRobot extends BCAbstractRobot {
     void addStruct(Robot R) {
         int t = 64*R.x+R.y;
         if(R.unit == CHURCH) {
-            if(R.team == me.team && !myChurch.contains(t)) myChurch.add(t);
-            else if(R.team != me.team && !otherChurch.contains(t)) otherChurch.add(t);
+            if(R.team == me.team && !myChurch.contains(t)) {
+                myChurch.add(t);
+            } else if(R.team != me.team && !otherChurch.contains(t)) {
+                otherChurch.add(t);
+                updEnemy = true;
+            }
         } else {
             if (R.team == me.team && !myCastle.contains(t)) {
                 myCastle.add(t);
-                if (wsim() && R.unit == 0 && !emp[R.y][w-1-R.x]) otherCastle.add(64*(w-1-R.x)+R.y);
-                if (hsim() && R.unit == 0 && !emp[h-1-R.y][R.x]) otherCastle.add(64*R.x+(h-1-R.y));
-            } else if(R.team != me.team && !otherCastle.contains(t)){
+                if (wsim() && R.unit == 0 && !emp[R.y][w-1-R.x]) {
+                    updEnemy = true;
+                    otherCastle.add(64*(w-1-R.x)+R.y);
+                }
+                if (hsim() && R.unit == 0 && !emp[h-1-R.y][R.x]) {
+                    updEnemy = true;
+                    otherCastle.add(64*R.x+(h-1-R.y));
+                }
+            } else if(R.team != me.team && !otherCastle.contains(t)) {
+                updEnemy = true;
                 otherCastle.add(t);
                 if (wsim() && R.unit == 0 && !emp[R.y][w-1-R.x]) myCastle.add(64*(w-1-R.x)+R.y);
                 if (hsim() && R.unit == 0 && !emp[h-1-R.y][R.x]) myCastle.add(64*R.x+(h-1-R.y));
