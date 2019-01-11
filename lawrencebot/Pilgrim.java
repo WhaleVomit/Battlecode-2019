@@ -96,8 +96,8 @@ public class Pilgrim extends Movable {
 	}
 
     Action run() {
-    	Z.castleTalk(PILGRIM);
         if(Z.rx == -1){ // don't move until found destination
+			Z.castleTalk(2); // haven't been assigned!
             for(Robot r : Z.robots){
                 if(r.team == Z.me.team && r.unit == CASTLE && Z.isRadioing(r) && ((r.signal % 16) == 11)) {
                     int a = (r.signal - (r.signal%16)) / 16;
@@ -110,6 +110,7 @@ public class Pilgrim extends Movable {
 				Z.log(Z.me.id + " recieved instructions to go to (" + Z.rx + "," + Z.ry+")");
 			}
         }
+        Z.castleTalk(1); // assigned!
         
         Robot R = Z.closestAttacker();
         if (R != null) { Z.goHome = true; return moveAway(R); }
