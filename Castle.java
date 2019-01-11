@@ -5,17 +5,18 @@ import static bc19.Consts.*;
 public class Castle extends Building {
     public Castle(MyRobot z) { super(z); }
 
-    /*boolean canSee(Robot A, Robot B) {
+    /*boolean canSee(Robot2 A, Robot2 B) {
         int dist = (A.x-B.x)*(A.x-B.x)+(A.y-B.y)*(A.y-B.y);
     }*/
 
-    int getSignal(Robot R) {
+    int getSignal(Robot2 R) {
         return 1001+21*(R.x-Z.me.x+10)+(R.y-Z.me.y+10);
     }
 
-    boolean clearVision(Robot R) {
-        for (int i = -8; i <= 8; ++i)
-            for (int j = -8; j <= 8; ++j) {
+    boolean clearVision(Robot2 R) {
+        if (Z.fdiv(R.castle_talk,6) % 6 == 1) return false;
+        for (int i = -10; i <= 10; ++i)
+            for (int j = -10; j <= 10; ++j) {
                 if (i*i+j*j > VISION_R[R.unit]) continue;
                 int x = R.x+i, y = R.y+j;
                 if (Z.containsRobot(x,y) && Z.robotMap[y][x] > 0 && Z.seenRobot[y][x].team != Z.me.team) return false;
@@ -24,12 +25,12 @@ public class Castle extends Building {
     }
 
     void warnDefenders() {
-        Robot R = Z.closestEnemy(); if (R == null) return;
+        Robot2 R = Z.closestEnemy(); if (R == null) return;
         int needDist = 0;
         for (int i = -4; i <= 4; ++i) for (int j = -4; j <= 4; ++j) if (i*i+j*j <= 16) {
             int x = Z.me.x+i, y = Z.me.y+j;
             if (!Z.containsRobot(x,y)) continue;
-            Robot A = Z.seenRobot[y][x];
+            Robot2 A = Z.seenRobot[y][x];
             if (A.unit > 2 && A.team == Z.me.team && clearVision(A)) needDist = Math.max(needDist,i*i+j*j);
         }
         if (needDist > 0) {
@@ -39,10 +40,12 @@ public class Castle extends Building {
     }
 
     void determineLoc() {
-        for (Robot R: Z.robots) if (R.castle_talk > 0 && R.castle_talk <= 64)
+        if (Z.me.turn > 3) return;
+        
+        for (Robot2 R: Z.robots) if (R.castle_talk > 0 && R.castle_talk <= 64)
             Z.castleX.put(R.id,R.castle_talk-1);
 
-        for (Robot R: Z.robots) if (R.castle_talk > 64 && R.castle_talk <= 128) {
+        for (Robot2 R: Z.robots) if (R.castle_talk > 64 && R.castle_talk <= 128) {
             if (Z.castleY.get(R.id) == null) {
                 Z.castleY.put(R.id,R.castle_talk-65);
                 int t = 64*Z.castleX.get(R.id)+Z.castleY.get(R.id);

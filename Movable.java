@@ -11,7 +11,7 @@ public class Movable {
         	|| Z.me.karbonite > 5 || (Z.me.karbonite > 0 && !Z.karboniteMap[Z.me.y][Z.me.y]);
     }
 
-    public boolean canMove(Robot r, int dx, int dy) {
+    public boolean canMove(Robot2 r, int dx, int dy) {
         if (dx == 0 && dy == 0) return false;
         if (!Z.withinMoveRadius(r, dx, dy)) return false;
         return Z.passable(r.x+dx,r.y+dy);
@@ -33,7 +33,7 @@ public class Movable {
         return nextMove(Z.closeEmpty(x, y));
     }
 
-    public Action moveToward(Robot R) {
+    public Action moveToward(Robot2 R) {
         if (R == null) return null;
         return moveToward(R.x, R.y);
     }
@@ -42,7 +42,7 @@ public class Movable {
         int farthest = -MOD; Action best = null;
         for (int i = -3; i <= 3; i++)
             for (int j = -3; j <= 3; j++)
-                if (Z.passable(Z.me.x + i, Z.me.y + j) && Z.withinMoveRadius(Z.me, i, j)) {
+                if (Z.passable(Z.me.x + i, Z.me.y + j) && Z.withinMoveRadius(new Robot2(Z.me), i, j)) {
                     int dis = Z.sq(x - Z.me.x - i) + Z.sq(y - Z.me.y - j);
                     if(dis > farthest) {
                         farthest = dis;
@@ -52,14 +52,14 @@ public class Movable {
         return best;
     }
 
-    public Action moveAway(Robot R) {
+    public Action moveAway(Robot2 R) {
         if(R == null) return null;
         return moveAway(R.x, R.y);
     }
 
     public Action moveHome() {
-        for (Robot R: Z.robots)
-            if (Z.isStructure(R) && R.team == Z.me.team && Z.adjacent(R) && enoughResources()) {
+        for (Robot2 R: Z.robots)
+            if (R.isStructure() && R.team == Z.me.team && Z.adjacent(R) && enoughResources()) {
                 Z.resource = -1;
                 return Z.give(R.x-Z.me.x,R.y-Z.me.y,Z.me.karbonite,Z.me.fuel);
             }

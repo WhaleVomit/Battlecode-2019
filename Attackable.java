@@ -5,7 +5,7 @@ import static bc19.Consts.*;
 public class Attackable extends Movable {
     public Attackable(MyRobot z) { super(z); }
 
-    public int attackPriority(Robot R) {
+    public int attackPriority(Robot2 R) {
         if (R.unit == PREACHER) return 10;
         if (R.unit == PROPHET) return 7;
         if (R.unit == CRUSADER) return 6;
@@ -37,7 +37,7 @@ public class Attackable extends Movable {
     }
 
     public int getEnemyLoc() {
-        for (Robot R: Z.robots) if (Z.isStructure(R) && R.team == Z.me.team && 1000 < R.signal && R.signal <= 1441) {
+        for (Robot2 R: Z.robots) if (R.isStructure() && R.team == Z.me.team && 1000 < R.signal && R.signal <= 1441) {
             int t = R.signal-1001;
             int y = (t%21)-10; y += R.y;
             int x = Z.fdiv(t,21)-10; x += R.x;
@@ -48,8 +48,12 @@ public class Attackable extends Movable {
     }
 
     public Action react() {
+        /*if (Z.unit == PROPHET && withinPreacherRange()) {
+            int t = ;
+            return nextMove(t);
+        }*/
         Action A = tryAttack(); if (A != null) return A;
-        Robot R = Z.closestEnemy(); 
+        Robot2 R = Z.closestEnemy(); 
         if (R != null) {
             if (Z.me.unit == PROPHET && Z.euclidDist(R) < 16) return moveAway(R);
             return moveToward(R);
@@ -62,10 +66,10 @@ public class Attackable extends Movable {
         for (int i = x - 1; i <= x + 1; ++i) 
             for (int j = y - 1; j <= y + 1; ++j) 
                 if (Z.valid(i, j) && Z.seenMap[j][i] > 0) {
-                    Robot R = Z.seenRobot[j][i];
+                    Robot2 R = Z.seenRobot[j][i];
                     int val = attackPriority(R);
                     val *= (R.team == Z.me.team) ? -2 : 1;
-                    if (Z.isStructure(R)) val *= 2;
+                    if (R.isStructure()) val *= 2;
                     t += val;
                 }
         return t;
