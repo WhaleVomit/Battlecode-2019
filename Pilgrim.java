@@ -79,10 +79,10 @@ public class Pilgrim extends Movable {
     	Z.log("RESOURCE: "+Z.resource);*/
 	}
 	
-	int closeFreeResource() {
+	int closeFreeResource(boolean karb, boolean fuel) {
 		boolean[][] b = new boolean[Z.h][Z.w];
 		for (int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) 
-			if ((Z.karboniteMap[y][x] || Z.fuelMap[y][x]) && Z.robotMapID[y][x] <= 0) 
+			if (((karb && Z.karboniteMap[y][x]) || (fuel && Z.fuelMap[y][x])) && Z.robotMapID[y][x] <= 0) 
 				b[y][x] = true;
 		return Z.closestUnused(b);
 	}
@@ -94,7 +94,9 @@ public class Pilgrim extends Movable {
 	}
 
 	Action greedy() {
-		int x = closeFreeResource();
+		//Z.log("karb: " + Z.me.karbonite + ", fuel: " + Z.me.fuel + " | get karb? " + (Z.me.karbonite != 20) + " get fuel? " + (Z.me.fuel != 100));
+		int x = closeFreeResource(Z.me.karbonite != 20, Z.me.fuel != 100);
+		//Z.log("currently at: " + Z.me.x + " " + Z.me.y + ", want to go to " + Z.fdiv(x,64) + " " + (x%64) + " which is " + Z.karboniteMap[(x%64)][Z.fdiv(x,64)] + " " + Z.fuelMap[(x%64)][Z.fdiv(x,64)]);
 		if (Z.bfsDist(x) <= 2) return nextMove(x);
 		return null;
 	}

@@ -235,7 +235,8 @@ public class Castle extends Building {
     }
     
     Action run() {
-		if (Z.ME.turn == 1) initVars();
+		Z.log("====================== ROUND " + Z.me.turn + " ======================");
+		if (Z.me.turn == 1) initVars();
         determineLoc();
 
         Z.numAttack = 0; for (int i = 0; i < 6; ++i) Z.numUnits[i] = 0;
