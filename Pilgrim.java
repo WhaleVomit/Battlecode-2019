@@ -98,6 +98,14 @@ public class Pilgrim extends Movable {
 		if (Z.bfsDist(x) <= 2) return nextMove(x);
 		return null;
 	}
+	
+	boolean inDanger() {
+		for(Robot2 R: Z.robots) if(R.isAttacker(1-Z.me.team)) {
+			int dis = Z.sq((int)Math.sqrt(VISION_R[R.unit])+2);
+			if(Z.euclidDist(R.x,R.y) <= dis) return true;
+		}
+		return false;
+	}
 
     Action run() {
 		if (Z.resourceLoc.f == -1) { // don't move until found destination
@@ -119,11 +127,26 @@ public class Pilgrim extends Movable {
         }
 		Z.sendToCastle(); setResource();
         
+<<<<<<< HEAD
         Robot2 R = Z.closestAttacker(1-Z.me.team);
         if (Z.euclidDist(R) <= 100) { Z.goHome = true; return moveAway(R); }
         Action A = null;
         if (shouldBuildChurch()) { A = Z.tryBuild(CHURCH); if (A != null) return A; }
         A = mine(); if (A != null) return A;
+=======
+        if(inDanger()) {
+			Robot2 R = Z.closestAttacker(1-Z.me.team);
+			Z.goHome = true; return moveAway(R);
+		}
+
+        if (Z.canBuild(CHURCH) && shouldBuildChurch()) {
+        	Action A = Z.tryBuild(CHURCH);
+        	if (A != null) { Z.numChurches++; return A; }
+        }
+
+        if (Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
+        if (Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
+>>>>>>> e7be60abc8b3c9ec2649bf26b42bda932f7d2f93
 
         if (Z.me.karbonite < 5 && Z.me.fuel < 25) Z.goHome = false;
         if (Z.me.karbonite > 16 && b+100 >= a) Z.goHome = true;
