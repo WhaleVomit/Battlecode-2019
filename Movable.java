@@ -38,38 +38,9 @@ public class Movable {
         for (Robot2 R: Z.robots)
             if (R.isStructure() && R.team == Z.ME.team && Z.adjacent(R) && enoughResources()) {
                 Z.resource = -1;
-<<<<<<< HEAD
                 return Z.give(R.x-Z.ME.x,R.y-Z.ME.y,Z.ME.karbonite,Z.ME.fuel);
-=======
-                return Z.give(R.x-Z.me.x,R.y-Z.me.y,Z.me.karbonite,Z.me.fuel);
-            }
-        int x = Z.getClosestStruct(true);
-        return nextMove(Z.fdiv(x,64),x%64);
-    }
-
-    public Action moveTowardCastle() {
-        while (Z.otherCastle.size() > 0) {
-            int y = Z.otherCastle.get(0) % 64;
-            int x = (Z.otherCastle.get(0) - y) / 64;
-            if (Z.robotMap[y][x] == 0) {
-                Z.otherCastle.remove(0);
-                continue;
-            }
-            return nextMove(x, y);
-        }
-        while (Z.otherChurch.size() > 0) {
-            int y = Z.otherChurch.get(0) % 64;
-            int x = (Z.otherChurch.get(0) - y) / 64;
-            if (Z.robotMap[y][x] == 0) {
-                Z.otherChurch.remove(0);
-                continue;
->>>>>>> e7be60abc8b3c9ec2649bf26b42bda932f7d2f93
             }
         return moveToward(Z.closestStruct(true));
     }
-<<<<<<< HEAD
     public Action moveEnemy() { return moveToward(Z.closestStruct(false)); }
 }
-=======
-}
->>>>>>> e7be60abc8b3c9ec2649bf26b42bda932f7d2f93
