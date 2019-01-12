@@ -24,7 +24,7 @@ public class Movable {
     public Action nextMove(int x) { return x == MOD ? null : nextMove(Z.fdiv(x,64), x % 64); }
     public Action moveToward(int x, int y) { 
         if (nextMove(x,y) != null) return nextMove(x,y);
-        return nextMove(Z.closerSquare(x, y)); 
+        return nextMove(Z.closeEmpty(x, y)); 
     }
     public Action moveToward(int x) { return moveToward(Z.fdiv(x,64),x%64); }
     public Action moveToward(Robot2 R) { return R == null ? null : moveToward(R.x, R.y); }
