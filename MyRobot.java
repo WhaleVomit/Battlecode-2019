@@ -111,8 +111,9 @@ public class MyRobot extends BCAbstractRobot {
     boolean valid(int x, int y) { return inMap(x,y) && map[y][x]; }
     boolean containsRobot(int x, int y) { return valid(x, y) && robotMapID[y][x] > 0; }
     boolean attacker(int x, int y) { return containsRobot(x,y) && robotMap[y][x].unit > 2; }
-    boolean yourAttacker(int x, int y) { return attacker(x,y) && robotMap[y][x].team == ME.team;  }
+    boolean yourRobot(int x, int y) { return containsRobot(x,y) && robotMap[y][x].team == ME.team; }
     boolean enemyRobot(int x, int y) { return containsRobot(x,y) && robotMap[y][x].team == 1-ME.team; }
+    boolean yourAttacker(int x, int y) { return attacker(x,y) && robotMap[y][x].team == ME.team;  }
     boolean enemyRobot(int x, int y, int t) { return enemyRobot(x,y) && robotMap[y][x].unit == t; }
     boolean passable(int x, int y) { return valid(x, y) && robotMapID[y][x] <= 0; }
     boolean adjacent(Robot2 r) { return Math.abs(ME.x-r.x) <= 1 && Math.abs(ME.y-r.y) <= 1; }
@@ -154,14 +155,17 @@ public class MyRobot extends BCAbstractRobot {
             int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
             for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy) {
                 int X = x + dx, Y = y + dy;
-                if (dx*dx+dy*dy <= mx && valid(X, Y) && bfsDist[Y][X] == MOD) {
+                if (dx*dx+dy*dy <= mx && valid(X,Y) && bfsDist[Y][X] == MOD) {
                     bfsDist[Y][X] = bfsDist[y][x] + 1;
-                    if (nextMove[y][x] == MOD) nextMove[Y][X] = 64 * X + Y;
-                    else nextMove[Y][X] = nextMove[y][x];
-                    if (passable(X,Y)) Q.add(64 * X + Y);
+                    nextMove[Y][X] = nextMove[y][x];
+                    if (nextMove[Y][X] == MOD) nextMove[Y][X] = 64 * X + Y;
+                    if (robotMapID[Y][X] <= 0) Q.add(64 * X + Y);
                 }
             }
         }
+
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) 
+            if (nextMove[i][j] == 64*j+i && !passable(j,i)) nextMove[i][j] = MOD;
     }
     void genEnemyDist() {
         if (enemyDist == null) {
@@ -333,8 +337,18 @@ public class MyRobot extends BCAbstractRobot {
         }
     }
 
+    boolean superseded() {
+        for (int i = -6; i <= 6; ++i) for (int j = -6; j <= 6; ++j)
+            if (yourRobot(me.x+i,me.y+j)) {
+                if (i == 0 && j == 0) continue;
+                Robot2 R = robotMap[me.y+j][me.x+i];
+                if (Math.sqrt(VISION_R[me.unit])+Math.sqrt(i*i+j*j) <= Math.sqrt(VISION_R[R.unit])) return true;
+            }
+        return false;
+    }
+
     void warnOthers() {
-        if (ME.unit == CRUSADER || ME.unit == PREACHER) return;
+        if (superseded()) return;
         Robot2 R = closestAttacker(1-ME.team); if (euclidDist(R) > VISION_R[ME.unit]) return;
         int needDist = 0;
         for (int i = -4; i <= 4; ++i) for (int j = -4; j <= 4; ++j) {
