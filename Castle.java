@@ -15,7 +15,7 @@ public class Castle extends Building {
         if (Z.me.turn == 1) {
             for (Robot2 R: Z.robots) if (R.team == Z.me.team) Z.castle.add(R.id);
         }
-        
+
         for (Robot2 R: Z.robots) if (Z.castle.contains(R.id)) {
             if (R.castle_talk > 0 && R.castle_talk <= 64) Z.castleX.put(R.id,R.castle_talk-1);
             if (R.castle_talk > 64 && R.castle_talk <= 128) {
@@ -29,7 +29,7 @@ public class Castle extends Building {
         else if (Z.ME.turn == 3) Z.castleTalk(0);
     }
 
-    
+
     boolean ourSide(int pos) {
 		int x = Z.fdiv(pos,64); int y = pos%64;
 		if(Z.hsim()) {
@@ -83,7 +83,7 @@ public class Castle extends Building {
             }
         }
     }
-    
+
     void initVars() {
         for (int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++){
             if (Z.karboniteMap[y][x]) Z.karbcount++;
@@ -134,7 +134,7 @@ public class Castle extends Building {
 			Z.isOccupiedFuel[Z.sortedFuel[i]] = true;
 		}
 	}
-    
+
     int getMessage(int x) { return x+2000; }
 
     void updateVars() {
@@ -150,8 +150,8 @@ public class Castle extends Building {
             for (int i = 0; i < Z.fuelcount; i++) if (Z.fuelToPil[i] == R.id) ind = i;
             Z.isOccupiedFuel[ind] = true;
         }
-        
-        for (Robot2 R: Z.robots) if (!Z.castle.contains(R.id) && R.castle_talk % 7 == PILGRIM) {   
+
+        for (Robot2 R: Z.robots) if (!Z.castle.contains(R.id) && R.castle_talk % 7 == PILGRIM) {
             int d = Z.euclidDist(R);
             if (d <= 2) { // make sure this is the castle that spawned it
                 boolean assigned = false;
@@ -183,10 +183,10 @@ public class Castle extends Building {
         }
     }
 
-    boolean shouldPilgrim() { 
+    boolean shouldPilgrim() {
         if (3*Z.numUnits[PILGRIM] > 2*(Z.karbcount+Z.fuelcount)) return false;
         if (Z.euclidDist(Z.closestAttacker(1-Z.ME.team)) <= 64) return false;
-        return 2*Z.numUnits[PILGRIM] <= Z.numAttack; 
+        return 2*Z.numUnits[PILGRIM] <= Z.numAttack;
     }
     boolean shouldRush() { return Z.ME.turn <= 20; }
     boolean shouldProphet() {
@@ -233,9 +233,8 @@ public class Castle extends Building {
             return Z.tryBuild(PILGRIM);
         } else return Z.tryBuild(PREACHER);
     }
-    
+
     Action run() {
-		Z.log("====================== ROUND " + Z.me.turn + " ======================");
 		if (Z.me.turn == 1) initVars();
         determineLoc();
 
@@ -262,7 +261,7 @@ public class Castle extends Building {
             if (Z.me.team == 0) return testCrusader();
             else return testPreacher();
         }
-            // return testRanger(); 
+            // return testRanger();
         return null;
 	}
 }
