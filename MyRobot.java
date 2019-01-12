@@ -127,6 +127,7 @@ public class MyRobot extends BCAbstractRobot {
     boolean passable(int x, int y) { return valid(x, y) && robotMapID[y][x] <= 0; }
     boolean adjacent(Robot2 r) { return Math.abs(ME.x-r.x) <= 1 && Math.abs(ME.y-r.y) <= 1; }
     int euclidDist(int x, int y) { return sq(ME.x-x)+sq(ME.y-y); }
+    int euclidDist(int x1, int y1, int x2, int y2) { return sq(x1-x2)+sq(y1-y2); }
     int euclidDist(Robot2 A, Robot2 B) { return sq(A.x-B.x)+sq(A.y-B.y); }
     int euclidDist(Robot2 B) { return B == null ? MOD : euclidDist(B.x,B.y); }
     int numOpen(int t) { // how many squares around t are free
@@ -232,6 +233,16 @@ public class MyRobot extends BCAbstractRobot {
             }
         return bestPos;
     }
+    int closerSquare(int x, int y) {
+		int bestDist = MOD, bestPos = MOD;
+        for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
+            int X = me.x+i, Y = me.y+j;
+            if (valid(X,Y) && bfsDist[Y][X] != MOD && euclidDist(X,Y,x,y) < bestDist) {
+                bestDist = i*i+j*j; bestPos = 64*X+Y;
+            }
+        }
+        return bestPos;
+	}
     int closeEmpty(int x, int y) {
         int bestDist = MOD, bestPos = MOD;
         for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
