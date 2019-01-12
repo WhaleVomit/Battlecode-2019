@@ -64,7 +64,7 @@ public class Movable {
                 return Z.give(R.x-Z.me.x,R.y-Z.me.y,Z.me.karbonite,Z.me.fuel);
             }
         int x = Z.getClosestStruct(true);
-        return moveToward(Z.fdiv(x,64),x%64);
+        return nextMove(Z.fdiv(x,64),x%64);
     }
 
     public Action moveTowardCastle() {

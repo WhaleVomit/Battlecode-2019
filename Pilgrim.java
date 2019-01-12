@@ -104,6 +104,14 @@ public class Pilgrim extends Movable {
 		}
 		return nextMove(Z.closestUnused(b));
 	}
+	
+	boolean inDanger() {
+		for(Robot2 R: Z.robots) if(R.isAttacker(1-Z.me.team)) {
+			int dis = Z.sq((int)Math.sqrt(VISION_R[R.unit])+2);
+			if(Z.euclidDist(R.x,R.y) <= dis) return true;
+		}
+		return false;
+	}
 
     Action run() {
 		if(Z.rx == -1){ // don't move until found destination
@@ -129,8 +137,10 @@ public class Pilgrim extends Movable {
         a = Z.karbonite; b = (Z.fuel-100*Z.myUnits)/5.0;
     	setResource();
         
-        Robot2 R = Z.closestAttacker(1-Z.me.team);
-        if (Z.euclidDist(R) <= 100) { Z.goHome = true; return moveAway(R); }
+        if(inDanger()) {
+			Robot2 R = Z.closestAttacker(1-Z.me.team);
+			Z.goHome = true; return moveAway(R);
+		}
 
         if (Z.canBuild(CHURCH) && shouldBuildChurch()) {
         	Action A = Z.tryBuild(CHURCH);

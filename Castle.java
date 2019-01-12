@@ -324,7 +324,7 @@ public class Castle extends Building {
             }
         } else {
             boolean canTake = Z.fuel >= CONSTRUCTION_F[CHURCH] + CONSTRUCTION_F[PROPHET] && Z.karbonite >= CONSTRUCTION_K[CHURCH] + CONSTRUCTION_K[PROPHET];
-            if((Z.numAttack < 6 && Z.canBuild(PROPHET)) || canTake) {
+            if((Z.numAttack < Math.max(6, Z.fdiv(Z.me.turn,15)) && Z.canBuild(PROPHET)) || canTake) {
                 Action A = Z.tryBuild(PROPHET);
                 if (A != null) {
                     Z.numAttack++;
