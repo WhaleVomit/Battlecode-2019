@@ -129,7 +129,34 @@ public class Attackable extends Movable {
         }
         return null;
     }
-    public Action position(Robot2 R) {
+    boolean enemyCanAttack(Robot2 R, int x, int y) { // can R attack (x,y)? assuming there is a robot at (x,y)
+		if(R.unit == PREACHER) {
+			for(int dx = -1; dx <= 1; dx++) for(int dy = -1; dy <= 1; dy++) {
+				if(dx == 0 && dy == 0 && Z.euclidDist(R.x,R.y,x,y) >= 1 && Z.euclidDist(R.x,R.y,x,y) <= 16) return true;
+				else if(Z.containsRobot(x+dx,y+dy)) {
+					Robot2 R1 = Z.robotMap[y+dy][x+dx];
+					if(R1.team == Z.me.team && Z.euclidDist(R,R1) >= 1 && Z.euclidDist(R,R1) <= 16) return true;
+				}
+			}
+			return false;
+		} else {
+			return Z.euclidDist(R.x,R.y,x,y) >= MIN_ATTACK_R[R.unit] && Z.euclidDist(R.x,R.y,x,y) <= MAX_ATTACK_R[R.unit];
+		}
+	}
+    int getDamage(int x, int y) { // sum of damage of all enemy units that can attack this position
+		int res = 0;
+		for (int i = -8; i <= 8; ++i) for (int j = -8; j <= 8; ++j) {
+            if (Z.containsRobot(x+i,y+j)) {
+                int d = i*i+j*j;
+                Robot2 R = Z.robotMap[y+j][x+i];
+                if(R.team == Z.me.team || R.unit <= 1) continue;
+                if(enemyCanAttack(R,x,y)) res += DAMAGE[R.unit];
+            }
+		}
+		return res;
+	}
+    public Action position() {
+		Robot2 R = Z.closestEnemy(); if (Z.euclidDist(R) > 196) R = null;
         if (R == null) return null;
         if (Z.euclidDist(R) < MIN_ATTACK_R[Z.ME.unit]) return moveAway(R);
         if (Z.euclidDist(R) <= MAX_ATTACK_R[Z.ME.unit]) return null;
@@ -138,22 +165,23 @@ public class Attackable extends Movable {
         // return moveTowardEnemy(R);
 
         int oriDist = Z.sq(Z.ME.x-R.x)+Z.sq(Z.ME.y-R.y);
-        int bestDist = MOD; Action A = null;
-        for (int i = -3; i <= 3; ++i)
-            for (int j = -3; j <= 3; ++j)
-                if (canMove(Z.ME,i,j) && !attacked(Z.ME.x+i,Z.ME.y+j)) {
-                    int dist = Z.sq(Z.ME.x+i-R.x)+Z.sq(Z.ME.y+j-R.y);
-                    if (dist < bestDist) {
-                        bestDist = dist;
-                        A = Z.move(i,j);
-                    }
+        int bestDam = MOD, bestDist = MOD; Action A = null;
+        for (int i = -3; i <= 3; ++i) {
+            for (int j = -3; j <= 3; ++j) {
+				int dam = getDamage(Z.ME.x+i,Z.ME.y+j);
+                if (canMove(Z.ME,i,j) && dam < bestDam) {
+					bestDist = Math.min(bestDist, i*i+j*j);
+					bestDam = dam;
+					A = Z.move(i,j);
                 }
+			}
+		}
 
         if (Math.sqrt(bestDist)+0.5 < Math.sqrt(oriDist)) {
             // Z.log ("AVOID "+Z.ME.x+" "+Z.ME.y+" "+R.x+" "+R.y+" "+bestDist);
             return A;
         }
-        for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j)
+        for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j) 
             if (canMove(Z.ME,i,j) && notDumb(Z.ME.x+i,Z.ME.y+j)) {
                 int dist = Z.sq(Z.ME.x+i-R.x)+Z.sq(Z.ME.y+j-R.y);
                 if (dist < bestDist && dist < oriDist) {
