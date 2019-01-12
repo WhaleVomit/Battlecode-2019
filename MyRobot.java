@@ -66,6 +66,20 @@ public class MyRobot extends BCAbstractRobot {
         String T = ""; for (Robot2 R: robots) T += R.getInfo();
         log(T);
     }
+    void dumpInfo() {
+        String T = ""; T += ME.getInfo();
+        T += nextMove[ME.y][ME.x]+" ";
+        if (ME.y > 0) T += nextMove[ME.y-1][ME.x]+" ";
+        T += "\n";
+        T += myCastle.size()+" "+otherCastle.size();
+        if (otherCastle.size() > 0) {
+            T += " " + otherCastle.get(0);
+            int x = fdiv(otherCastle.get(0),64), y = otherCastle.get(0) % 64;
+            log(""+nextMove[y][x]);
+        }
+        T += "\n";
+        log(T);
+    }
 
     // ARRAYLIST
     void removeDup(ArrayList<Integer> A) {
@@ -141,9 +155,11 @@ public class MyRobot extends BCAbstractRobot {
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
             bfsDist[i][j] = MOD; nextMove[i][j] = MOD;
         }
-        Queue Q = new Queue(h*w); bfsDist[ME.y][ME.x] = 0; Q.push(64 * ME.x + ME.y);
+        LinkedList<Integer> Q = new LinkedList<Integer>(); bfsDist[ME.y][ME.x] = 0; Q.add(64 * ME.x + ME.y);
 
+        int t = 0;
         while (Q.size() > 0) {
+            t ++;
             int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
             for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy) {
                 int X = x + dx, Y = y + dy;
@@ -151,7 +167,7 @@ public class MyRobot extends BCAbstractRobot {
                     bfsDist[Y][X] = bfsDist[y][x] + 1;
                     if (nextMove[y][x] == MOD) nextMove[Y][X] = 64 * X + Y;
                     else nextMove[Y][X] = nextMove[y][x];
-                    if (passable(X,Y)) Q.push(64 * X + Y);
+                    if (passable(X,Y)) Q.add(64 * X + Y);
                 }
             }
         }
@@ -164,16 +180,16 @@ public class MyRobot extends BCAbstractRobot {
         }
         if (!updEnemy) return;
         updEnemy = false;
-        Queue Q = new Queue(h*w*2);
+        LinkedList<Integer> Q = new LinkedList<Integer>();
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) 
             for (int k = 0; k < 2; ++k) enemyDist[i][j][k] = MOD;
             
         for (int i: otherCastle) {
-            Q.push(2*i);
+            Q.add(2*i);
             enemyDist[i%64][fdiv(i,64)][0] = 0;
         }
         for (int i: otherChurch) {
-            Q.push(2*i);
+            Q.add(2*i);
             enemyDist[i%64][fdiv(i,64)][0] = 0;
         }
 
@@ -356,7 +372,7 @@ public class MyRobot extends BCAbstractRobot {
     void sendToCastle() {
         // 0 to 5: unit, 6: assigned pilgrim
         int res = ME.unit; if (res == 0) return;
-        if (ME.unit == PILGRIM && resource != -1) res = 6;
+        if (ME.unit == PILGRIM && resourceLoc.f != -1) res = 6;
         boolean seeEnemy = false;
         for (int i = -14; i <= 14; ++i) for (int j = -14; j <= 14; ++j) 
             if (i*i+j*j <= 196 && enemyRobot(ME.x+i,ME.y+j)) seeEnemy = true;
@@ -371,6 +387,7 @@ public class MyRobot extends BCAbstractRobot {
         genBfsDist(ME.unit == CRUSADER ? 9 : 4);
         genEnemyDist();
         warnOthers();
+        // dumpInfo();
         
         switch (ME.unit) {
             case CASTLE: {

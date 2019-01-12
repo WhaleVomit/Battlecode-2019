@@ -132,7 +132,9 @@ public class Attackable extends Movable {
     }
 
     public Action aggressive() {
-        Action A = moveEnemy(); if (A != null) return A;
+        Action A = tryAttack(); if (A != null) return A;
+        A = moveEnemy(); if (A != null) return A;
+        // Z.log("NO MOVE?");
         return nextMove(Z.closestUnseen());
     }
 }
