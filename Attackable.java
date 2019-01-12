@@ -195,19 +195,7 @@ public class Attackable extends Movable {
     public Action patrol() {
         int t = Z.closestStruct(true);
         if (Z.bfsDist(t) > 4) return moveHome();
-<<<<<<< HEAD
-        int y = t % 64; int x = Z.fdiv(t,64);
-
-        int bestVal = MOD, bestDist = MOD, pos = MOD;
-        for (int X = x-5; X <= x+5; ++X)
-            for (int Y = y-5; Y <= y+5; ++Y) {
-                int val = patrolVal(X,Y,x,y);
-                if (val < bestVal || (val == bestVal && Z.bfsDist[Y][X] < bestDist)) {
-                    bestVal = val; bestDist = Z.bfsDist[Y][X]; pos = 64*X+Y;
-                }
-            }
-=======
-        int x = Z.fdiv(t,64), y = t % 64; 
+        int x = Z.fdiv(t,64), y = t % 64;
 
         int bestVal = MOD, bestDist = MOD, pos = MOD;
         for (int X = x-5; X <= x+5; ++X) for (int Y = y-5; Y <= y+5; ++Y) if (Z.valid(X,Y)) {
@@ -217,7 +205,6 @@ public class Attackable extends Movable {
             }
         }
 
->>>>>>> 2a921b167cdaa3355448ed5cd1374c4a03b32f55
         return nextMove(pos);
     }
 

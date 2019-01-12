@@ -34,12 +34,8 @@ public class MyRobot extends BCAbstractRobot {
     Set<Integer> castle = new HashSet<>();
     Map<Integer,Integer> castleX = new HashMap<>();
     Map<Integer,Integer> castleY = new HashMap<>();
-<<<<<<< HEAD
-
-=======
     pi assignedPilgrimPos = new pi(-1,-1);
-    
->>>>>>> 2a921b167cdaa3355448ed5cd1374c4a03b32f55
+
     // FOR PILGRIM
     int resource = -1; // karbonite or fuel
     pi resourceLoc = new pi(-1,-1);
@@ -282,7 +278,7 @@ public class MyRobot extends BCAbstractRobot {
         while (Q.size() > 0) {
             int t = Q.poll();
             int k = t % 2; t = fdiv(t,2);
-            int x = fdiv(t,64), y = t % 64; 
+            int x = fdiv(t,64), y = t % 64;
             for (int z = 0; z < 4; ++z) {
                 int X = x+xd[z], Y = y+yd[z];
                 if (inMap(X,Y)) {
@@ -512,7 +508,6 @@ public class MyRobot extends BCAbstractRobot {
         genBfsDist(ME.unit == CRUSADER ? 9 : 4);
         genEnemyDist();
         warnOthers();
-        if (ME.unit == CASTLE)  log("====================== ROUND " + me.turn + " ======================");
         if (ME.turn == 1) log("TYPE: "+ME.unit);
         // dumpInfo();
 
