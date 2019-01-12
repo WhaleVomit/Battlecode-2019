@@ -201,6 +201,7 @@ public class MyRobot extends BCAbstractRobot {
     boolean enemyRobot(int x, int y, int t) { return enemyRobot(x,y) && robotMap[y][x].unit == t; }
     boolean passable(int x, int y) { return valid(x, y) && robotMapID[y][x] <= 0; }
     boolean adjacent(Robot2 r) { return Math.abs(ME.x-r.x) <= 1 && Math.abs(ME.y-r.y) <= 1; }
+    int euclidDist(int x1, int y1, int x2, int y2) { return sq(x1-x2) + sq(y1-y2); }
     int euclidDist(int x, int y) { return sq(ME.x-x)+sq(ME.y-y); }
     int euclidDist(Robot2 A, Robot2 B) { return sq(A.x-B.x)+sq(A.y-B.y); }
     int euclidDist(Robot2 B) { return B == null ? MOD : euclidDist(B.x,B.y); }
