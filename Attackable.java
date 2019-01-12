@@ -194,8 +194,7 @@ public class Attackable extends Movable {
     public Action react() {
         Action A = dealWithPreacher(); if (A != null) return A;
         A = tryAttack(); if (A != null) return A;
-        Robot2 R = Z.closestEnemy(); if (Z.euclidDist(R) > 196) R = null;
-        return position(R);
+        return position();
     }
     public Action tryAttack() {
         int besPri = 0, DX = MOD, DY = MOD;
