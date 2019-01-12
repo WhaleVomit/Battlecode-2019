@@ -34,6 +34,7 @@ public class MyRobot extends BCAbstractRobot {
     Set<Integer> castle = new HashSet<>();
     Map<Integer,Integer> castleX = new HashMap<>();
     Map<Integer,Integer> castleY = new HashMap<>();
+    pi assignedPilgrimPos = new pi(-1,-1);
     
     // FOR PILGRIM
     int resource = -1; // karbonite or fuel
@@ -397,16 +398,18 @@ public class MyRobot extends BCAbstractRobot {
         rem(myCastle); rem(otherCastle);
     }
 
-    void sendToCastle() {
-        // 0 to 5: unit, 6: assigned pilgrim
-        int res = ME.unit; if (res == 0) return;
-        if (ME.unit == PILGRIM && resourceLoc.f != -1) res = 6;
+    void sendToCastle(int res) { // 0 to 5: unit, 6: assigned pilgrim
         boolean seeEnemy = false;
         for (int i = -14; i <= 14; ++i) for (int j = -14; j <= 14; ++j) 
             if (i*i+j*j <= 196 && enemyRobot(ME.x+i,ME.y+j)) seeEnemy = true;
         if (seeEnemy) res += 7;
         if (otherCastle.size()+otherChurch.size() == 0) res += 14;
         castleTalk(res);
+    }
+
+    void sendToCastle() {
+        int res = ME.unit; if (res == 0) return;
+        sendToCastle(res);
     }
 
     public Action turn() {
