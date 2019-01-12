@@ -24,26 +24,9 @@ public class Pilgrim extends Movable {
 			int newx = Z.me.x+dx; int newy = Z.me.y+dy;
 			if(Z.passable(newx, newy) && !Z.karboniteMap[newy][newx] && !Z.fuelMap[newy][newx]) isNextToEmpty = true;
 		}
-		if(!isNextToEmpty) return false;
+		if (!isNextToEmpty) return false;
 
-		// has to be at least 4 away from nearest deposit
-		int closeChurch = Z.getClosestChurch(true);
-		int closeChurchX = (closeChurch-(closeChurch%64))/64;
-		int closeChurchY = closeChurch%64;
-		int d1 = MOD;
-		if(closeChurch != MOD) d1 = Z.dist[closeChurchY][closeChurchX];
-
-		int closeCastle = Z.getClosestCastle(true);
-		int closeCastleX = (closeCastle-(closeCastle%64))/64;
-		int closeCastleY = closeCastle%64;
-		int d2 = MOD;
-		if(closeCastle != MOD) d2 = Z.dist[closeCastleY][closeCastleX];
-
-		if(Math.min(d1,d2) >= 4) {
-			return true;
-		}
-
-		return false;
+		return Z.bfsDist(Z.closestStruct(true)) >= 4; // has to be at least 4 away from nearest deposit
 	}
 
 	double getkarboscore(int x, int y) { // checks if this 5x5 square is a good spot to mine
@@ -51,8 +34,8 @@ public class Pilgrim extends Movable {
 		for(int dx = -2; dx <= 2; dx++) {
 			for(int dy = -2; dy <= 2; dy++) if(Z.valid(x+dx,y+dy)) {
 				if(Z.karboniteMap[y+dy][x+dx]) numr++;
-				if(Z.seenRobot[y+dy][x+dx] != null && Z.seenMap[y+dy][x+dx] != Z.me.id) {
-					Robot2 r = Z.seenRobot[y+dy][x+dx];
+				if(Z.robotMap[y+dy][x+dx] != null && Z.robotMapID[y+dy][x+dx] != Z.me.id) {
+					Robot2 r = Z.robotMap[y+dy][x+dx];
 					if (r.unit == PILGRIM) nump++;
 				}
 			}
@@ -65,8 +48,8 @@ public class Pilgrim extends Movable {
 		for(int dx = -2; dx <= 2; dx++) {
 			for(int dy = -2; dy <= 2; dy++) if(Z.valid(x+dx,y+dy)) {
 				if(Z.fuelMap[y+dy][x+dx]) numr++;
-				if(Z.seenMap[y+dy][x+dx] > 0 && Z.seenMap[y+dy][x+dx] != Z.me.id) {
-					Robot2 r = Z.seenRobot[y+dy][x+dx];
+				if(Z.robotMapID[y+dy][x+dx] > 0 && Z.robotMapID[y+dy][x+dx] != Z.me.id) {
+					Robot2 r = Z.robotMap[y+dy][x+dx];
 					if (r.unit == PILGRIM) nump++;
 				}
 			}
@@ -77,13 +60,14 @@ public class Pilgrim extends Movable {
 	double a,b;
 
 	void setResource() {
+        a = Z.karbonite; b = (Z.fuel)/5.0; // -100*Z.myUnits
         if (Z.resource != -1) return;
         if (a+100 < b) {
         	Z.resource = 0;
         } else if (b+100 < a) {
         	Z.resource = 1;
-        } else Z.resource = (Z.id+Z.turn) % 2;
-        Z.log("RESOURCE: "+a+" "+b+" "+Z.resource);
+        } else Z.resource = (Z.id+Z.ME.turn) % 2;
+        // Z.log("RESOURCE: "+a+" "+b+" "+Z.resource);
     	/*for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
     		int x = Z.me.x+dx, y = Z.me.y+dy;
     		if (Z.valid(x,y) && Z.robotMap[y][x] > 0) {
@@ -95,65 +79,69 @@ public class Pilgrim extends Movable {
     	Z.log("RESOURCE: "+Z.resource);*/
 	}
 	
-	Action closeFreeResource() {
+	int closeFreeResource() {
 		boolean[][] b = new boolean[Z.h][Z.w];
-		for(int x = 0; x < Z.w; x++) {
-			for(int y = 0; y < Z.h; y++) {
-				if((Z.karboniteMap[y][x] || Z.fuelMap[y][x])) b[y][x] = true;
-			}
-		}
-		return nextMove(Z.closestUnused(b));
+		for (int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) 
+			if ((Z.karboniteMap[y][x] || Z.fuelMap[y][x]) && Z.robotMapID[y][x] <= 0) 
+				b[y][x] = true;
+		return Z.closestUnused(b);
+	}
+
+	Action mine() {
+        if (Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
+        if (Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
+        return null;
+	}
+
+	Action greedy() {
+		int x = closeFreeResource();
+		if (Z.bfsDist(x) <= 2) return nextMove(x);
+		return null;
 	}
 
     Action run() {
-		if(Z.rx == -1){ // don't move until found destination
-			if(Z.me.turn == 1) return null;
-			Z.castleTalk(24); // haven't been assigned!
-            for(Robot2 r : Z.robots) {
-				int s = r.signal;
-				//Z.log("signal recieved: "+s);
-                if((r.team == Z.me.team) && (r.unit == CASTLE) && s >= 2000 && s <= 7000) {
+		if (Z.resourceLoc.f == -1) { // don't move until found destination
+			if (Z.ME.turn == 1) {
+				Z.sendToCastle();
+				return null;
+			}
+            for (Robot2 r : Z.robots) {
+				int s = r.signal; // Z.log("signal recieved: "+s);
+                if (r.team == Z.me.team && r.unit == CASTLE && s >= 2000 && s < 7000) {
                     int a = s - 2000;
-                    Z.rx = (a - (a%64)) /64;
-                    Z.ry = a%64;
+                    Z.resourceLoc = new pi(Z.fdiv(a,64),a%64);
                 }
             }
-            if(Z.rx == -1) return null;
-            else {
-				Z.log(Z.me.id + " recieved instructions to go to (" + Z.rx + "," + Z.ry+")");
-			}
+            if (Z.resourceLoc.f == -1) {
+				Z.sendToCastle();
+            	return null;
+            } else Z.log(Z.me.id + " received instructions to go to (" + Z.resourceLoc.f + "," + Z.resourceLoc.s+")");
         }
-        Z.castleTalk(25); // assigned!
-        
-        
-        a = Z.karbonite; b = (Z.fuel-100*Z.myUnits)/5.0;
-    	setResource();
+		Z.sendToCastle(); setResource();
         
         Robot2 R = Z.closestAttacker(1-Z.me.team);
         if (Z.euclidDist(R) <= 100) { Z.goHome = true; return moveAway(R); }
-
-        if (Z.canBuild(CHURCH) && shouldBuildChurch()) {
-        	Action A = Z.tryBuild(CHURCH);
-        	if (A != null) { Z.numChurches++; return A; }
-        }
-
-        if (Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
-        if (Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
+        Action A = null;
+        if (shouldBuildChurch()) { A = Z.tryBuild(CHURCH); if (A != null) return A; }
+        A = mine(); if (A != null) return A;
 
         if (Z.me.karbonite < 5 && Z.me.fuel < 25) Z.goHome = false;
         if (Z.me.karbonite > 16 && b+100 >= a) Z.goHome = true;
         if (Z.me.fuel > 80 && a+100 >= b) Z.goHome = true;
         if (Z.goHome) return moveHome();
         
-        if(Z.seenMap[Z.ry][Z.rx] <= 0 && nextMove(Z.rx , Z.ry) != null) return nextMove(Z.rx , Z.ry);
+        if (Z.robotMapID[Z.resourceLoc.s][Z.resourceLoc.f] <= 0 
+        	&& nextMove(Z.resourceLoc.f, Z.resourceLoc.s) != null) 
+        	return nextMove(Z.resourceLoc.f, Z.resourceLoc.s);
 
+        A = greedy(); if (A != null) return A;
         if (Z.resource == 0) {
 			boolean[][] karboMap = new boolean[Z.h][Z.w];
-			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) karboMap[y][x] = (Z.seenMap[y][x] <= 0 && getkarboscore(x,y) > 0);
+			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) karboMap[y][x] = (Z.robotMapID[y][x] <= 0 && getkarboscore(x,y) > 0);
 			return nextMove(Z.closestUnused(karboMap));
 		} else {
 			boolean[][] fuelMap = new boolean[Z.h][Z.w];
-			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) fuelMap[y][x] = (Z.seenMap[y][x] <= 0 && getfuelscore(x,y) > 0);
+			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) fuelMap[y][x] = (Z.robotMapID[y][x] <= 0 && getfuelscore(x,y) > 0);
 			return nextMove(Z.closestUnused(fuelMap));
 		}
     }

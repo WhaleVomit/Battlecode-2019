@@ -1,8 +1,8 @@
 package bc19;
 
 public class Consts {
-    
     public static final int MOD = 1000000007;
+    public static final int[] xd = {1,0,-1,0}, yd = {0,1,0,-1};
 
     public static final int CASTLE = 0;
     public static final int CHURCH = 1;
