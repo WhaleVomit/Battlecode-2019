@@ -506,6 +506,7 @@ public class MyRobot extends BCAbstractRobot {
 
     public Action turn() {
         updateData();
+        if(ME.unit == CASTLE && ME.team == 0 && myCastle.get(0) == 64 * ME.x + ME.y) log("================ ROUND " + ME.turn + " ================");
         genBfsDist(ME.unit == CRUSADER ? 9 : 4);
         genEnemyDist();
         warnOthers();
