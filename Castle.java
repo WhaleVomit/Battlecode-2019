@@ -117,34 +117,6 @@ public class Castle extends Building {
         sortKarb(); sortFuel();
     }
 
-    /*Action testPreacherDefense() {
-        if (shouldMakePilgrim()) {
-            Action A = makePilgrim();
-            if (A != null) return A;
-        } else {
-            if (Z.me.team == 0) {
-                if (Z.canBuild(PREACHER)) {
-                    Action A = Z.tryBuild(PREACHER);
-                    if (A != null) {
-                        Z.numAttack ++;
-                        Z.log("Built preacher");
-                        return A;
-                    }
-                }
-            } else {
-                if (Z.canBuild(PROPHET)) {
-                    Action A = Z.tryBuild(PROPHET);
-                    if (A != null) {
-                        Z.numAttack++;
-                        Z.log("Built prophet");
-                        return A;
-                    }
-                }
-            }
-        }
-        return null;
-    }*/
-
     void assignRand(Robot2 R, int d) {
 		// assign to random if all positions have been filled
 		int tot = Z.karbcount+Z.fuelcount;
@@ -211,7 +183,11 @@ public class Castle extends Building {
         }
     }
 
-    boolean shouldPilgrim() { return 2*Z.numUnits[PILGRIM] <= Z.numAttack; }
+    boolean shouldPilgrim() { 
+        if (3*Z.numUnits[PILGRIM] > 2*(Z.karbcount+Z.fuelcount)) return false;
+        if (Z.euclidDist(Z.closestAttacker(1-Z.ME.team)) <= 64) return false;
+        return 2*Z.numUnits[PILGRIM] <= Z.numAttack; 
+    }
     boolean shouldRush() { return Z.ME.turn <= 20; }
     boolean shouldProphet() {
         boolean canTake = Z.fuel >= CONSTRUCTION_F[CHURCH] + CONSTRUCTION_F[PROPHET] && Z.karbonite >= CONSTRUCTION_K[CHURCH] + CONSTRUCTION_K[PROPHET];
@@ -228,9 +204,38 @@ public class Castle extends Building {
         }
         return null;
     }
+    Action testPreacherDefense() {
+        if (shouldPilgrim()) {
+            return Z.tryBuild(PILGRIM);
+        } else if (Z.ME.team == 0) {
+            Action A = Z.tryBuild(PREACHER); if (A != null) return A;
+            return Z.tryBuild(CRUSADER);
+        } else if (shouldProphet()) {
+            return Z.tryBuild(PROPHET);
+        }
+        return null;
+    }
+    Action testRanger() {
+        if (shouldPilgrim()) {
+            return Z.tryBuild(PILGRIM);
+        } else if (shouldProphet()) {
+            return Z.tryBuild(PROPHET);
+        }
+        return null;
+    }
+    Action testCrusader() {
+        if (shouldPilgrim()) {
+            return Z.tryBuild(PILGRIM);
+        } else return Z.tryBuild(CRUSADER);
+    }
+    Action testPreacher() {
+        if (shouldPilgrim()) {
+            return Z.tryBuild(PILGRIM);
+        } else return Z.tryBuild(PREACHER);
+    }
     
     Action run() {
-		if (Z.me.turn == 1) initVars();
+		if (Z.ME.turn == 1) initVars();
         determineLoc();
 
         Z.numAttack = 0; for (int i = 0; i < 6; ++i) Z.numUnits[i] = 0;
@@ -242,8 +247,21 @@ public class Castle extends Building {
             }
         }
 
+        /*if (Z.ME.turn <= 5) {
+            String T = "";
+            for (int i: Z.myCastle) T += Z.coordinates(i)+" ";
+            T += "| " + Z.numAttack+" | ";
+            for (int i = 0; i < 6; ++i) T += Z.numUnits[i]+" ";
+            Z.log(Z.ME.turn+" "+T);
+        }*/
+
         if (!Z.signaled) updateVars();
-        if (Z.me.turn > 1) return build(); // first turn reserved to determine location of other castles
+        if (Z.me.turn > 1) { // first turn reserved to determine location of other castles
+            // return build();
+            if (Z.me.team == 0) return testCrusader();
+            else return testPreacher();
+        }
+            // return testRanger(); 
         return null;
 	}
 }

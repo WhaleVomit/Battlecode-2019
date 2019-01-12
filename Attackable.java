@@ -33,7 +33,7 @@ public class Attackable extends Movable {
         } else if (Z.ME.unit == PROPHET) {
             if (dist < 16 || dist > 64) return -MOD;
         } else if (Z.ME.unit == PREACHER) {
-            if (dist < 3 || dist > 16) return -MOD;
+            if (dist < 1 || dist > 16) return -MOD;
         } else return -MOD;
 
         int x = Z.ME.x + dx, y = Z.ME.y + dy;
@@ -47,18 +47,49 @@ public class Attackable extends Movable {
         }
     }
 
+    public boolean adjacentEnemyPreacher(int x, int y) {
+        for (int I = -1; I <= 1; ++I) for (int J = -1; J <= 1; ++J) 
+            if (Z.enemyRobot(x+I,y+J,PREACHER)) return true;
+        return false;
+    }
     public boolean attackedByPreacher(int x, int y) {
+        // if (adjacentEnemyPreacher(x,y)) return false;
         for (int I = -1; I <= 1; ++I) for (int J = -1; J <= 1; ++J) {
             boolean ok = false;
             if (I == 0 && J == 0) ok = true;
             else if (x+I == Z.ME.x && y+J == Z.ME.y) ok = false;
             else if (Z.containsRobot(x+I,y+J)) ok = true;
-            if (!ok) continue;
+            if (!ok || adjacentEnemyPreacher(x+I,y+J)) continue;
             for (int i = -4; i <= 4; ++i) for (int j = -4; j <= 4; ++j) 
                 if (i*i+j*j <= 16 && Z.enemyRobot(x+i,y+j,PREACHER)) 
                     return true;
         }
         return false;
+    }
+
+    public boolean notDumb(int x, int y) {
+        for (int I = -1; I <= 1; ++I) for (int J = -1; J <= 1; ++J) {
+            boolean ok = false;
+            if (I == 0 && J == 0) ok = true;
+            else if (x+I == Z.ME.x && y+J == Z.ME.y) ok = false;
+            else if (Z.containsRobot(x+I,y+J)) ok = true;
+            if (!ok || adjacentEnemyPreacher(x+I,y+J)) continue;
+            ok = false;
+            for (int i = -4; i <= 4; ++i) for (int j = -4; j <= 4; ++j) 
+                if (i*i+j*j <= 16 && Z.enemyRobot(x+i,y+j,PREACHER)) ok = true;
+            if (!ok) continue;
+            int caught = 0;
+            for (int I2 = -1; I2 <= 1; ++I2) for (int J2 = -1; J2 <= 1; ++J2) {
+                boolean yours = false;
+                if (x+I+I2 == x && y+J+J2 == y) yours = true;
+                else if (x+I+I2 == Z.ME.x && y+J+J2 == Z.ME.y) yours = false;
+                else if (Z.yourAttacker(x+I+I2,y+J+J2)) yours = true;
+                if (yours) caught ++;
+            }
+            if (caught > 1) return false;
+        }
+        return true;
+        
     }
     public boolean attacked(int x, int y) {
         if (attackedByPreacher(x,y)) return true;
@@ -66,41 +97,87 @@ public class Attackable extends Movable {
             if (Z.containsRobot(x+i,y+j)) {
                 int d = i*i+j*j;
                 Robot2 R = Z.robotMap[y+j][x+i];
-                if (R.isAttacker(1-Z.ME.team) && d <= MAX_ATTACK_R[R.unit]) return true;
+                if (R.isAttacker(1-Z.ME.team) && R.unit != PREACHER && d <= MAX_ATTACK_R[R.unit]) return true;
             }
         return false;
     }
-
-    public Action avoidPreacher() {
-        if (Z.ME.unit != PROPHET || !attackedByPreacher(Z.ME.x,Z.ME.y)) return null;
+    public Action dealWithPreacher() {
+        if (!attackedByPreacher(Z.ME.x,Z.ME.y)) return null;
         Z.log("ATTACKED BY PREACHER "+Z.ME.turn+" "+Z.ME.x+" "+Z.ME.y);
-        for (int i = -2; i <= 2; ++i) for (int j = -Math.abs(2-Math.abs(i)); j <= Math.abs(2-Math.abs(i)); ++j)
-            if (Z.passable(Z.ME.x+i,Z.ME.y+j) && !attacked(Z.ME.x+i,Z.ME.y+j)) {
-                Z.log("BACK UP");
-                return Z.move(i,j);
+
+        int C = Z.closestStruct(true);
+        int cx = Z.fdiv(C,64), cy = C%64;
+        if (Z.ME.unit == PROPHET) {
+            for (int i = -2; i <= 2; ++i) for (int j = -2; j <= 2; ++j)
+                if (canMove(Z.ME,i,j) && !attacked(Z.ME.x+i,Z.ME.y+j)) return Z.move(i,j);
+        } else if (Z.ME.unit == CRUSADER) {
+            int bestDist = MOD;
+            Action bestMove = null;
+            for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j) {
+                int x = Z.ME.x+i, y = Z.ME.y+j;
+                if (canMove(Z.ME,i,j) && !attacked(x,y) && adjacentEnemyPreacher(x,y)) {
+                    int dist = Z.sq(cx-x)+Z.sq(cy-y);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        bestMove = Z.move(i,j);
+                    }
+                }
             }
-        Z.log("OOPS");
+            return bestMove;
+        } 
         return null;
     }
-    public Action react() {
-        Action A = avoidPreacher(); if (A != null) return A;
-        A = tryAttack(); if (A != null) return A;
-        Robot2 R = Z.closestEnemy(); 
+    public Action position(Robot2 R) {
         if (R == null) return null;
-        if (Z.ME.unit == PROPHET && Z.euclidDist(R) < 16) return moveAway(R);
-        return moveToward(R);
+        if (Z.euclidDist(R) < MIN_ATTACK_R[Z.ME.unit]) return moveAway(R);
+        if (Z.euclidDist(R) <= MAX_ATTACK_R[Z.ME.unit]) return null;
+        if (R.unit != PREACHER || Z.ME.unit == PREACHER || Z.euclidDist(R) > 49) return moveToward(R.x,R.y);
+        // CRUSADER vs PREACHER, both currently outside of attack ranges
+        // return moveTowardEnemy(R);
+
+        int oriDist = Z.sq(Z.ME.x-R.x)+Z.sq(Z.ME.y-R.y);
+        int bestDist = MOD; Action A = null;
+        for (int i = -3; i <= 3; ++i)
+            for (int j = -3; j <= 3; ++j) 
+                if (canMove(Z.ME,i,j) && !attacked(Z.ME.x+i,Z.ME.y+j)) {
+                    int dist = Z.sq(Z.ME.x+i-R.x)+Z.sq(Z.ME.y+j-R.y);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        A = Z.move(i,j);
+                    }
+                }
+
+        if (Math.sqrt(bestDist)+0.5 < Math.sqrt(oriDist)) {
+            // Z.log ("AVOID "+Z.ME.x+" "+Z.ME.y+" "+R.x+" "+R.y+" "+bestDist);
+            return A;
+        }
+        for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j) 
+            if (canMove(Z.ME,i,j) && notDumb(Z.ME.x+i,Z.ME.y+j)) {
+                int dist = Z.sq(Z.ME.x+i-R.x)+Z.sq(Z.ME.y+j-R.y);
+                if (dist < bestDist && dist < oriDist) {
+                    bestDist = dist;
+                    A = Z.move(i,j);
+                }
+            }
+        return A;
+    }
+    public Action react() {
+        Action A = dealWithPreacher(); if (A != null) return A;
+        A = tryAttack(); if (A != null) return A;
+        Robot2 R = Z.closestEnemy(); if (Z.euclidDist(R) > 196) R = null;
+        return position(R);
     }
     public Action tryAttack() {
-        int besPri = 0; Action bes = null;
+        int besPri = 0, DX = MOD, DY = MOD;
         for (int dx = -8; dx <= 8; ++dx)
             for (int dy = -8; dy <= 8; ++dy) {
                 int t = canAttack(dx, dy);
                 if (t > besPri) {
-                    besPri = t;
-                    bes = Z.attack(dx,dy);
+                    besPri = t; DX = dx; DY = dy;
                 }
             }
-        return bes;
+        if (besPri == 0) return null;
+        return Z.attack(DX,DY);
     }
 
     public int patrolVal(int X, int Y, int x, int y) {
@@ -113,7 +190,6 @@ public class Attackable extends Movable {
         } 
         return MOD;
     }
-
     public Action patrol() {
         int t = Z.closestStruct(true);
         if (Z.bfsDist(t) > 4) return moveHome();

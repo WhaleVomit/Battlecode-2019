@@ -14,7 +14,6 @@ public class MyRobot extends BCAbstractRobot {
     Robot2[] robots;
     Robot2[][] robotMap; // stores last robot seen in pos
     int[][] robotMapID; // stores last id seen in pos
-    boolean[][] noStructure; // whether square does not contain structure or not
 
     int[][] bfsDist, nextMove; 
     boolean updEnemy = false;
@@ -53,6 +52,10 @@ public class MyRobot extends BCAbstractRobot {
     // MATH
     int fdiv(int a, int b) { return (a-(a%b))/b; }
     int sq(int x) { return x*x; }
+    String coordinates(int t) {
+        int y = t%64, x = fdiv(t,64);
+        return "("+x+", "+y+")";
+    }
 
     // ROBOT
     Robot2 makeRobot(int unit, int team, int x, int y) {
@@ -67,15 +70,11 @@ public class MyRobot extends BCAbstractRobot {
         log(T);
     }
     void dumpInfo() {
-        String T = ""; T += ME.getInfo();
-        T += nextMove[ME.y][ME.x]+" ";
-        if (ME.y > 0) T += nextMove[ME.y-1][ME.x]+" ";
-        T += "\n";
+        String T = ME.getInfo();
         T += myCastle.size()+" "+otherCastle.size();
         if (otherCastle.size() > 0) {
-            T += " " + otherCastle.get(0);
-            int x = fdiv(otherCastle.get(0),64), y = otherCastle.get(0) % 64;
-            log(""+nextMove[y][x]);
+            T += " " + coordinates(otherCastle.get(0));
+            // int x = fdiv(otherCastle.get(0),64), y = otherCastle.get(0) % 64;
         }
         T += "\n";
         log(T);
@@ -85,15 +84,6 @@ public class MyRobot extends BCAbstractRobot {
     void removeDup(ArrayList<Integer> A) {
         ArrayList<Integer> B = new ArrayList<>();
         for (Integer i : A) if (!B.contains(i)) B.add(i);
-        A.clear();
-        for (Integer i : B) A.add(i);
-    }
-    void rem(ArrayList<Integer> A) {
-        ArrayList<Integer> B = new ArrayList<>();
-        for (Integer i : A) {
-            int y = i % 64; int x = fdiv(i,64);
-            if (!noStructure[y][x]) B.add(i);
-        }
         A.clear();
         for (Integer i : B) A.add(i);
     }
@@ -120,10 +110,10 @@ public class MyRobot extends BCAbstractRobot {
     boolean inMap(int x, int y) { return x >= 0 && x < w && y >= 0 && y < h; }
     boolean valid(int x, int y) { return inMap(x,y) && map[y][x]; }
     boolean containsRobot(int x, int y) { return valid(x, y) && robotMapID[y][x] > 0; }
-    boolean yourAttacker(int x, int y) { return containsRobot(x,y) && robotMap[y][x].team == ME.team && robotMap[y][x].unit > 2; }
+    boolean attacker(int x, int y) { return containsRobot(x,y) && robotMap[y][x].unit > 2; }
+    boolean yourAttacker(int x, int y) { return attacker(x,y) && robotMap[y][x].team == ME.team;  }
     boolean enemyRobot(int x, int y) { return containsRobot(x,y) && robotMap[y][x].team == 1-ME.team; }
     boolean enemyRobot(int x, int y, int t) { return enemyRobot(x,y) && robotMap[y][x].unit == t; }
-    boolean enemyAttacker(int x, int y) { return enemyRobot(x,y) && robotMap[y][x].unit > 2; }
     boolean passable(int x, int y) { return valid(x, y) && robotMapID[y][x] <= 0; }
     boolean adjacent(Robot2 r) { return Math.abs(ME.x-r.x) <= 1 && Math.abs(ME.y-r.y) <= 1; }
     int euclidDist(int x, int y) { return sq(ME.x-x)+sq(ME.y-y); }
@@ -145,7 +135,8 @@ public class MyRobot extends BCAbstractRobot {
     Robot2 closestAttacker(int t) {
         Robot2 bes = null;
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) 
-            if (enemyAttacker(j,i) && euclidDist(j,i) < euclidDist(bes)) bes = robotMap[i][j];
+            if (attacker(j,i) && robotMap[i][j].team == t && euclidDist(j,i) < euclidDist(bes)) 
+                bes = robotMap[i][j];
         return bes;
     }
 
@@ -264,33 +255,56 @@ public class MyRobot extends BCAbstractRobot {
             if (passable(ME.x + dx, ME.y + dy)) return buildUnit(t, dx, dy);
         return null;
     }
-
-    void addStruct(Robot2 R) {
+    public boolean yesStruct(int x, int y) {
+        if (robotMapID[y][x] == 0) return false;
+        if (robotMapID[y][x] > 0 && robotMap[y][x].unit > 1) return false;
+        return true;
+    }
+    public void addYour(ArrayList<Integer> A, int pos, int type) {
+        int x = fdiv(pos,64), y = pos%64;
+        if (!yesStruct(x,y) || A.contains(pos)) return;
+        A.add(pos); 
+        if (robotMapID[y][x] == -1) {
+            robotMapID[y][x] = MOD;
+            robotMap[y][x] = makeRobot(type,ME.team,x,y);
+        }
+    }
+    public void addOther(ArrayList<Integer> A, int pos, int type) {
+        int x = fdiv(pos,64), y = pos%64;
+        if (!yesStruct(x,y) || A.contains(pos)) return;
+        A.add(pos); updEnemy = true;
+        if (robotMapID[y][x] == -1) {
+            robotMapID[y][x] = MOD;
+            robotMap[y][x] = makeRobot(type,1-ME.team,x,y);
+        }
+    }
+    void rem(ArrayList<Integer> A) {
+        ArrayList<Integer> B = new ArrayList<>();
+        for (int i : A) {
+            int x = fdiv(i,64), y = i % 64; 
+            if (yesStruct(x,y)) B.add(i);
+        }
+        A.clear();
+        for (int i : B) A.add(i);
+    }
+    public void addStruct(Robot2 R) {
+        // log("WHAT "+R.x+" "+R.y+" "+noStruct(R.x,R.y));
         int t = 64*R.x+R.y;
         if (R.unit == CHURCH) {
-            if(R.team == ME.team && !myChurch.contains(t)) {
-                myChurch.add(t);
-            } else if(R.team != ME.team && !otherChurch.contains(t)) {
-                otherChurch.add(t);
-                updEnemy = true;
-            }
+            if (R.team == ME.team) addYour(myChurch,t,1);
+            else if (R.team != ME.team) addOther(otherChurch,t,1);
         } else {
-            if (R.team == ME.team && !myCastle.contains(t)) {
-                myCastle.add(t);
-                if (wsim() && R.unit == 0 && !noStructure[R.y][w-1-R.x]) {
-                    updEnemy = true; otherCastle.add(64*(w-1-R.x)+R.y);
-                }
-                if (hsim() && R.unit == 0 && !noStructure[h-1-R.y][R.x]) {
-                    updEnemy = true; otherCastle.add(64*R.x+(h-1-R.y));
-                }
-            } else if(R.team != ME.team && !otherCastle.contains(t)) {
-                updEnemy = true; otherCastle.add(t);
-                if (wsim() && R.unit == 0 && !noStructure[R.y][w-1-R.x]) myCastle.add(64*(w-1-R.x)+R.y);
-                if (hsim() && R.unit == 0 && !noStructure[h-1-R.y][R.x]) myCastle.add(64*R.x+(h-1-R.y));
+            if (R.team == ME.team) {
+                addYour(myCastle,t,0);
+                if (wsim()) addOther(otherCastle,64*(w-1-R.x)+R.y,0);
+                if (hsim()) addOther(otherCastle,64*R.x+(h-1-R.y),0);
+            } else if(R.team != ME.team) {
+                addOther(otherCastle,t,0);
+                if (wsim()) addYour(myCastle,64*(w-1-R.x)+R.y,0);
+                if (hsim()) addYour(myCastle,64*R.x+(h-1-R.y),0);
             }
         }
     }
-
 
     int getSignal(Robot2 R) {
         return 441*(R.unit-3)+21*(R.x-me.x+10)+(R.y-me.y+10)+1;
@@ -321,7 +335,7 @@ public class MyRobot extends BCAbstractRobot {
 
     void warnOthers() {
         if (ME.unit == CRUSADER || ME.unit == PREACHER) return;
-        Robot2 R = closestEnemy(); if (euclidDist(R) > VISION_R[ME.unit]) return;
+        Robot2 R = closestAttacker(1-ME.team); if (euclidDist(R) > VISION_R[ME.unit]) return;
         int needDist = 0;
         for (int i = -4; i <= 4; ++i) for (int j = -4; j <= 4; ++j) {
             int x = me.x+i, y = me.y+j;
@@ -344,7 +358,6 @@ public class MyRobot extends BCAbstractRobot {
         if (robotMap == null) {
             robotMap = new Robot2[h][w];
             robotMapID = new int[h][w];
-            noStructure = new boolean[h][w];
             for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) robotMapID[i][j] = -1;
         }
 
@@ -355,13 +368,11 @@ public class MyRobot extends BCAbstractRobot {
             int t = getVisibleRobotMap()[i][j];
             if (t != -1) {
                 robotMapID[i][j] = t;
-                if (robotMapID[i][j] == 0) {
-                    noStructure[i][j] = true;
-                    robotMap[i][j] = null;
-                } else {
-                    robotMap[i][j] = getRobot2(robotMapID[i][j]);
-                    if (robotMap[i][j].isStructure()) noStructure[i][j] = false;
-                    else noStructure[i][j] = true;
+                if (robotMapID[i][j] == 0) robotMap[i][j] = null;
+                else {
+                    Robot2 R = getRobot2(robotMapID[i][j]);
+                    robotMap[i][j] = R;
+                    if (R.unit <= 1) addStruct(R);
                 }
             }
         }
