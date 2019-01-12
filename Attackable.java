@@ -183,7 +183,7 @@ public class Attackable extends Movable {
     }
 
     public int patrolVal(int X, int Y, int x, int y) {
-        if (((X == Z.ME.x && Y == Z.ME.y) || Z.passable(X,Y)) && (X+Y-x-y) % 2 == 0) {
+        if (((X == Z.ME.x && Y == Z.ME.y) || Z.robotMapID[Y][X] <= 0) && (X+Y-x-y) % 2 == 0) {
             if (Z.sq(X-x)+Z.sq(Y-y) <= 2 && Z.numOpen(64*x+y) <= 2 && !(X == Z.ME.x && Y == Z.ME.y)) return MOD;
             int val = Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
             if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += 4;
@@ -195,6 +195,7 @@ public class Attackable extends Movable {
     public Action patrol() {
         int t = Z.closestStruct(true);
         if (Z.bfsDist(t) > 4) return moveHome();
+<<<<<<< HEAD
         int y = t % 64; int x = Z.fdiv(t,64);
 
         int bestVal = MOD, bestDist = MOD, pos = MOD;
@@ -205,6 +206,18 @@ public class Attackable extends Movable {
                     bestVal = val; bestDist = Z.bfsDist[Y][X]; pos = 64*X+Y;
                 }
             }
+=======
+        int x = Z.fdiv(t,64), y = t % 64; 
+
+        int bestVal = MOD, bestDist = MOD, pos = MOD;
+        for (int X = x-5; X <= x+5; ++X) for (int Y = y-5; Y <= y+5; ++Y) if (Z.valid(X,Y)) {
+            int val = patrolVal(X,Y,x,y);
+            if (val < bestVal || (val == bestVal && Z.bfsDist[Y][X] < bestDist)) {
+                bestVal = val; bestDist = Z.bfsDist[Y][X]; pos = 64*X+Y;
+            }
+        }
+
+>>>>>>> 2a921b167cdaa3355448ed5cd1374c4a03b32f55
         return nextMove(pos);
     }
 

@@ -34,7 +34,12 @@ public class MyRobot extends BCAbstractRobot {
     Set<Integer> castle = new HashSet<>();
     Map<Integer,Integer> castleX = new HashMap<>();
     Map<Integer,Integer> castleY = new HashMap<>();
+<<<<<<< HEAD
 
+=======
+    pi assignedPilgrimPos = new pi(-1,-1);
+    
+>>>>>>> 2a921b167cdaa3355448ed5cd1374c4a03b32f55
     // FOR PILGRIM
     int resource = -1; // karbonite or fuel
     pi resourceLoc = new pi(-1,-1);
@@ -236,13 +241,16 @@ public class MyRobot extends BCAbstractRobot {
         while (Q.size() > 0) {
             t ++;
             int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
-            for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy) {
-                int X = x + dx, Y = y + dy;
-                if (dx*dx+dy*dy <= mx && valid(X,Y) && bfsDist[Y][X] == MOD) {
-                    bfsDist[Y][X] = bfsDist[y][x] + 1;
-                    nextMove[Y][X] = nextMove[y][x];
-                    if (nextMove[Y][X] == MOD) nextMove[Y][X] = 64 * X + Y;
-                    if (robotMapID[Y][X] <= 0) Q.add(64 * X + Y);
+            for (int dx = -3; dx <= 3; ++dx) {
+                int X = x+dx; if (X < 0 || X >= w) continue;
+                for (int dy = -3; dy <= 3; ++dy) {
+                    int Y = y+dy; if (Y < 0 || Y >= h) continue;
+                    if (dx*dx+dy*dy <= mx && map[Y][X] && bfsDist[Y][X] == MOD) {
+                        bfsDist[Y][X] = bfsDist[y][x] + 1;
+                        nextMove[Y][X] = nextMove[y][x];
+                        if (nextMove[Y][X] == MOD) nextMove[Y][X] = 64 * X + Y;
+                        if (robotMapID[Y][X] <= 0) Q.add(64 * X + Y);
+                    }
                 }
             }
         }
@@ -274,11 +282,11 @@ public class MyRobot extends BCAbstractRobot {
         while (Q.size() > 0) {
             int t = Q.poll();
             int k = t % 2; t = fdiv(t,2);
-            int y = t % 64; int x = fdiv(t,64);
+            int x = fdiv(t,64), y = t % 64; 
             for (int z = 0; z < 4; ++z) {
                 int X = x+xd[z], Y = y+yd[z];
                 if (inMap(X,Y)) {
-                    int K = k+1; if (valid(X,Y)) K = 0;
+                    int K = k+1; if (map[Y][X]) K = 0;
                     if (K == 2 || enemyDist[Y][X][K] != MOD) continue;
                     enemyDist[Y][X][K] = enemyDist[y][x][k]+1;
                     Q.push(2*(64*X+Y)+K);
@@ -439,7 +447,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     void warnOthers() {
-        if (superseded()) return;
+        if (fuel < 100 || superseded()) return;
         Robot2 R = closestAttacker(1-ME.team); if (euclidDist(R) > VISION_R[ME.unit]) return;
         int needDist = 0;
         for (int i = -4; i <= 4; ++i) for (int j = -4; j <= 4; ++j) {
@@ -485,10 +493,7 @@ public class MyRobot extends BCAbstractRobot {
         rem(myCastle); rem(otherCastle);
     }
 
-    void sendToCastle() {
-        // 0 to 5: unit, 6: assigned pilgrim
-        int res = ME.unit; if (res == 0) return;
-        if (ME.unit == PILGRIM && resourceLoc.f != -1) res = 6;
+    void sendToCastle(int res) { // 0 to 5: unit, 6: assigned pilgrim
         boolean seeEnemy = false;
         for (int i = -14; i <= 14; ++i) for (int j = -14; j <= 14; ++j)
             if (i*i+j*j <= 196 && enemyRobot(ME.x+i,ME.y+j)) seeEnemy = true;
@@ -497,12 +502,18 @@ public class MyRobot extends BCAbstractRobot {
         castleTalk(res);
     }
 
+    void sendToCastle() {
+        int res = ME.unit; if (res == 0) return;
+        sendToCastle(res);
+    }
+
     public Action turn() {
         updateData();
-        if (ME.turn == 1) log("TYPE: "+ME.unit);
         genBfsDist(ME.unit == CRUSADER ? 9 : 4);
         genEnemyDist();
         warnOthers();
+        if (ME.unit == CASTLE)  log("====================== ROUND " + me.turn + " ======================");
+        if (ME.turn == 1) log("TYPE: "+ME.unit);
         // dumpInfo();
 
         switch (ME.unit) {

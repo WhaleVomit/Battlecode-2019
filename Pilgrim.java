@@ -67,16 +67,6 @@ public class Pilgrim extends Movable {
         } else if (b+100 < a) {
         	Z.resource = 1;
         } else Z.resource = (Z.id+Z.ME.turn) % 2;
-        // Z.log("RESOURCE: "+a+" "+b+" "+Z.resource);
-    	/*for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
-    		int x = Z.me.x+dx, y = Z.me.y+dy;
-    		if (Z.valid(x,y) && Z.robotMap[y][x] > 0) {
-    			Robot R = Z.getRobot(Z.robotMap[y][x]);
-    			if (R != null && Z.isStructure(R) && R.signal > 0) Z.resource = (R.signal%4)-1;
-    		}
-    	}
-    	if (Z.resource == -1) Z.resource = 1;
-    	Z.log("RESOURCE: "+Z.resource);*/
 	}
 	
 	int closeFreeResource(boolean karb, boolean fuel) {
@@ -110,11 +100,7 @@ public class Pilgrim extends Movable {
 	}
 
     Action run() {
-		if (Z.resourceLoc.f == -1) { // don't move until found destination
-			if (Z.ME.turn == 1) {
-				Z.sendToCastle();
-				return null;
-			}
+		if (Z.resourceLoc.f == -1) { // Z.ME.turn == 1
             for (Robot2 r : Z.robots) {
 				int s = r.signal; // Z.log("signal recieved: "+s);
                 if (r.team == Z.me.team && r.unit == CASTLE && s >= 2000 && s < 7000) {
@@ -122,12 +108,11 @@ public class Pilgrim extends Movable {
                     Z.resourceLoc = new pi(Z.fdiv(a,64),a%64);
                 }
             }
-            if (Z.resourceLoc.f == -1) {
-				Z.sendToCastle();
-            	return null;
-            } else Z.log(Z.me.id + " received instructions to go to (" + Z.resourceLoc.f + "," + Z.resourceLoc.s+")");
-        }
-		Z.sendToCastle(); setResource();
+            if (Z.resourceLoc.f == -1) Z.log("DID NOT GET ASSIGNMENT??");
+            else Z.log(Z.me.id + " received instructions to go to (" + Z.resourceLoc.f + "," + Z.resourceLoc.s+")");
+			Z.sendToCastle(6);
+        } else Z.sendToCastle();
+		setResource();
         
         if (inDanger()) {
 			Robot2 R = Z.closestAttacker(1-Z.me.team); 
@@ -143,7 +128,7 @@ public class Pilgrim extends Movable {
         if (Z.me.fuel > 80 && a+100 >= b) Z.goHome = true;
         if (Z.goHome) return moveHome();
         
-        if (Z.robotMapID[Z.resourceLoc.s][Z.resourceLoc.f] <= 0 
+        if (Z.resourceLoc.f != -1 && Z.robotMapID[Z.resourceLoc.s][Z.resourceLoc.f] <= 0 
         	&& nextMove(Z.resourceLoc.f, Z.resourceLoc.s) != null) 
         	return nextMove(Z.resourceLoc.f, Z.resourceLoc.s);
 
