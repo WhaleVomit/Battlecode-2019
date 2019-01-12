@@ -153,13 +153,16 @@ public class MyRobot extends BCAbstractRobot {
         while (Q.size() > 0) {
             t ++;
             int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
-            for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy) {
-                int X = x + dx, Y = y + dy;
-                if (dx*dx+dy*dy <= mx && valid(X,Y) && bfsDist[Y][X] == MOD) {
-                    bfsDist[Y][X] = bfsDist[y][x] + 1;
-                    nextMove[Y][X] = nextMove[y][x];
-                    if (nextMove[Y][X] == MOD) nextMove[Y][X] = 64 * X + Y;
-                    if (robotMapID[Y][X] <= 0) Q.add(64 * X + Y);
+            for (int dx = -3; dx <= 3; ++dx) {
+                int X = x+dx; if (X < 0 || X >= w) continue;
+                for (int dy = -3; dy <= 3; ++dy) {
+                    int Y = y+dy; if (Y < 0 || Y >= h) continue;
+                    if (dx*dx+dy*dy <= mx && map[Y][X] && bfsDist[Y][X] == MOD) {
+                        bfsDist[Y][X] = bfsDist[y][x] + 1;
+                        nextMove[Y][X] = nextMove[y][x];
+                        if (nextMove[Y][X] == MOD) nextMove[Y][X] = 64 * X + Y;
+                        if (robotMapID[Y][X] <= 0) Q.add(64 * X + Y);
+                    }
                 }
             }
         }
@@ -191,11 +194,11 @@ public class MyRobot extends BCAbstractRobot {
         while (Q.size() > 0) {
             int t = Q.poll();
             int k = t % 2; t = fdiv(t,2);
-            int y = t % 64; int x = fdiv(t,64);
+            int x = fdiv(t,64), y = t % 64; 
             for (int z = 0; z < 4; ++z) {
                 int X = x+xd[z], Y = y+yd[z];
                 if (inMap(X,Y)) {
-                    int K = k+1; if (valid(X,Y)) K = 0;
+                    int K = k+1; if (map[Y][X]) K = 0;
                     if (K == 2 || enemyDist[Y][X][K] != MOD) continue;
                     enemyDist[Y][X][K] = enemyDist[y][x][k]+1;
                     Q.push(2*(64*X+Y)+K);
@@ -408,10 +411,11 @@ public class MyRobot extends BCAbstractRobot {
 
     public Action turn() {
         updateData();
-        if (ME.turn == 1) log("TYPE: "+ME.unit);
         genBfsDist(ME.unit == CRUSADER ? 9 : 4);
         genEnemyDist();
         warnOthers();
+        if (ME.unit == CASTLE)  log("====================== ROUND " + me.turn + " ======================");
+        if (ME.turn == 1) log("TYPE: "+ME.unit);
         // dumpInfo();
         
         switch (ME.unit) {
