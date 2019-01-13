@@ -319,7 +319,7 @@ public class MyRobot extends BCAbstractRobot {
         int bestDist = MOD, bestPos = MOD;
         for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
             int X = x+i, Y = y+j;
-            if (valid(X,Y) && bfsDist[Y][X] != MOD && i*i+j*j < bestDist) {
+            if (passable(X,Y) && bfsDist[Y][X] != MOD && i*i+j*j < bestDist) {
                 bestDist = i*i+j*j; bestPos = 64*X+Y;
             }
         }
