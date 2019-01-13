@@ -221,7 +221,7 @@ public class Attackable extends Movable {
     }
     public Action patrol() {
         int t = Z.closestStruct(true);
-        if (Z.bfsDist(t) > 4) return moveHome();
+        if (Z.bfsDist(t) > 9) return moveHome();
         int x = Z.fdiv(t,64), y = t % 64;
 
         int bestVal = MOD, bestDist = MOD, pos = MOD;
