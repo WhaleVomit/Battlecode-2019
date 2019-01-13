@@ -227,9 +227,11 @@ public class Attackable extends Movable {
         int bestVal = MOD, bestDist = MOD, pos = MOD;
         for (int X = x-10; X <= x+10; ++X) for (int Y = y-10; Y <= y+10; ++Y) if (Z.valid(X,Y)) {
             int val = patrolVal(X,Y,x,y);
-            if (val < bestVal || (val == bestVal && Z.bfsDist[Y][X] < bestDist)) 
+            if (val < bestVal || (val == bestVal && Z.bfsDist[Y][X] < bestDist)) {
                 bestVal = val; bestDist = Z.bfsDist[Y][X]; pos = 64*X+Y;
+            }
         }
+        Z.log(Z.coordinates(pos)+" "+Z.coordinates(t)+" "+bestVal);
 
         return nextMove(pos);
     }

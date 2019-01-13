@@ -189,9 +189,7 @@ public class MyRobot extends BCAbstractRobot {
         }
         LinkedList<Integer> Q = new LinkedList<Integer>(); bfsDist[CUR.y][CUR.x] = 0; Q.add(64 * CUR.x + CUR.y);
 
-        int t = 0;
         while (Q.size() > 0) {
-            t ++;
             int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
             for (int dx = -3; dx <= 3; ++dx) {
                 int X = x+dx; if (X < 0 || X >= w) continue;
@@ -200,15 +198,14 @@ public class MyRobot extends BCAbstractRobot {
                     if (dx*dx+dy*dy <= mx && map[Y][X] && bfsDist[Y][X] == MOD) {
                         bfsDist[Y][X] = bfsDist[y][x] + 1;
                         nextMove[Y][X] = nextMove[y][x];
-                        if (nextMove[Y][X] == MOD) nextMove[Y][X] = 64 * X + Y;
-                        if (robotMapID[Y][X] <= 0) Q.add(64 * X + Y);
+                        if (robotMapID[Y][X] <= 0)  {
+                            if (nextMove[Y][X] == MOD) nextMove[Y][X] = 64 * X + Y;
+                            Q.add(64 * X + Y);
+                        }
                     }
                 }
             }
         }
-
-        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
-            if (nextMove[i][j] == 64*j+i && !passable(j,i)) nextMove[i][j] = MOD;
     }
     void genEnemyDist() {
         if (enemyDist == null) {
@@ -274,7 +271,7 @@ public class MyRobot extends BCAbstractRobot {
         int bestDist = MOD, bestPos = MOD;
         for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
             int X = x+i, Y = y+j;
-            if (passable(X,Y) && bfsDist[Y][X] != MOD && i*i+j*j < bestDist) {
+            if (passable(X,Y) && i*i+j*j < bestDist) {
                 bestDist = i*i+j*j; bestPos = 64*X+Y;
             }
         }

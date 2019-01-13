@@ -25,10 +25,7 @@ public class Movable {
         return Z.moveAction(X-Z.CUR.x, Y-Z.CUR.y);
     }
     public Action2 nextMove(int x) { return x == MOD ? null : nextMove(Z.fdiv(x,64), x % 64); }
-    public Action2 moveToward(int x, int y) { 
-        Action2 A = nextMove(x,y); if (A != null) return A;
-        return nextMove(Z.closeEmpty(x, y)); 
-    }
+    public Action2 moveToward(int x, int y) { return nextMove(Z.closeEmpty(x, y)); }
     public Action2 moveToward(int x) { return moveToward(Z.fdiv(x,64),x%64); }
     public Action2 moveToward(Robot2 R) { return R == null ? null : moveToward(R.x, R.y); }
     public Action2 moveAway(int x, int y) {
@@ -47,6 +44,10 @@ public class Movable {
                 Z.resource = -1;
                 return Z.giveAction(R.x-Z.CUR.x,R.y-Z.CUR.y,Z.CUR.karbonite,Z.CUR.fuel);
             }
+        Z.log("TRI "+Z.coordinates(Z.closestStruct(true)));
+        Z.log(Z.coordinates(Z.closeEmpty(42,21)));
+        Action2 A = moveToward(Z.closestStruct(true));
+        Z.log("ZZ "+A.type+" "+A.dx+" "+A.dy);
         return moveToward(Z.closestStruct(true));
     }
     public Action2 moveEnemy() { return moveToward(Z.closestStruct(false)); }
