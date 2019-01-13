@@ -40,16 +40,6 @@ public class MyRobot extends BCAbstractRobot {
     int resource = -1; // karbonite or fuel
     pi resourceLoc = new pi(-1,-1);
 
-    /*void genTurn() {
-        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
-            int x = ME.x+dx, y = ME.y+dy;
-            if (containsRobot(x,y)) {
-                Robot2 R = getRobot2(robotMap[y][x]);
-                if (R.isStructure() && R.team == ME.team && R.signal > 0) turn = R.signal;
-            }
-        }
-    }*/
-
     // MATH
 
     int fdiv(int a, int b) { return (a-(a%b))/b; }
@@ -62,9 +52,9 @@ public class MyRobot extends BCAbstractRobot {
     // ROBOT
     Robot2 makeRobot(int unit, int team, int x, int y) {
         Robot2 R = new Robot2(null);
-        R.unit = unit; R.team = team; R.x = x; R.y = y;
+        R.id = MOD; R.unit = unit; R.team = team; R.x = x; R.y = y;
         return R;
-    }
+    } // makeRobot(0,1-ME.team,)
     Robot2 getRobot2(int id) { return new Robot2(getRobot(id)); }
     boolean withinMoveRadius(Robot2 R, int dx, int dy) { return R != null && R.withinMoveRadius(dx,dy,fuel); }
     void dumpRobots() {
@@ -80,88 +70,6 @@ public class MyRobot extends BCAbstractRobot {
         }
         T += "\n";
         log(T);
-    }
-
-    // CASTLE LOCATIONS
-    int encodeEnemyCastleLocations() {
-        int res = 0;
-        int oppX = ME.x, oppY = ME.y;
-        if(hsim()) oppY = h - 1 - oppY;
-        else oppX = w - 1 - oppX;
-        int approxOppID = 8 * fdiv(oppX, 8) + fdiv(oppY, 8);
-
-        pi approxLocs = new pi(-1, -1);
-        for(Integer i : otherCastle) {
-            int xPos = fdiv(i, 64);
-            int yPos = i % 64;
-
-            yPos = fdiv(yPos, 8);
-            xPos = fdiv(xPos, 8); // approximating location
-            int approxID = xPos * 8 + yPos;
-            if(approxID == approxOppID) {
-                res |= (1 << 11);
-                continue;
-            }
-            if(approxID > approxOppID) approxID--; // between 0 and 62 now
-
-            if (approxLocs.f == -1) approxLocs.f = approxID;
-            else if (approxLocs.f != approxID) approxLocs.s = approxID;
-        }
-        if(approxLocs.f != -1) {
-            if(approxLocs.s == -1) approxLocs.s = approxLocs.f;
-            res++; // 0 would be no other castles
-            int l1 = Math.min(approxLocs.f, approxLocs.s);
-            int l2 = Math.max(approxLocs.f, approxLocs.s);
-            res += l1 * 63 + l2;
-            res -= l1 * (l1 + 1) / 2;
-        }
-        res += 7000;
-        // end result is between 7000 and 11100 (upper bound is actually a bit lower but just to be safe)
-        return res;
-    }
-
-    void fill8by8(int approxX, int approxY) {
-        for(int i = 0; i < 8; i++)
-            for(int j = 0; j < 8; j++) {
-                int locID = 64 * (8 * approxX + i) + (8 * approxY + j);
-                if(!otherCastle.contains(locID)) otherCastle.add(locID);
-            }
-    }
-
-    void fill8by8(int approxID) {
-        fill8by8(fdiv(approxID, 8), approxID % 8);
-    }
-
-    void decodeEnemyCastleLocations(Robot2 parentCastle) {
-        int oppX = parentCastle.x, oppY = parentCastle.y;
-        if(hsim()) oppY = h - 1 - oppY;
-        else oppX = w - 1 - oppX;
-        oppX = fdiv(oppX, 8);
-        oppY = fdiv(oppY, 8);
-        int oppID = 8 * oppX + oppY;
-
-        int sig = parentCastle.signal;
-        sig -= 7000;
-        if((sig >> 11) > 0) {
-            fill8by8(oppID);
-            sig -= (1 << 11);
-        }
-        if(sig > 0) {
-            sig--;
-            int p1 = 0, p2 = 0;
-            while(sig > 0) {
-                p2++;
-                if(p2 == 63) {
-                    p1++;
-                    p2 = p1;
-                }
-                sig--;
-            }
-            if(p1 >= oppID) p1++;
-            if(p2 >= oppID) p2++;
-            fill8by8(p1);
-            if(p2 != p1) fill8by8(p2);
-        }
     }
 
     // ARRAYLIST
@@ -353,55 +261,131 @@ public class MyRobot extends BCAbstractRobot {
         return null;
     }
     public boolean yesStruct(int x, int y) {
-		if(!inMap(x,y)) log("WHAT!!!" + " " + x + " " + y);
-        if (robotMapID[y][x] == 0) return false;
-        if (robotMapID[y][x] > 0 && robotMap[y][x].unit > 1) return false;
+		if (!valid(x,y) || robotMapID[y][x] == 0) return false;
+        if (robotMapID[y][x] > 0 && !robotMap[y][x].isStructure()) return false;
         return true;
     }
-    public void addYour(ArrayList<Integer> A, int pos, int type) {
-        int x = fdiv(pos,64), y = pos%64;
-        if (!yesStruct(x,y) || A.contains(pos)) return;
-        A.add(pos);
-        if (robotMapID[y][x] == -1) {
-            robotMapID[y][x] = MOD;
-            robotMap[y][x] = makeRobot(type,ME.team,x,y);
-        }
+    public void addYour(ArrayList<Integer> A, Robot2 R) {
+        int p = 64*R.x+R.y;
+        if (!yesStruct(R.x,R.y) || A.contains(p)) return;
+        A.add(p);
+        if (robotMapID[R.y][R.x] == -1) { robotMapID[R.y][R.x] = R.id; robotMap[R.y][R.x] = R; }
     }
-    public void addOther(ArrayList<Integer> A, int pos, int type) {
-        int x = fdiv(pos,64), y = pos%64;
-        if (!yesStruct(x,y) || A.contains(pos)) return;
-        A.add(pos); updEnemy = true;
-        if (robotMapID[y][x] == -1) {
-            robotMapID[y][x] = MOD;
-            robotMap[y][x] = makeRobot(type,1-ME.team,x,y);
-        }
+    public void addOther(ArrayList<Integer> A, Robot2 R) {
+        int p = 64*R.x+R.y;
+        if (!yesStruct(R.x,R.y) || A.contains(p)) return;
+        A.add(p); updEnemy = true;
+        if (robotMapID[R.y][R.x] == -1) { robotMapID[R.y][R.x] = R.id; robotMap[R.y][R.x] = R; }
     }
     void rem(ArrayList<Integer> A) {
         ArrayList<Integer> B = new ArrayList<>();
         for (int i : A) {
-            int x = fdiv(i,64), y = i % 64;
+            int x = fdiv(i,64), y = i%64;
+            if (!inMap(x,y)) {
+                String res = "CCC "+x+" "+y+" "+i+ " | ";
+                for (int j: A) res += j+" ";
+                res += " | ";
+                for (Integer j: A) res += j+" ";
+                log(res);
+                return;
+            }
             if (yesStruct(x,y)) B.add(i);
         }
         A.clear();
         for (int i : B) A.add(i);
     }
     public void addStruct(Robot2 R) {
-        // log("WHAT "+R.x+" "+R.y+" "+noStruct(R.x,R.y));
-        int t = 64*R.x+R.y;
-        if(!inMap(R.x,R.y)) log("WHAT3!!! " + R.x + " " + R.y);
+        if (!yesStruct(R.x,R.y)) return;
         if (R.unit == CHURCH) {
-            if (R.team == ME.team) addYour(myChurch,t,1);
-            else if (R.team != ME.team) addOther(otherChurch,t,1);
+            if (R.team == ME.team) addYour(myChurch,R);
+            else if (R.team != ME.team) addOther(otherChurch,R);
         } else {
             if (R.team == ME.team) {
-                addYour(myCastle,t,0);
-                if (wsim()) addOther(otherCastle,64*(w-1-R.x) + R.y,0);
-                if (hsim()) addOther(otherCastle,64*R.x + (h-1-R.y),0);
+                addYour(myCastle,R);
+                if (wsim()) addOther(otherCastle,makeRobot(0,1-ME.team,w-1-R.x,R.y));
+                if (hsim()) addOther(otherCastle,makeRobot(0,1-ME.team,R.x,h-1-R.y));
             } else if(R.team != ME.team) {
-                addOther(otherCastle,t,0);
-                if (wsim()) addYour(myCastle,64*(w-1-R.x) + R.y,0);
-                if (hsim()) addYour(myCastle,64*R.x + (h-1-R.y),0);
+                addOther(otherCastle,R);
+                if (wsim()) addYour(myCastle,makeRobot(0,ME.team,w-1-R.x,R.y));
+                if (hsim()) addYour(myCastle,makeRobot(0,ME.team,R.x,h-1-R.y));
             }
+        }
+    }
+
+    // CASTLE LOCATIONS
+    int encodeEnemyCastleLocations() {
+        int res = 0;
+        int oppX = ME.x, oppY = ME.y;
+        if(hsim()) oppY = h - 1 - oppY;
+        else oppX = w - 1 - oppX;
+        int approxOppID = 8 * fdiv(oppX, 8) + fdiv(oppY, 8);
+
+        pi approxLocs = new pi(-1, -1);
+        for(Integer i : otherCastle) {
+            int xPos = fdiv(i, 64);
+            int yPos = i % 64;
+
+            yPos = fdiv(yPos, 8);
+            xPos = fdiv(xPos, 8); // approximating location
+            int approxID = xPos * 8 + yPos;
+            if(approxID == approxOppID) {
+                res |= (1 << 11);
+                continue;
+            }
+            if(approxID > approxOppID) approxID--; // between 0 and 62 now
+
+            if (approxLocs.f == -1) approxLocs.f = approxID;
+            else if (approxLocs.f != approxID) approxLocs.s = approxID;
+        }
+        if(approxLocs.f != -1) {
+            if(approxLocs.s == -1) approxLocs.s = approxLocs.f;
+            res++; // 0 would be no other castles
+            int l1 = Math.min(approxLocs.f, approxLocs.s);
+            int l2 = Math.max(approxLocs.f, approxLocs.s);
+            res += l1 * 63 + l2;
+            res -= l1 * (l1 + 1) / 2;
+        }
+        res += 7000;
+        // end result is between 7000 and 11100 (upper bound is actually a bit lower but just to be safe)
+        return res;
+    }
+
+    void fill8by8(int approxX, int approxY) {
+        for (int i = 0; i < 8; i++) for(int j = 0; j < 8; j++) 
+            addStruct(makeRobot(0,1-ME.team,8 * approxX + i,8 * approxY + j));
+    }
+
+    void fill8by8(int approxID) { fill8by8(fdiv(approxID, 8), approxID % 8); }
+
+    void decodeEnemyCastleLocations(Robot2 parentCastle) {
+        int oppX = parentCastle.x, oppY = parentCastle.y;
+        if(hsim()) oppY = h - 1 - oppY;
+        else oppX = w - 1 - oppX;
+        oppX = fdiv(oppX, 8);
+        oppY = fdiv(oppY, 8);
+        int oppID = 8 * oppX + oppY;
+
+        int sig = parentCastle.signal;
+        sig -= 7000;
+        if((sig >> 11) > 0) {
+            fill8by8(oppID);
+            sig -= (1 << 11);
+        }
+        if(sig > 0) {
+            sig--;
+            int p1 = 0, p2 = 0;
+            while(sig > 0) {
+                p2++;
+                if(p2 == 63) {
+                    p1++;
+                    p2 = p1;
+                }
+                sig--;
+            }
+            if(p1 >= oppID) p1++;
+            if(p2 >= oppID) p2++;
+            fill8by8(p1);
+            if(p2 != p1) fill8by8(p2);
         }
     }
 
@@ -493,7 +477,9 @@ public class MyRobot extends BCAbstractRobot {
                 }
             }
         }
+
         rem(myCastle); rem(otherCastle);
+        rem(myChurch); rem(otherChurch);
     }
 
     void sendToCastle(int res) { // 0 to 5: unit, 6: assigned pilgrim
@@ -512,7 +498,7 @@ public class MyRobot extends BCAbstractRobot {
 
     public Action turn() {
         updateData();
-        if(ME.unit == CASTLE && ME.team == 0 && myCastle.get(0) == 64 * ME.x + ME.y) log("================ ROUND " + ME.turn + " ================");
+        if(ME.unit == CASTLE && ME.team == 0 && myCastle.get(0) == 64 * ME.x + ME.y) log("================ ROUND " + ME.turn + " ================ "+me.time);
         genBfsDist(ME.unit == CRUSADER ? 9 : 4);
         genEnemyDist();
         warnOthers();
