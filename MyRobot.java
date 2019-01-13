@@ -54,7 +54,7 @@ public class MyRobot extends BCAbstractRobot {
 
     int fdiv(int a, int b) { return (a-(a%b))/b; }
     int sq(int x) { return x*x; }
-    String coordinates(int t) {
+    String coordinates(int t) { 
         int y = t%64, x = fdiv(t,64);
         return "("+x+", "+y+")";
     }
@@ -353,6 +353,7 @@ public class MyRobot extends BCAbstractRobot {
         return null;
     }
     public boolean yesStruct(int x, int y) {
+		if(!inMap(x,y)) log("WHAT!!!" + " " + x + " " + y);
         if (robotMapID[y][x] == 0) return false;
         if (robotMapID[y][x] > 0 && robotMap[y][x].unit > 1) return false;
         return true;
@@ -387,18 +388,19 @@ public class MyRobot extends BCAbstractRobot {
     public void addStruct(Robot2 R) {
         // log("WHAT "+R.x+" "+R.y+" "+noStruct(R.x,R.y));
         int t = 64*R.x+R.y;
+        if(!inMap(R.x,R.y)) log("WHAT3!!! " + R.x + " " + R.y);
         if (R.unit == CHURCH) {
             if (R.team == ME.team) addYour(myChurch,t,1);
             else if (R.team != ME.team) addOther(otherChurch,t,1);
         } else {
             if (R.team == ME.team) {
                 addYour(myCastle,t,0);
-                if (wsim()) addOther(otherCastle,64*(w-1-R.x)+R.y,0);
-                if (hsim()) addOther(otherCastle,64*R.x+(h-1-R.y),0);
+                if (wsim()) addOther(otherCastle,64*(w-1-R.x) + R.y,0);
+                if (hsim()) addOther(otherCastle,64*R.x + (h-1-R.y),0);
             } else if(R.team != ME.team) {
                 addOther(otherCastle,t,0);
-                if (wsim()) addYour(myCastle,64*(w-1-R.x)+R.y,0);
-                if (hsim()) addYour(myCastle,64*R.x+(h-1-R.y),0);
+                if (wsim()) addYour(myCastle,64*(w-1-R.x) + R.y,0);
+                if (hsim()) addYour(myCastle,64*R.x + (h-1-R.y),0);
             }
         }
     }
@@ -406,6 +408,10 @@ public class MyRobot extends BCAbstractRobot {
     int getSignal(Robot2 R) {
         return 441*(R.unit-3)+21*(R.x-me.x+10)+(R.y-me.y+10)+1;
     }
+    
+    boolean inVisionRange(Robot2 R) {
+		return euclidDist(R) <= VISION_R[me.unit];
+	}
 
     boolean clearVision(Robot2 R) {
         if (ME.unit == CASTLE && fdiv(R.castle_talk,7) % 2 == 1) return false;
@@ -420,7 +426,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     void checkSignal() {
-        for (Robot2 R: robots)
+        for (Robot2 R: robots) {
             if (R.team == ME.team && 0 < R.signal && R.signal < 2000) {
                 int tmp = R.signal-1;
                 int type = fdiv(tmp,441)+3; tmp %= 441;
@@ -431,6 +437,7 @@ public class MyRobot extends BCAbstractRobot {
             } else if (R.team == ME.team && R.unit == CASTLE && R.signal >= 7000 && R.signal < 11100 && euclidDist(R) <= 2) {
                 decodeEnemyCastleLocations(R);
             }
+		}
     }
 
     boolean superseded() {
@@ -486,7 +493,6 @@ public class MyRobot extends BCAbstractRobot {
                 }
             }
         }
-
         rem(myCastle); rem(otherCastle);
     }
 
