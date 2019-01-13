@@ -126,6 +126,7 @@ public class Pilgrim extends Movable {
         if (Z.me.karbonite < 5 && Z.me.fuel < 25) Z.goHome = false;
         if (Z.me.karbonite > 16 && b+100 >= a) Z.goHome = true;
         if (Z.me.fuel > 80 && a+100 >= b) Z.goHome = true;
+        if (Z.me.fuel == 100 || Z.me.karbonite == 20) Z.goHome = true;
         if (Z.goHome) return moveHome();
         
         if (Z.resourceLoc.f != -1 && Z.robotMapID[Z.resourceLoc.s][Z.resourceLoc.f] <= 0 

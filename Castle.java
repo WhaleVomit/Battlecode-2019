@@ -225,7 +225,7 @@ public class Castle extends Building {
     }
     Action build() {
         if (shouldPilgrim()) {
-            return Z.tryBuild(PILGRIM);
+            return makePilgrim();
         } else if (shouldRush()) {
             Action A = Z.tryBuild(PREACHER); if (A != null) return A;
             return Z.tryBuild(CRUSADER);
@@ -281,9 +281,9 @@ public class Castle extends Building {
         }
 
         if (Z.me.turn > 1) { // first turn reserved to determine location of other castles
-            // return build();
-            if (Z.me.team == 0) return testCrusader();
-            else return testPreacher();
+            return build();
+            //if (Z.me.team == 0) return testCrusader();
+            //else return testPreacher();
         }
             // return testRanger();
         return null;

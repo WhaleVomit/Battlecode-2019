@@ -225,7 +225,7 @@ public class Attackable extends Movable {
         int x = Z.fdiv(t,64), y = t % 64;
 
         int bestVal = MOD, bestDist = MOD, pos = MOD;
-        for (int X = x-5; X <= x+5; ++X) for (int Y = y-5; Y <= y+5; ++Y) if (Z.valid(X,Y)) {
+        for (int X = x-10; X <= x+10; ++X) for (int Y = y-10; Y <= y+10; ++Y) if (Z.valid(X,Y)) {
             int val = patrolVal(X,Y,x,y);
             if (val < bestVal || (val == bestVal && Z.bfsDist[Y][X] < bestDist)) {
                 bestVal = val; bestDist = Z.bfsDist[Y][X]; pos = 64*X+Y;
