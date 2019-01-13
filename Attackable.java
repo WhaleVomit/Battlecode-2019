@@ -91,6 +91,19 @@ public class Attackable extends Movable {
         // Z.log("BBB "+res);
         return res;
     }
+    public int totPreacherDamageAfter(int x, int y) {
+        Z.robotMapID[Z.CUR.y][Z.CUR.x] = 0; Z.robotMap[Z.CUR.y][Z.CUR.x] = null;
+        Z.CUR.x = x; Z.CUR.y = y; 
+        Z.robotMapID[Z.CUR.y][Z.CUR.x] = Z.CUR.id; Z.robotMap[Z.CUR.y][Z.CUR.x] = Z.CUR;
+
+        int t = totPreacherDamage(x,y);
+
+        Z.robotMapID[Z.CUR.y][Z.CUR.x] = 0; Z.robotMap[Z.CUR.y][Z.CUR.x] = null;
+        Z.CUR.x = Z.ORI.x; Z.CUR.y = Z.ORI.y;
+        Z.robotMapID[Z.CUR.y][Z.CUR.x] = Z.CUR.id; Z.robotMap[Z.CUR.y][Z.CUR.x] = Z.CUR;
+
+        return t;
+    }
     public int totDamageAfter(int x, int y) {
         Z.robotMapID[Z.CUR.y][Z.CUR.x] = 0; Z.robotMap[Z.CUR.y][Z.CUR.x] = null;
         Z.CUR.x = x; Z.CUR.y = y; 
@@ -130,8 +143,16 @@ public class Attackable extends Movable {
 
     public Action2 position() {
 		Robot2 R = Z.closestEnemy(Z.CUR); if (Z.euclidDist(R) > 196) R = null;
-        if (R == null) return null;
-        if (Z.euclidDist(R) < MIN_ATTACK_R[Z.CUR.unit]) return moveAway(R);
+        if (R == null) return null;   
+        if (Z.euclidDist(R) < MIN_ATTACK_R[Z.CUR.unit]) {
+            Action2 A = moveAway(R);
+            // Z.log("OOPS "+Z.CUR.unit+" "+Z.CUR.x+" "+Z.CUR.y+A.dx+" "+A.dy);
+            // Z.log("?? "+totPreacherDamageAfter(Z.CUR.x+A.dx,Z.CUR.y+A.dy)+" "+totPreacherDamageAfter(Z.CUR.x,Z.CUR.y));
+            if (A != null && totPreacherDamageAfter(Z.CUR.x+A.dx,Z.CUR.y+A.dy) > totPreacherDamageAfter(Z.CUR.x,Z.CUR.y)) {
+                A = new Action2(); 
+            }
+            return A;
+        }
         if (Z.euclidDist(R) <= MAX_ATTACK_R[Z.CUR.unit]) return null;
         if (R.unit != PREACHER || Z.euclidDist(R) > 49) return moveToward(R.x,R.y);
 
