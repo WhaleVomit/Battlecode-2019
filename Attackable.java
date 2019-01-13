@@ -231,7 +231,7 @@ public class Attackable extends Movable {
                 bestVal = val; bestDist = Z.bfsDist[Y][X]; pos = 64*X+Y;
             }
         }
-        Z.log(Z.coordinates(pos)+" "+Z.coordinates(t)+" "+bestVal);
+        // Z.log(Z.coordinates(pos)+" "+Z.coordinates(t)+" "+bestVal);
 
         return nextMove(pos);
     }

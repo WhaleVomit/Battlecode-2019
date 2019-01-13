@@ -44,10 +44,9 @@ public class Movable {
                 Z.resource = -1;
                 return Z.giveAction(R.x-Z.CUR.x,R.y-Z.CUR.y,Z.CUR.karbonite,Z.CUR.fuel);
             }
-        Z.log("TRI "+Z.coordinates(Z.closestStruct(true)));
-        Z.log(Z.coordinates(Z.closeEmpty(42,21)));
+        // Z.log("TRI "+Z.coordinates(Z.closestStruct(true))); Z.log(Z.coordinates(Z.closeEmpty(42,21)));
         Action2 A = moveToward(Z.closestStruct(true));
-        Z.log("ZZ "+A.type+" "+A.dx+" "+A.dy);
+        // Z.log("ZZ "+A.type+" "+A.dx+" "+A.dy);
         return moveToward(Z.closestStruct(true));
     }
     public Action2 moveEnemy() { return moveToward(Z.closestStruct(false)); }
