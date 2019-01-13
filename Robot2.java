@@ -26,27 +26,13 @@ public class Robot2 {
     		if (R.castle_talk >= 0) castle_talk = R.castle_talk;
         }
 	}
-
-    /*public Robot2(int _unit, int _team, int _x, int _y) {
-        unit = _unit;
-        team = _team;
-        x = _x;
-        y = _y;
-    }*/
-
+    
     boolean isStructure() { 
         return unit != -1 && unit <= 1; 
     }
 
     boolean isAttacker(int t) {
     	return team == t && unit != -1 && CAN_ATTACK[unit];
-    }
-
-    boolean withinMoveRadius(int dx, int dy, int fuel) {
-        if (unit == -1) return false;
-        int d = dx*dx+dy*dy;
-        return d <= MOVE_SPEED[unit] 
-        	&& d*MOVE_F_COST[unit] <= fuel;
     }
 
     String getInfo() {

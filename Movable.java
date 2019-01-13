@@ -7,44 +7,47 @@ public class Movable {
     public Movable (MyRobot z) { Z = z; }
 
     public boolean enoughResources() {
-        return Z.ME.fuel > 25 || (Z.ME.fuel > 0 && !Z.fuelMap[Z.ME.y][Z.ME.x]) 
-        	|| Z.ME.karbonite > 5 || (Z.ME.karbonite > 0 && !Z.karboniteMap[Z.ME.y][Z.ME.x]);
+        return Z.CUR.fuel > 25 || (Z.CUR.fuel > 0 && !Z.fuelMap[Z.CUR.y][Z.CUR.x]) 
+        	|| Z.CUR.karbonite > 5 || (Z.CUR.karbonite > 0 && !Z.karboniteMap[Z.CUR.y][Z.CUR.x]);
     }
-    public boolean canMove(Robot2 r, int dx, int dy) {
+    public boolean canMove(Robot2 R, int dx, int dy) {
+        if (R == null || R.unit == -1) return false;
+        int u = R.unit;
         if (dx == 0 && dy == 0) return false;
-        return Z.withinMoveRadius(r, dx, dy) && Z.passable(r.x+dx,r.y+dy);
+        int d = dx*dx+dy*dy;
+        return Z.passable(R.x+dx,R.y+dy) && d <= MOVE_SPEED[u] && d*MOVE_F_COST[u] <= Z.fuel;
     }
-    public Action nextMove(int x, int y) {
+    public Action2 nextMove(int x, int y) {
         if (Z.nextMove[y][x] == MOD) return null;
         if (Z.bfsDist[y][x] == 1 && !Z.passable(x,y)) return null;
         int Y = Z.nextMove[y][x] % 64, X = Z.fdiv(Z.nextMove[y][x],64);
-        if (!canMove(Z.ME,X-Z.ME.x,Y-Z.ME.y)) return null;
-        return Z.move(X-Z.ME.x, Y-Z.ME.y);
+        if (!canMove(Z.CUR,X-Z.CUR.x,Y-Z.CUR.y)) return null;
+        return Z.moveAction(X-Z.CUR.x, Y-Z.CUR.y);
     }
-    public Action nextMove(int x) { return x == MOD ? null : nextMove(Z.fdiv(x,64), x % 64); }
-    public Action moveToward(int x, int y) { 
-        if (nextMove(x,y) != null) return nextMove(x,y);
+    public Action2 nextMove(int x) { return x == MOD ? null : nextMove(Z.fdiv(x,64), x % 64); }
+    public Action2 moveToward(int x, int y) { 
+        Action2 A = nextMove(x,y); if (A != null) return A;
         return nextMove(Z.closeEmpty(x, y)); 
     }
-    public Action moveToward(int x) { return moveToward(Z.fdiv(x,64),x%64); }
-    public Action moveToward(Robot2 R) { return R == null ? null : moveToward(R.x, R.y); }
-    public Action moveAway(int x, int y) {
-        int farthest = -MOD; Action best = null;
+    public Action2 moveToward(int x) { return moveToward(Z.fdiv(x,64),x%64); }
+    public Action2 moveToward(Robot2 R) { return R == null ? null : moveToward(R.x, R.y); }
+    public Action2 moveAway(int x, int y) {
+        int farthest = -MOD; Action2 best = null;
         for (int i = -3; i <= 3; i++) for (int j = -3; j <= 3; j++)
-            if (Z.passable(Z.ME.x + i, Z.ME.y + j) && Z.withinMoveRadius(Z.ME, i, j)) {
-                int dis = Z.sq(x - Z.ME.x - i) + Z.sq(y - Z.ME.y - j);
-                if (dis > farthest) { farthest = dis; best = Z.move(i, j); }
+            if (canMove(Z.CUR,i,j)) {
+                int dis = Z.sq(x - Z.CUR.x - i) + Z.sq(y - Z.CUR.y - j);
+                if (dis > farthest) { farthest = dis; best = Z.moveAction(i, j); }
             }
         return best;
     }
-    public Action moveAway(Robot2 R) { return R == null ?  null : moveAway(R.x, R.y); }
-    public Action moveHome() {
+    public Action2 moveAway(Robot2 R) { return R == null ?  null : moveAway(R.x, R.y); }
+    public Action2 moveHome() {
         for (Robot2 R: Z.robots)
-            if (R.isStructure() && R.team == Z.ME.team && Z.adjacent(R) && enoughResources()) {
+            if (R.isStructure() && R.team == Z.CUR.team && Z.adjacent(Z.CUR,R) && enoughResources()) {
                 Z.resource = -1;
-                return Z.give(R.x-Z.ME.x,R.y-Z.ME.y,Z.ME.karbonite,Z.ME.fuel);
+                return Z.giveAction(R.x-Z.CUR.x,R.y-Z.CUR.y,Z.CUR.karbonite,Z.CUR.fuel);
             }
         return moveToward(Z.closestStruct(true));
     }
-    public Action moveEnemy() { return moveToward(Z.closestStruct(false)); }
+    public Action2 moveEnemy() { return moveToward(Z.closestStruct(false)); }
 }

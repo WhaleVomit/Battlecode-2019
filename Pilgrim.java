@@ -13,15 +13,15 @@ public class Pilgrim extends Movable {
 	}
 
     boolean shouldMine() {
-        return Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x] || Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x];
+        return Z.CUR.karbonite <= 18 && Z.karboniteMap[Z.CUR.y][Z.CUR.x] || Z.CUR.fuel <= 90 && Z.fuelMap[Z.CUR.y][Z.CUR.x];
     }
 
     boolean shouldBuildChurch() {
 		// has to be on resource square with no resource next to it
-		if(!Z.karboniteMap[Z.me.y][Z.me.x] && !Z.fuelMap[Z.me.y][Z.me.x]) return false;
+		if(!Z.karboniteMap[Z.CUR.y][Z.CUR.x] && !Z.fuelMap[Z.CUR.y][Z.CUR.x]) return false;
 		boolean isNextToEmpty = false;
 		for(int dx = -1; dx <= 1; dx++) for(int dy = -1; dy <= 1; dy++) {
-			int newx = Z.me.x+dx; int newy = Z.me.y+dy;
+			int newx = Z.CUR.x+dx; int newy = Z.CUR.y+dy;
 			if(Z.passable(newx, newy) && !Z.karboniteMap[newy][newx] && !Z.fuelMap[newy][newx]) isNextToEmpty = true;
 		}
 		if (!isNextToEmpty) return false;
@@ -34,7 +34,7 @@ public class Pilgrim extends Movable {
 		for(int dx = -2; dx <= 2; dx++) {
 			for(int dy = -2; dy <= 2; dy++) if(Z.valid(x+dx,y+dy)) {
 				if(Z.karboniteMap[y+dy][x+dx]) numr++;
-				if(Z.robotMap[y+dy][x+dx] != null && Z.robotMapID[y+dy][x+dx] != Z.me.id) {
+				if(Z.robotMap[y+dy][x+dx] != null && Z.robotMapID[y+dy][x+dx] != Z.CUR.id) {
 					Robot2 r = Z.robotMap[y+dy][x+dx];
 					if (r.unit == PILGRIM) nump++;
 				}
@@ -48,7 +48,7 @@ public class Pilgrim extends Movable {
 		for(int dx = -2; dx <= 2; dx++) {
 			for(int dy = -2; dy <= 2; dy++) if(Z.valid(x+dx,y+dy)) {
 				if(Z.fuelMap[y+dy][x+dx]) numr++;
-				if(Z.robotMapID[y+dy][x+dx] > 0 && Z.robotMapID[y+dy][x+dx] != Z.me.id) {
+				if(Z.robotMapID[y+dy][x+dx] > 0 && Z.robotMapID[y+dy][x+dx] != Z.CUR.id) {
 					Robot2 r = Z.robotMap[y+dy][x+dx];
 					if (r.unit == PILGRIM) nump++;
 				}
@@ -66,7 +66,7 @@ public class Pilgrim extends Movable {
         	Z.resource = 0;
         } else if (b+100 < a) {
         	Z.resource = 1;
-        } else Z.resource = (Z.id+Z.ME.turn) % 2;
+        } else Z.resource = (Z.id+Z.CUR.turn) % 2;
 	}
 	
 	int closeFreeResource(boolean karb, boolean fuel) {
@@ -77,56 +77,60 @@ public class Pilgrim extends Movable {
 		return Z.closestUnused(b);
 	}
 
-	Action mine() {
-        if (Z.me.karbonite <= 18 && Z.karboniteMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
-        if (Z.me.fuel <= 90 && Z.fuelMap[Z.me.y][Z.me.x] && Z.fuel > 0) return Z.mine();
+	Action2 mine() {
+        if (Z.CUR.karbonite <= 18 && Z.karboniteMap[Z.CUR.y][Z.CUR.x] && Z.fuel > 0) return Z.mineAction();
+        if (Z.CUR.fuel <= 90 && Z.fuelMap[Z.CUR.y][Z.CUR.x] && Z.fuel > 0) return Z.mineAction();
         return null;
 	}
 
-	Action greedy() {
-		//Z.log("karb: " + Z.me.karbonite + ", fuel: " + Z.me.fuel + " | get karb? " + (Z.me.karbonite != 20) + " get fuel? " + (Z.me.fuel != 100));
-		int x = closeFreeResource(Z.me.karbonite != 20, Z.me.fuel != 100);
-		//Z.log("currently at: " + Z.me.x + " " + Z.me.y + ", want to go to " + Z.fdiv(x,64) + " " + (x%64) + " which is " + Z.karboniteMap[(x%64)][Z.fdiv(x,64)] + " " + Z.fuelMap[(x%64)][Z.fdiv(x,64)]);
+	Action2 greedy() {
+		//Z.log("karb: " + Z.CUR.karbonite + ", fuel: " + Z.CUR.fuel + " | get karb? " + (Z.CUR.karbonite != 20) + " get fuel? " + (Z.CUR.fuel != 100));
+		int x = closeFreeResource(Z.CUR.karbonite != 20, Z.CUR.fuel != 100);
+		//Z.log("currently at: " + Z.CUR.x + " " + Z.CUR.y + ", want to go to " + Z.fdiv(x,64) + " " + (x%64) + " which is " + Z.karboniteMap[(x%64)][Z.fdiv(x,64)] + " " + Z.fuelMap[(x%64)][Z.fdiv(x,64)]);
 		if (Z.bfsDist(x) <= 2) return nextMove(x);
 		return null;
 	}
 	
 	boolean inDanger() {
-		for (Robot2 R: Z.robots) if (R.isAttacker(1-Z.me.team)) {
-			int dis = Z.sq((int)Math.sqrt(VISION_R[R.unit])+2);
-			if(Z.euclidDist(R.x,R.y) <= dis) return true;
-		}
+        for (int i = 0; i < Z.h; ++i) for (int j = 0; j < Z.w; ++j)
+            if (Z.teamAttacker(j,i,1-Z.CUR.team)) {
+            	Robot2 R = Z.robotMap[i][j];
+            	int dis = Z.euclidDist(R);
+            	int dangerous = Z.sq((int)Math.sqrt(VISION_R[R.unit])+2);
+            	if (R.unit == PREACHER) dangerous = 64;
+            	if (dis <= dangerous) return true;
+            }
 		return false;
 	}
 
-    Action run() {
-		if (Z.resourceLoc.f == -1) { // Z.ME.turn == 1
+    Action2 run() {
+		if (Z.resourceLoc.f == -1) { // Z.CUR.turn == 1
             for (Robot2 r : Z.robots) {
 				int s = r.signal; // Z.log("signal recieved: "+s);
-                if (r.team == Z.me.team && r.unit == CASTLE && s >= 2000 && s < 7000) {
+                if (r.team == Z.CUR.team && r.unit == CASTLE && s >= 2000 && s < 7000) {
                     int a = s - 2000;
                     Z.resourceLoc = new pi(Z.fdiv(a,64),a%64);
                 }
             }
             if (Z.resourceLoc.f == -1) Z.log("DID NOT GET ASSIGNMENT??");
-            else Z.log(Z.me.id + " received instructions to go to (" + Z.resourceLoc.f + "," + Z.resourceLoc.s+")");
+            else Z.log(Z.CUR.id + " received instructions to go to (" + Z.resourceLoc.f + "," + Z.resourceLoc.s+")");
 			Z.sendToCastle(6);
         } else Z.sendToCastle();
 		setResource();
         
         if (inDanger()) {
-			Robot2 R = Z.closestAttacker(1-Z.me.team); 
+			Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team); 
 			Z.goHome = true; 
 			return moveAway(R);
 		}
-        Action A = null;
+        Action2 A = null;
         if (shouldBuildChurch()) { A = Z.tryBuild(CHURCH); if (A != null) return A; }
         A = mine(); if (A != null) return A;
 
-        if (Z.me.karbonite < 5 && Z.me.fuel < 25) Z.goHome = false;
-        if (Z.me.karbonite > 16 && b+100 >= a) Z.goHome = true;
-        if (Z.me.fuel > 80 && a+100 >= b) Z.goHome = true;
-        if (Z.me.fuel == 100 || Z.me.karbonite == 20) Z.goHome = true;
+        if (Z.CUR.karbonite < 5 && Z.CUR.fuel < 25) Z.goHome = false;
+        if (Z.CUR.karbonite > 16 && b+100 >= a) Z.goHome = true;
+        if (Z.CUR.fuel > 80 && a+100 >= b) Z.goHome = true;
+        if (Z.CUR.fuel == 100 || Z.CUR.karbonite == 20) Z.goHome = true;
         if (Z.goHome) return moveHome();
         
         if (Z.resourceLoc.f != -1 && Z.robotMapID[Z.resourceLoc.s][Z.resourceLoc.f] <= 0 

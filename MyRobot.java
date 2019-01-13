@@ -7,7 +7,7 @@ import static bc19.Consts.*;
 
 public class MyRobot extends BCAbstractRobot {
     // int turn = 0; turns since start of game
-    Robot2 ME;
+    Robot2 ORI, CUR; 
 
     // MAP (arrays are by y and then x)
     int w, h; // width, height
@@ -41,12 +41,38 @@ public class MyRobot extends BCAbstractRobot {
     pi resourceLoc = new pi(-1,-1);
 
     // MATH
-
     int fdiv(int a, int b) { return (a-(a%b))/b; }
     int sq(int x) { return x*x; }
     String coordinates(int t) { 
         int y = t%64, x = fdiv(t,64);
         return "("+x+", "+y+")";
+    }
+    
+    // ACTION
+    Action2 moveAction(int dx, int dy) {
+        Action2 A = new Action2();
+        A.type = 0; A.dx = dx; A.dy = dy;
+        return A;
+    }
+    Action2 mineAction() {
+        Action2 A = new Action2();
+        A.type = 1; 
+        return A;
+    }
+    Action2 giveAction(int dx, int dy, int karb, int fuel) {
+        Action2 A = new Action2();
+        A.type = 2; A.dx = dx; A.dy = dy; A.karb = karb; A.fuel = fuel;
+        return A;
+    }
+    Action2 attackAction(int dx, int dy) {
+        Action2 A = new Action2();
+        A.type = 3; A.dx = dx; A.dy = dy;
+        return A;
+    }
+    Action2 buildAction(int unit, int dx, int dy) {
+        Action2 A = new Action2();
+        A.type = 4; A.unit = unit; A.dx = dx; A.dy = dy;
+        return A;
     }
 
     // ROBOT
@@ -54,23 +80,7 @@ public class MyRobot extends BCAbstractRobot {
         Robot2 R = new Robot2(null);
         R.id = MOD; R.unit = unit; R.team = team; R.x = x; R.y = y;
         return R;
-    } // makeRobot(0,1-ME.team,)
-    Robot2 getRobot2(int id) { return new Robot2(getRobot(id)); }
-    boolean withinMoveRadius(Robot2 R, int dx, int dy) { return R != null && R.withinMoveRadius(dx,dy,fuel); }
-    void dumpRobots() {
-        String T = ""; for (Robot2 R: robots) T += R.getInfo();
-        log(T);
-    }
-    void dumpInfo() {
-        String T = ME.getInfo();
-        T += myCastle.size()+" "+otherCastle.size();
-        if (otherCastle.size() > 0) {
-            T += " " + coordinates(otherCastle.get(0));
-            // int x = fdiv(otherCastle.get(0),64), y = otherCastle.get(0) % 64;
-        }
-        T += "\n";
-        log(T);
-    }
+    } 
 
     // ARRAYLIST
     void removeDup(ArrayList<Integer> A) {
@@ -78,6 +88,42 @@ public class MyRobot extends BCAbstractRobot {
         for (Integer i : A) if (!B.contains(i)) B.add(i);
         A.clear();
         for (Integer i : B) A.add(i);
+    }
+
+    // EUCLID DIST
+    int euclidDist(int x1, int y1, int x2, int y2) { return sq(x1-x2) + sq(y1-y2); }
+    int euclidDist(Robot2 A, int x, int y) { return A == null ? MOD : euclidDist(A.x,A.y,x,y); }
+    int euclidDist(Robot2 A, Robot2 B) { 
+        if (A == null || B == null) return MOD;
+        return euclidDist(A.x,A.y,B.x,B.y); 
+    }
+    int euclidDist(Robot2 A) { return euclidDist(CUR,A); }
+    boolean adjacent(Robot2 A, Robot2 B) { return euclidDist(A,B) <= 2; }
+    boolean inVisionRange(Robot2 A, Robot2 B) { 
+        if (A == null || A.unit == -1) return false;
+        return euclidDist(A,B) <= VISION_R[A.unit]; 
+    }
+
+    // ROBOT
+    Action conv(Action2 A) {
+        if (A.type < 0) return null;
+        if (A.type == 0) return move(A.dx,A.dy);
+        if (A.type == 1) return mine();
+        if (A.type == 2) return give(A.dx,A.dy,A.karb,A.fuel);
+        if (A.type == 3) return attack(A.dx,A.dy);
+        if (A.type == 4) return buildUnit(A.unit,A.dx,A.dy);
+        return null;
+    }
+    Robot2 getRobot2(int id) { return new Robot2(getRobot(id)); }
+
+    // DEBUG
+    void dumpRobots() { String T = ""; for (Robot2 R: robots) T += R.getInfo(); log(T); }
+    void dumpInfo() {
+        String T = CUR.getInfo();
+        T += myCastle.size()+" "+otherCastle.size();
+        if (otherCastle.size() > 0) T += " " + coordinates(otherCastle.get(0));
+        T += "\n";
+        log(T);
     }
 
     // MAP
@@ -101,18 +147,19 @@ public class MyRobot extends BCAbstractRobot {
     }
     boolean inMap(int x, int y) { return x >= 0 && x < w && y >= 0 && y < h; }
     boolean valid(int x, int y) { return inMap(x,y) && map[y][x]; }
-    boolean containsRobot(int x, int y) { return valid(x, y) && robotMapID[y][x] > 0; }
-    boolean attacker(int x, int y) { return containsRobot(x,y) && robotMap[y][x].unit > 2; }
-    boolean yourRobot(int x, int y) { return containsRobot(x,y) && robotMap[y][x].team == ME.team; }
-    boolean enemyRobot(int x, int y) { return containsRobot(x,y) && robotMap[y][x].team == 1-ME.team; }
-    boolean yourAttacker(int x, int y) { return attacker(x,y) && robotMap[y][x].team == ME.team;  }
-    boolean enemyRobot(int x, int y, int t) { return enemyRobot(x,y) && robotMap[y][x].unit == t; }
     boolean passable(int x, int y) { return valid(x, y) && robotMapID[y][x] <= 0; }
-    boolean adjacent(Robot2 r) { return Math.abs(ME.x-r.x) <= 1 && Math.abs(ME.y-r.y) <= 1; }
-    int euclidDist(int x1, int y1, int x2, int y2) { return sq(x1-x2) + sq(y1-y2); }
-    int euclidDist(int x, int y) { return sq(ME.x-x)+sq(ME.y-y); }
-    int euclidDist(Robot2 A, Robot2 B) { return sq(A.x-B.x)+sq(A.y-B.y); }
-    int euclidDist(Robot2 B) { return B == null ? MOD : euclidDist(B.x,B.y); }
+    boolean containsRobot(int x, int y) { return valid(x, y) && robotMapID[y][x] > 0; }
+
+    boolean teamRobot(int x, int y, int t) { return containsRobot(x,y) && robotMap[y][x].team == t; }
+    boolean yourRobot(int x, int y) { return teamRobot(x,y,CUR.team); }
+    boolean enemyRobot(int x, int y) { return teamRobot(x,y,1-CUR.team); }
+    boolean enemyRobot(int x, int y, int t) { return teamRobot(x,y,1-CUR.team) && robotMap[y][x].unit == t; }
+
+    boolean attacker(int x, int y) { return containsRobot(x,y) && robotMap[y][x].unit > 2; }
+    boolean teamAttacker(int x, int y, int t) { return attacker(x,y) && teamRobot(x,y,t);  }
+    boolean yourAttacker(int x, int y) { return teamAttacker(x,y,CUR.team); }
+    boolean enemyAttacker(int x, int y) { return teamAttacker(x,y,1-CUR.team); }
+
     int numOpen(int t) { // how many squares around t are free
         int y = t % 64; int x = fdiv(t,64);
         int ret = 0;
@@ -120,16 +167,16 @@ public class MyRobot extends BCAbstractRobot {
             if (passable(i,j)) ret ++;
         return ret;
     }
-    Robot2 closestEnemy() {
+    Robot2 closestEnemy(Robot2 R) {
         Robot2 bes = null;
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
-            if (enemyRobot(j,i) && euclidDist(j,i) < euclidDist(bes)) bes = robotMap[i][j];
+            if (teamRobot(j,i,1-R.team) && euclidDist(R,j,i) < euclidDist(R,bes)) bes = robotMap[i][j];
         return bes;
     }
-    Robot2 closestAttacker(int t) {
+    Robot2 closestAttacker(Robot2 R, int t) {
         Robot2 bes = null;
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
-            if (attacker(j,i) && robotMap[i][j].team == t && euclidDist(j,i) < euclidDist(bes))
+            if (teamAttacker(j,i,t) && euclidDist(R,j,i) < euclidDist(R,bes))
                 bes = robotMap[i][j];
         return bes;
     }
@@ -140,7 +187,7 @@ public class MyRobot extends BCAbstractRobot {
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
             bfsDist[i][j] = MOD; nextMove[i][j] = MOD;
         }
-        LinkedList<Integer> Q = new LinkedList<Integer>(); bfsDist[ME.y][ME.x] = 0; Q.add(64 * ME.x + ME.y);
+        LinkedList<Integer> Q = new LinkedList<Integer>(); bfsDist[CUR.y][CUR.x] = 0; Q.add(64 * CUR.x + CUR.y);
 
         int t = 0;
         while (Q.size() > 0) {
@@ -246,18 +293,17 @@ public class MyRobot extends BCAbstractRobot {
     public boolean canBuild(int t) {
         if (!(fuel >= CONSTRUCTION_F[t] && karbonite >= CONSTRUCTION_K[t])) return false;
         for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy)
-            if (passable(ME.x + dx, ME.y + dy)) return true;
+            if (passable(CUR.x + dx, CUR.y + dy)) return true;
         return false;
     }
-
-    public Action tryBuild(int t) {
+    public Action2 tryBuild(int t) {
         if (!canBuild(t)) return null;
         if(CAN_ATTACK[t]) {
             signal(encodeEnemyCastleLocations(), 2);
             signaled = true;
         }
         for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy)
-            if (passable(ME.x + dx, ME.y + dy)) return buildUnit(t, dx, dy);
+            if (passable(CUR.x + dx, CUR.y + dy)) return buildAction(t, dx, dy);
         return null;
     }
     public boolean yesStruct(int x, int y) {
@@ -297,17 +343,17 @@ public class MyRobot extends BCAbstractRobot {
     public void addStruct(Robot2 R) {
         if (!yesStruct(R.x,R.y)) return;
         if (R.unit == CHURCH) {
-            if (R.team == ME.team) addYour(myChurch,R);
-            else if (R.team != ME.team) addOther(otherChurch,R);
+            if (R.team == CUR.team) addYour(myChurch,R);
+            else if (R.team != CUR.team) addOther(otherChurch,R);
         } else {
-            if (R.team == ME.team) {
+            if (R.team == CUR.team) {
                 addYour(myCastle,R);
-                if (wsim()) addOther(otherCastle,makeRobot(0,1-ME.team,w-1-R.x,R.y));
-                if (hsim()) addOther(otherCastle,makeRobot(0,1-ME.team,R.x,h-1-R.y));
-            } else if(R.team != ME.team) {
+                if (wsim()) addOther(otherCastle,makeRobot(0,1-CUR.team,w-1-R.x,R.y));
+                if (hsim()) addOther(otherCastle,makeRobot(0,1-CUR.team,R.x,h-1-R.y));
+            } else if(R.team != CUR.team) {
                 addOther(otherCastle,R);
-                if (wsim()) addYour(myCastle,makeRobot(0,ME.team,w-1-R.x,R.y));
-                if (hsim()) addYour(myCastle,makeRobot(0,ME.team,R.x,h-1-R.y));
+                if (wsim()) addYour(myCastle,makeRobot(0,CUR.team,w-1-R.x,R.y));
+                if (hsim()) addYour(myCastle,makeRobot(0,CUR.team,R.x,h-1-R.y));
             }
         }
     }
@@ -315,8 +361,8 @@ public class MyRobot extends BCAbstractRobot {
     // CASTLE LOCATIONS
     int encodeEnemyCastleLocations() {
         int res = 0;
-        int oppX = ME.x, oppY = ME.y;
-        if(hsim()) oppY = h - 1 - oppY;
+        int oppX = CUR.x, oppY = CUR.y;
+        if (hsim()) oppY = h - 1 - oppY;
         else oppX = w - 1 - oppX;
         int approxOppID = 8 * fdiv(oppX, 8) + fdiv(oppY, 8);
 
@@ -352,7 +398,7 @@ public class MyRobot extends BCAbstractRobot {
 
     void fill8by8(int approxX, int approxY) {
         for (int i = 0; i < 8; i++) for(int j = 0; j < 8; j++) 
-            addStruct(makeRobot(0,1-ME.team,8 * approxX + i,8 * approxY + j));
+            addStruct(makeRobot(0,1-CUR.team,8 * approxX + i,8 * approxY + j));
     }
 
     void fill8by8(int approxID) { fill8by8(fdiv(approxID, 8), approxID % 8); }
@@ -390,56 +436,52 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     int getSignal(Robot2 R) {
-        return 441*(R.unit-3)+21*(R.x-me.x+10)+(R.y-me.y+10)+1;
+        return 441*(R.unit-3)+21*(R.x-CUR.x+10)+(R.y-CUR.y+10)+1;
     }
     
-    boolean inVisionRange(Robot2 R) {
-		return euclidDist(R) <= VISION_R[me.unit];
-	}
-
     boolean clearVision(Robot2 R) {
-        if (ME.unit == CASTLE && fdiv(R.castle_talk,7) % 2 == 1) return false;
+        if (CUR.unit == CASTLE && fdiv(R.castle_talk,7) % 2 == 1) return false;
         for (int i = -10; i <= 10; ++i)
             for (int j = -10; j <= 10; ++j) {
                 if (i*i+j*j > VISION_R[R.unit]) continue;
                 if (enemyRobot(R.x+i,R.y+j)) return false;
             }
-        for (Robot2 A: robots) if (A.team == ME.team && 0 < A.signal && A.signal < 2000)
+        for (Robot2 A: robots) if (A.team == CUR.team && 0 < A.signal && A.signal < 2000)
             if (euclidDist(R,A) <= A.signal_radius) return false;
         return true;
     }
 
     void checkSignal() {
         for (Robot2 R: robots) {
-            if (R.team == ME.team && 0 < R.signal && R.signal < 2000) {
+            if (R.team == CUR.team && 0 < R.signal && R.signal < 2000) {
                 int tmp = R.signal-1;
                 int type = fdiv(tmp,441)+3; tmp %= 441;
                 int x = fdiv(tmp,21)-10; x += R.x;
                 int y = (tmp%21)-10; y += R.y;
-                robotMapID[y][x] = MOD; robotMap[y][x] = makeRobot(type,1-ME.team,x,y);
-                log("ADDED "+ME.x+" "+ME.y+" "+x+" "+y);
-            } else if (R.team == ME.team && R.unit == CASTLE && R.signal >= 7000 && R.signal < 11100 && euclidDist(R) <= 2) {
+                robotMapID[y][x] = MOD; robotMap[y][x] = makeRobot(type,1-CUR.team,x,y);
+                log("ADDED "+CUR.x+" "+CUR.y+" "+x+" "+y);
+            } else if (R.team == CUR.team && R.unit == CASTLE && R.signal >= 7000 && R.signal < 11100 && adjacent(CUR,R)) {
                 decodeEnemyCastleLocations(R);
             }
 		}
     }
 
-    boolean superseded() {
+    boolean superseded(int x, int y) {
         for (int i = -6; i <= 6; ++i) for (int j = -6; j <= 6; ++j)
-            if (yourRobot(me.x+i,me.y+j)) {
+            if (yourRobot(x+i,y+j)) {
                 if (i == 0 && j == 0) continue;
-                Robot2 R = robotMap[me.y+j][me.x+i];
+                Robot2 R = robotMap[y+j][x+i];
                 if (Math.sqrt(VISION_R[me.unit])+Math.sqrt(i*i+j*j) <= Math.sqrt(VISION_R[R.unit])) return true;
             }
         return false;
     }
 
-    void warnOthers() {
-        if (fuel < 100 || superseded()) return;
-        Robot2 R = closestAttacker(1-ME.team); if (euclidDist(R) > VISION_R[ME.unit]) return;
+    void warnOthers() { // CUR.x, CUR.y are new pos, not necessarily equal to me.x, me.y;
+        if (fuel < 100 || superseded(CUR.x,CUR.y)) return;
+        Robot2 R = closestAttacker(ORI, 1-CUR.team); if (euclidDist(ORI,R) > VISION_R[CUR.unit]) return;
         int needDist = 0;
         for (int i = -4; i <= 4; ++i) for (int j = -4; j <= 4; ++j) {
-            int x = me.x+i, y = me.y+j;
+            int x = CUR.x+i, y = CUR.y+j;
             if (i*i+j*j <= 16 && yourAttacker(x,y) && clearVision(robotMap[y][x]))
                 needDist = Math.max(needDist,i*i+j*j);
         }
@@ -451,7 +493,8 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     void updateData() {
-        h = map.length; w = map[0].length; ME = new Robot2(me);
+        h = map.length; w = map[0].length; 
+        ORI = new Robot2(me); CUR = new Robot2(me);
         signaled = false;
         robots = new Robot2[getVisibleRobots().length];
         for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
@@ -463,7 +506,6 @@ public class MyRobot extends BCAbstractRobot {
         }
 
         for (Robot2 R: robots) if (R.isStructure()) addStruct(R);
-        checkSignal();
 
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
             int t = getVisibleRobotMap()[i][j];
@@ -480,67 +522,72 @@ public class MyRobot extends BCAbstractRobot {
 
         rem(myCastle); rem(otherCastle);
         rem(myChurch); rem(otherChurch);
+        checkSignal();
     }
 
     void sendToCastle(int res) { // 0 to 5: unit, 6: assigned pilgrim
         boolean seeEnemy = false;
         for (int i = -14; i <= 14; ++i) for (int j = -14; j <= 14; ++j)
-            if (i*i+j*j <= 196 && enemyRobot(ME.x+i,ME.y+j)) seeEnemy = true;
+            if (i*i+j*j <= 196 && enemyRobot(CUR.x+i,CUR.y+j)) seeEnemy = true;
         if (seeEnemy) res += 7;
         if (otherCastle.size()+otherChurch.size() == 0) res += 14;
         castleTalk(res);
     }
 
     void sendToCastle() {
-        int res = ME.unit; if (res == 0) return;
+        int res = CUR.unit; if (res == 0) return;
         sendToCastle(res);
     }
 
     public Action turn() {
         updateData();
-        if(ME.unit == CASTLE && ME.team == 0 && myCastle.get(0) == 64 * ME.x + ME.y) log("================ ROUND " + ME.turn + " ================ "+me.time);
-        genBfsDist(ME.unit == CRUSADER ? 9 : 4);
+        if(CUR.unit == CASTLE && CUR.team == 0 && myCastle.get(0) == 64 * CUR.x + CUR.y) log("================ ROUND " + CUR.turn + " ================ "+me.time);
+        genBfsDist(CUR.unit == CRUSADER ? 9 : 4);
         genEnemyDist();
-        warnOthers();
-        if (ME.turn == 1) log("TYPE: "+ME.unit);
-        // dumpInfo();
+        if (CUR.turn == 1) log("TYPE: "+CUR.unit);
+        if (CUR.unit == CASTLE) warnOthers();
 
-        switch (ME.unit) {
+        Action2 A;
+        switch (CUR.unit) {
             case CASTLE: {
                 Castle C = new Castle(this);
-                return C.run();
+                A = C.run();
+                break;
             }
             case CHURCH: {
                 Church C = new Church(this);
-                return C.run();
+                A = C.run();
+                break;
             }
             case PILGRIM: {
                 Pilgrim C = new Pilgrim(this);
-                return C.run();
+                A = C.run();
+                break;
             }
             case CRUSADER: {
                 Crusader C = new Crusader(this);
-                return C.run();
+                A = C.run();
+                break;
             }
             case PROPHET: {
                 Prophet C = new Prophet(this);
-                return C.run();
+                A = C.run();
+                break;
             }
             case PREACHER: {
                 Preacher C = new Preacher(this);
-                return C.run();
+                A = C.run();
+                break;
             }
         }
-        return null;
+        if (A == null) A = new Action2();
+        if (A.type == 0) {
+            // log("MOVED "+CUR.x+" "+CUR.y+" "+A.dx+" "+A.dy);
+            robotMap[CUR.y][CUR.x] = null; robotMapID[CUR.y][CUR.x] = 0;
+            CUR.x += A.dx; CUR.y += A.dy;
+            robotMap[CUR.y][CUR.x] = CUR; robotMapID[CUR.y][CUR.x] = CUR.id;
+        }
+        if (CUR.unit != CASTLE) warnOthers();
+        return conv(A);
     }
 }
-
-/*
-to fix:
-* pilgrims don't flee from attackers
-* look at last year's code and make other troops attack
-*/
-
-// file path:
-// cd /usr/local/lib/node_modules/bc19/bots
-// bcr

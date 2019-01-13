@@ -20,13 +20,13 @@ public class Castle extends Building {
             if (R.castle_talk > 0 && R.castle_talk <= 64) Z.castleX.put(R.id,R.castle_talk-1);
             if (R.castle_talk > 64 && R.castle_talk <= 128) {
                 Z.castleY.put(R.id,R.castle_talk-65);
-                Z.addStruct(Z.makeRobot(0,Z.ME.team,Z.castleX.get(R.id),Z.castleY.get(R.id)));
+                Z.addStruct(Z.makeRobot(0,Z.CUR.team,Z.castleX.get(R.id),Z.castleY.get(R.id)));
             }
         }
 
-        if (Z.ME.turn == 1) Z.castleTalk(Z.ME.x+1);
-        else if (Z.ME.turn == 2) Z.castleTalk(64+Z.ME.y+1);
-        else if (Z.ME.turn == 3) Z.castleTalk(0);
+        if (Z.CUR.turn == 1) Z.castleTalk(Z.CUR.x+1);
+        else if (Z.CUR.turn == 2) Z.castleTalk(64+Z.CUR.y+1);
+        else if (Z.CUR.turn == 3) Z.castleTalk(0);
     }
 
 
@@ -139,7 +139,7 @@ public class Castle extends Building {
         else assignFuel(i-Z.karbcount);
     }
 
-    Action makePilgrim() {
+    Action2 makePilgrim() {
         for (int i = 0; i < Z.karbcount; i++) Z.isOccupiedKarb[i] = false;
         for (int i = 0; i < Z.fuelcount; i++) Z.isOccupiedFuel[i] = false;
 
@@ -158,7 +158,7 @@ public class Castle extends Building {
         for (int i = 0; i < Z.karbcount; i++) if (Z.isOccupiedKarb[i]) numKarb ++;
         for (int i = 0; i < Z.fuelcount; i++) if (Z.isOccupiedFuel[i]) numFuel ++;
 
-        if (Z.ME.turn <= 10 || numKarb <= numFuel)  {
+        if (Z.CUR.turn <= 10 || numKarb <= numFuel)  {
             for (int i = 0; i < Z.karbcount; i++) {
                 if (!Z.isOccupiedKarb[Z.sortedKarb[i]]) {
                     assignKarb(i);
@@ -215,45 +215,45 @@ public class Castle extends Building {
     boolean shouldPilgrim() {
         if (Z.signaled || !Z.canBuild(PILGRIM)) return false;
         if (3*Z.numUnits[PILGRIM] > 2*(Z.karbcount+Z.fuelcount)) return false;
-        if (Z.euclidDist(Z.closestAttacker(1-Z.ME.team)) <= 64) return false;
+        if (Z.euclidDist(Z.CUR,Z.closestAttacker(Z.CUR,1-Z.CUR.team)) <= 64) return false;
         return 2*Z.numUnits[PILGRIM] <= Z.numAttack;
     }
-    boolean shouldRush() { return Z.ME.turn <= 20; }
+    boolean shouldRush() { return Z.CUR.turn <= 20; }
     boolean shouldProphet() {
         boolean canTake = Z.fuel >= CONSTRUCTION_F[CHURCH] + CONSTRUCTION_F[PROPHET] && Z.karbonite >= CONSTRUCTION_K[CHURCH] + CONSTRUCTION_K[PROPHET];
         return Z.numAttack < Math.max(6, Z.fdiv(Z.me.turn,10)) || canTake;
     }
-    Action build() {
+    Action2 build() {
         if (shouldPilgrim()) {
             return makePilgrim();
         } else if (shouldRush()) {
-            Action A = Z.tryBuild(PREACHER); if (A != null) return A;
+            Action2 A = Z.tryBuild(PREACHER); if (A != null) return A;
             return Z.tryBuild(CRUSADER);
         } else if (shouldProphet()) {
             return Z.tryBuild(PROPHET);
         }
         return null;
     }
-    Action testPreacherDefense() {
+    Action2 testPreacherDefense() {
         if (shouldPilgrim()) return makePilgrim();
-        if (Z.ME.team == 0) {
-            Action A = Z.tryBuild(PREACHER); if (A != null) return A;
+        if (Z.CUR.team == 0) {
+            Action2 A = Z.tryBuild(PREACHER); if (A != null) return A;
             return Z.tryBuild(CRUSADER);
         } else if (shouldProphet()) {
             return Z.tryBuild(PROPHET);
         }
         return null;
     }
-    Action testProphet() {
+    Action2 testProphet() {
         if (shouldPilgrim()) return makePilgrim();
         if (shouldProphet()) return Z.tryBuild(PROPHET);
         return null;
     }
-    Action testCrusader() {
+    Action2 testCrusader() {
         if (shouldPilgrim()) return makePilgrim();
         return Z.tryBuild(CRUSADER);
     }
-    Action testPreacher() {
+    Action2 testPreacher() {
         if (shouldPilgrim()) return makePilgrim();
         return Z.tryBuild(PREACHER);
     }
@@ -263,16 +263,16 @@ public class Castle extends Building {
         for (int i: Z.myCastle) T += Z.coordinates(i)+" ";
         T += "| " + Z.numAttack+" | ";
         for (int i = 0; i < 6; ++i) T += Z.numUnits[i]+" ";
-        Z.log(Z.ME.turn+" "+T);
+        Z.log(Z.CUR.turn+" "+T);
     }
 
-    Action run() {
+    Action2 run() {
 		if (Z.me.turn == 1) initVars();
         determineLoc();
         updatePilgrimID();
 
         Z.numAttack = 0; for (int i = 0; i < 6; ++i) Z.numUnits[i] = 0;
-        for (Robot2 R: Z.robots) if (R.team == Z.ME.team) {
+        for (Robot2 R: Z.robots) if (R.team == Z.CUR.team) {
             if (Z.castle.contains(R.id)) Z.numUnits[0] ++;
             else {
                 int t = R.castle_talk % 7; if (t == 6) t = 2;
