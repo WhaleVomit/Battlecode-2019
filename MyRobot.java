@@ -183,29 +183,48 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     // BFS DIST
+    void dumbsort(ArrayList<pi> dirs) {
+		for (int i = 0; i < dirs.size()-1; i++) {
+            for (int j = 0; j < dirs.size() - i - 1; j++) {
+				int f1 = dirs.get(j).f; int s1 = dirs.get(j).s;
+				int f2 = dirs.get(j+1).f; int s2 = dirs.get(j+1).s;
+                if (f1*f1+s1*s1 < f2*f2+s2*s2) {
+                    // swap arr[j+1] and arr[j]
+                    pi temp = dirs.get(j);
+                    dirs.set(j,dirs.get(j+1));
+                    dirs.set(j+1,temp);
+                }
+            }
+        }
+	}
     void genBfsDist(int mx) {
         if (bfsDist == null) { bfsDist = new int[h][w];  nextMove = new int[h][w]; }
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
             bfsDist[i][j] = MOD; nextMove[i][j] = MOD;
         }
         LinkedList<Integer> Q = new LinkedList<Integer>(); bfsDist[CUR.y][CUR.x] = 0; Q.add(64 * CUR.x + CUR.y);
+        
+        ArrayList<pi> possDirs = new ArrayList<pi>();
+        for(int dx = -3; dx <= 3; ++dx) {
+			for(int dy = -3; dy <= 3; ++dy) {
+				if(dx*dx + dy*dy <= mx) possDirs.add(new pi(dx,dy));
+			}
+		} dumbsort(possDirs);
 
         while (Q.size() > 0) {
             int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
-            for (int dx = -3; dx <= 3; ++dx) {
-                int X = x+dx; if (X < 0 || X >= w) continue;
-                for (int dy = -3; dy <= 3; ++dy) {
-                    int Y = y+dy; if (Y < 0 || Y >= h) continue;
-                    if (dx*dx+dy*dy <= mx && map[Y][X] && bfsDist[Y][X] == MOD) {
-                        bfsDist[Y][X] = bfsDist[y][x] + 1;
-                        nextMove[Y][X] = nextMove[y][x];
-                        if (robotMapID[Y][X] <= 0)  {
-                            if (nextMove[Y][X] == MOD) nextMove[Y][X] = 64 * X + Y;
-                            Q.add(64 * X + Y);
-                        }
-                    }
+            for(pi p: possDirs) {
+				int dx = p.f; int dy = p.s;
+				int X = x+dx; int Y = y+dy;
+				if (inMap(X,Y) && map[Y][X] && bfsDist[Y][X] == MOD) {
+					bfsDist[Y][X] = bfsDist[y][x] + 1;
+					nextMove[Y][X] = nextMove[y][x];
+					if (robotMapID[Y][X] <= 0)  {
+						if (nextMove[Y][X] == MOD) nextMove[Y][X] = 64 * X + Y;
+						Q.add(64 * X + Y);
+					}
                 }
-            }
+			}
         }
     }
     void genEnemyDist() {
