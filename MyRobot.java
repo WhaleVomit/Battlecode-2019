@@ -104,6 +104,9 @@ public class MyRobot extends BCAbstractRobot {
         if (A == null || A.unit == -1) return false;
         return euclidDist(A,B) <= VISION_R[A.unit]; 
     }
+    boolean inVisionRange(int x, int y) {
+		return euclidDist(CUR,x,y) <= VISION_R[CUR.unit];
+	}
 
     // ROBOT
     Action conv(Action2 A) {
@@ -148,7 +151,7 @@ public class MyRobot extends BCAbstractRobot {
     }
     boolean inMap(int x, int y) { return x >= 0 && x < w && y >= 0 && y < h; }
     boolean valid(int x, int y) { return inMap(x,y) && map[y][x]; }
-    boolean passable(int x, int y) { return valid(x, y) && robotMapID[y][x] <= 0; }
+    boolean passable(int x, int y) { return valid(x, y) && (robotMapID[y][x] <= 0 || robotMapID[y][x] == MOD); }
     boolean containsRobot(int x, int y) { return valid(x, y) && robotMapID[y][x] > 0; }
 
     boolean teamRobot(int x, int y, int t) { return containsRobot(x,y) && robotMap[y][x].team == t; }
@@ -414,8 +417,11 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     void fill8by8(int approxX, int approxY) {
-        for (int i = 0; i < 8; i++) for(int j = 0; j < 8; j++) 
-            addStruct(makeRobot(0,1-CUR.team,8 * approxX + i,8 * approxY + j));
+        for (int i = 0; i < 8; i++) for(int j = 0; j < 8; j++) {
+			int x = 8 * approxX + i;
+			int y = 8 * approxY + j;
+			addStruct(makeRobot(0,1-CUR.team,x,y));
+		}
     }
 
     void fill8by8(int approxID) { fill8by8(fdiv(approxID, 8), approxID % 8); }
@@ -508,6 +514,16 @@ public class MyRobot extends BCAbstractRobot {
             signaled = true;
         }
     }
+    
+    void pr() {
+		for(int i = 0; i <h; i++) {
+			String s = "";
+			for(int j = 0 ; j < w; j++) {
+				s = s + " " + robotMapID[i][j];
+			}
+			log(s);
+		}
+	}
 
     void updateData() {
         h = map.length; w = map[0].length; 
@@ -545,6 +561,7 @@ public class MyRobot extends BCAbstractRobot {
                 }
             }
         }
+        //if(me.id == 1513) pr();
 
         rem(myCastle); rem(otherCastle);
         rem(myChurch); rem(otherChurch);

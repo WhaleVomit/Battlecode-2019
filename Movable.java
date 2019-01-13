@@ -49,5 +49,7 @@ public class Movable {
         // Z.log("ZZ "+A.type+" "+A.dx+" "+A.dy);
         return moveToward(Z.closestStruct(true));
     }
-    public Action2 moveEnemy() { return moveToward(Z.closestStruct(false)); }
+    public Action2 moveEnemy() {
+		return moveToward(Z.closestStruct(false));
+	}
 }

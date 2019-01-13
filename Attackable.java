@@ -38,8 +38,8 @@ public class Attackable extends Movable {
         } else return -MOD;
 
         int x = Z.CUR.x + dx, y = Z.CUR.y + dy;
-        if (!Z.containsRobot(x, y)) return -MOD;
         if (Z.CUR.unit == CRUSADER || Z.CUR.unit == PROPHET) {
+			if (!Z.containsRobot(x, y)) return -MOD;
             if (Z.robotMap[y][x].team == Z.CUR.team) return -MOD;
             return attackPriority(Z.robotMap[y][x]);
         } else {
@@ -62,7 +62,7 @@ public class Attackable extends Movable {
     public int maxPreacherVal(Robot2 P, int x, int y) { // P is the preacher
         int tot = 0;
         for (int X = x-1; X <= x+1; ++X) for (int Y = y-1; Y <= y+1; ++Y) 
-            if (Z.euclidDist(P,X,Y) <= 16 && Z.containsRobot(X,Y)) 
+            if (Z.euclidDist(P,X,Y) <= 16) 
                 tot = Math.max(tot,preacherVal(P,X,Y));
         return tot;
     }
@@ -180,8 +180,8 @@ public class Attackable extends Movable {
     }
 
     public Action2 react() {
-        Action2 A = dealWithPreacher();  if (A != null) return A;
-        A = tryAttack(); if (A != null) return A;
+        //Action2 A = dealWithPreacher();  if (A != null) return A;
+        Action2 A = tryAttack(); if (A != null) return A;
         return position();
     }
     public Action2 tryAttack() {
