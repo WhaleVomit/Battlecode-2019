@@ -20,6 +20,7 @@ public class MyRobot extends BCAbstractRobot {
     int[][][] enemyDist;
     ArrayList<Integer> myCastle = new ArrayList<>(), otherCastle = new ArrayList<>();
     ArrayList<Integer> myChurch = new ArrayList<>(), otherChurch = new ArrayList<>();
+    pi[] pos = new pi[4097];
 
     // PERSONAL
     boolean goHome; // whether unit is going home or not
@@ -483,7 +484,7 @@ public class MyRobot extends BCAbstractRobot {
                 needDist = Math.max(needDist,i*i+j*j);
         }
         if (needDist > 0) {
-            log("SIGNAL ENEMY: "+me.turn+" "+me.x+" "+me.y+" "+R.x+" "+R.y+" "+getSignal(R));
+            log("SIGNAL ENEMY: "+" MY POS ("+me.x+", "+me.y+") ENEMY POS ("+R.x+", "+R.y+") "+getSignal(R));
             signal(getSignal(R),needDist);
             signaled = true;
         }
@@ -504,14 +505,23 @@ public class MyRobot extends BCAbstractRobot {
 
         for (Robot2 R: robots) if (R.isStructure()) addStruct(R);
 
+        for (int i = 1; i <= 4096; ++i) pos[i] = null;
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (robotMapID[i][j] > 0 && robotMapID[i][j] < MOD)
+            pos[robotMapID[i][j]] = new pi(j,i);
+
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
             int t = getVisibleRobotMap()[i][j];
             if (t != -1) {
                 robotMapID[i][j] = t;
                 if (robotMapID[i][j] == 0) robotMap[i][j] = null;
                 else {
-                    Robot2 R = getRobot2(robotMapID[i][j]);
-                    robotMap[i][j] = R;
+                    Robot2 R = getRobot2(t);
+                    if (pos[t] != null && robotMapID[pos[t].s][pos[t].f] == t) {
+                        robotMapID[pos[t].s][pos[t].f] = -1;
+                        robotMap[pos[t].s][pos[t].f] = null;
+                        robotMapID[i][j] = t;
+                    }
+                    pos[t] = new pi(j,i); robotMap[i][j] = R;
                     if (R.unit <= 1) addStruct(R);
                 }
             }

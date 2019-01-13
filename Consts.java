@@ -31,7 +31,7 @@ public class Consts {
 
     public static final int[] VISION_R = {100, 100, 100, 36, 64, 16};
 
-    public static final int[] DAMAGE = {-1, -1, 10, 10, 20};
+    public static final int[] DAMAGE = {-1, -1, -1, 10, 10, 20};
 
     public static final boolean[] CAN_ATTACK = {false, false, false, true, true, true};
     public static final int[] MIN_ATTACK_R = {-1, -1, -1, 1, 16, 1};

@@ -6,7 +6,12 @@ public class Crusader extends Attackable {
     public Crusader(MyRobot z) { super(z); }
     Action2 run() {
         Z.sendToCastle();
-        Action2 A = react(); if (A != null) return A;
+        Action2 A = react(); 
+        if (A != null) {
+        	Z.log("REACT (" +Z.CUR.x+", "+Z.CUR.y+") "+A.type+" "+A.dx+" "+A.dy);
+        	return A;
+        }
+    	Z.log("PATROL (" +Z.CUR.x+", "+Z.CUR.y+")");
         return patrol();
         // return aggressive();
     }
