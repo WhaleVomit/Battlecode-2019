@@ -164,7 +164,7 @@ public class Castle extends Building {
     Action2 makePilgrim() {
         int a = Z.karbonite, b = Z.fuel-100*Z.movableUnits(); 
         boolean assigned = false;
-        if (Z.CUR.turn <= 10 || 2*Z.numKarb <= Z.numFuel) assigned = tryAssignKarb();
+        if (Z.CUR.turn <= 30 || 2*Z.numKarb <= Z.numFuel) assigned = tryAssignKarb();
         else if (2*Z.numFuel <= Z.numKarb) assigned = tryAssignFuel();
         else if (a < b) assigned = tryAssignKarb();
         else assigned = tryAssignFuel();

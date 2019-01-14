@@ -287,13 +287,85 @@ public class MyRobot extends BCAbstractRobot {
             }
         return bestPos;
     }
+    int closestOurSide(boolean[][] B) { // prioritize all locations on our side first
+		if(B == null) return MOD;
+		if(hsim()) {
+			// check our side
+			int bestPos = MOD, bestDist = MOD;
+			int mid = fdiv(h,2);
+			if(CUR.y >= mid) {
+				for(int x = 0; x < w; x++) for(int y = mid; y < h; y++) {
+					if(B[y][x] && bfsDist[y][x] < bestDist && robotMapID[y][x] <= 0) {
+						bestDist = bfsDist[y][x]; bestPos = 64*x+y;
+					}
+				}
+			} else {
+				for(int x = 0; x < w; x++) for(int y = 0; y < mid; y++) {
+					if(B[y][x] && bfsDist[y][x] < bestDist && robotMapID[y][x] <= 0) {
+						bestDist = bfsDist[y][x]; bestPos = 64*x+y;
+					}
+				}
+			}
+			if(bestPos != MOD) return bestPos;
+			// check other side
+			if(CUR.y >= mid) {
+				for(int x = 0; x < w; x++) for(int y = 0; y < mid; y++) {
+					if(B[y][x] && bfsDist[y][x] < bestDist && robotMapID[y][x] <= 0) {
+						bestDist = bfsDist[y][x]; bestPos = 64*x+y;
+					}
+				}
+			} else {
+				for(int x = 0; x < w; x++) for(int y = mid; y < h; y++) {
+					if(B[y][x] && bfsDist[y][x] < bestDist && robotMapID[y][x] <= 0) {
+						bestDist = bfsDist[y][x]; bestPos = 64*x+y;
+					}
+				}
+			}
+			return bestPos;
+		} else {
+			// check our side
+			int bestPos = MOD, bestDist = MOD;
+			int mid = fdiv(w,2);
+			if(CUR.x >= mid) {
+				for(int x = mid; x < w; x++) for(int y = 0; y < h; y++) {
+					if(B[y][x] && bfsDist[y][x] < bestDist && robotMapID[y][x] <= 0) {
+						bestDist = bfsDist[y][x]; bestPos = 64*x+y;
+					}
+				}
+			} else {
+				for(int x = 0; x < mid; x++) for(int y = 0; y < h; y++) {
+					if(B[y][x] && bfsDist[y][x] < bestDist && robotMapID[y][x] <= 0) {
+						bestDist = bfsDist[y][x]; bestPos = 64*x+y;
+					}
+				}
+			}
+			if(bestPos != MOD) return bestPos;
+			// check other side
+			if(CUR.x >= mid) {
+				for(int x = 0; x < mid; x++) for(int y = 0; y < h; y++) {
+					if(B[y][x] && bfsDist[y][x] < bestDist && robotMapID[y][x] <= 0) {
+						bestDist = bfsDist[y][x]; bestPos = 64*x+y;
+					}
+				}
+			} else {
+				for(int x = mid; x < w; x++) for(int y = 0; y < h; y++) {
+					if(B[y][x] && bfsDist[y][x] < bestDist && robotMapID[y][x] <= 0) {
+						bestDist = bfsDist[y][x]; bestPos = 64*x+y;
+					}
+				}
+			}
+			return bestPos;
+		}
+	}
     int closeEmpty(int x, int y) {
         int bestDist = MOD, bestPos = MOD;
         for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
             int X = x+i, Y = y+j;
-            if (passable(X,Y) && i*i+j*j < bestDist) {
-                bestDist = i*i+j*j; bestPos = 64*X+Y;
-            }
+            if (passable(X,Y)) {
+				if ((i*i+j*j < bestDist) || (i*i+j*j == bestDist && bfsDist(64*X + Y) < bfsDist(bestPos))) {
+					bestDist = i*i+j*j; bestPos = 64*X+Y;
+				}
+			}
         }
         return bestPos;
     }
