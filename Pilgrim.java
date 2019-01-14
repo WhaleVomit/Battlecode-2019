@@ -107,7 +107,7 @@ public class Pilgrim extends Movable {
             }
         return ret;
     }
-    
+
 	boolean inDanger() {
         for(int dx = -10; dx <= 10; dx++) for(int dy = -10; dy <= 10; dy++) {
 			int x = Z.CUR.x + dx;

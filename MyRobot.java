@@ -16,7 +16,7 @@ public class MyRobot extends BCAbstractRobot {
     int[][] robotMapID, lastTurn; // stores last id seen in pos
 
     int[][] bfsDist, nextMove;
-    int[][] bfsDistSafe, nextMoveSafe;
+    int[][] distEnemy, distAlly, bfsDistSafe, nextMoveSafe;
     boolean updEnemy = false;
     boolean[][] confident, dangerous;
     int[][][] enemyDist;
@@ -235,26 +235,36 @@ public class MyRobot extends BCAbstractRobot {
     }
     void genDistSafe() {
         if (bfsDistSafe == null) { 
-            bfsDistSafe = new int[h][w];  
-            nextMoveSafe = new int[h][w]; 
+            bfsDistSafe = new int[h][w]; nextMoveSafe = new int[h][w]; 
+            distAlly = new int[h][w]; distEnemy = new int[h][w];
             dangerous = new boolean[h][w];
         }
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
             bfsDistSafe[i][j] = MOD; nextMoveSafe[i][j] = MOD;
+            distAlly[i][j] = MOD; distEnemy[i][j] = MOD;
             dangerous[i][j] = false;
         }
 
-        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) 
-            if (enemyAttacker(j,i) && lastTurn[i][j] >= CUR.turn-20) {
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (lastTurn[i][j] >= CUR.turn-20) {
+            if (yourAttacker(j,i)) {
                 int d = dangerRadius(robotMap[i][j]);
-                for (int I = -10; I <= 10; ++I) for (int J = -10; J <= 10; ++J) 
-                    if (I*I+J*J <= d && inMap(j+J,i+I)) dangerous[i+I][j+J] = true;
+                for (int I = -10; I <= 10; ++I) for (int J = -10; J <= 10; ++J) {
+                    int D = I*I+J*J;
+                    if (D <= d && inMap(j+J,i+I)) distAlly[i+I][j+J] = Math.min(distAlly[i+I][j+J],D);
+                }
             } 
+            if (enemyAttacker(j,i)) {
+                int d = dangerRadius(robotMap[i][j]);
+                for (int I = -10; I <= 10; ++I) for (int J = -10; J <= 10; ++J) {
+                    int D = I*I+J*J;
+                    if (D <= d && inMap(j+J,i+I)) distEnemy[i+I][j+J] = Math.min(distEnemy[i+I][j+J],D);
+                }
+            } 
+        }
 
-        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
-            if (yourAttacker(j,i) && lastTurn[i][j] >= CUR.turn-20) 
-                for (int I = -3; I <= 3; ++I) for (int J = -3; J <= 3; ++J) 
-                    if (I*I+J*J <= 9 && inMap(j+J,i+I)) dangerous[i+I][j+J] = false;
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) 
+            if (distEnemy[i][j] != MOD && Math.sqrt(distEnemy[i][j])-2 <= Math.sqrt(distAlly[i][j]))
+                dangerous[i][j] = true;
 
         LinkedList<Integer> Q = new LinkedList<Integer>(); bfsDistSafe[CUR.y][CUR.x] = 0; Q.add(64 * CUR.x + CUR.y);
 
