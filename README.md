@@ -3,6 +3,7 @@
 - ensure that signaling robots who are outside of vision range but inside getVisibleRobots() can't mess up the code
 - macro attack formation (line instead of clump)
 - conserve fuel!!!
+- let castles know when enemy castles are destroyed
 
 # Seeds
 34: 1126503047
