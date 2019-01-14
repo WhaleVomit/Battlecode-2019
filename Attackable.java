@@ -14,6 +14,7 @@ public class Attackable extends Movable {
     }
     public int preacherVal(Robot2 P, int x, int y) {
         int t = 0;
+        if (!Z.valid(x,y)) return 0;
         for (int i = x-1; i <= x+1; ++i)
             for (int j = y-1; j <= y+1; ++j)
                 if (Z.valid(i,j) && Z.robotMapID[j][i] > 0) {
@@ -25,6 +26,11 @@ public class Attackable extends Movable {
                     t += val;
                 }
         return t;
+    }
+    public boolean containsConfident(int x, int y) {
+        for (int i = x-1; i <= x+1; ++i) for (int j = y-1; j <= y+1; ++j) 
+            if (Z.enemyRobot(i,j) && Z.confident[j][i]) return true;
+        return false;
     }
     public int canAttack(int dx, int dy) {
         if (ATTACK_F_COST[Z.CUR.unit] > Z.fuel) return -MOD;
@@ -43,7 +49,7 @@ public class Attackable extends Movable {
             if (Z.robotMap[y][x].team == Z.CUR.team) return -MOD;
             return attackPriority(Z.robotMap[y][x]);
         } else {
-            if (dist < 3 || dist > 16) return -MOD;
+            if (dist < 3 || dist > 16 || !containsConfident(x,y)) return -MOD;
             return preacherVal(Z.CUR,x,y);
         }
     }
@@ -155,14 +161,14 @@ public class Attackable extends Movable {
         }
         if (Z.euclidDist(R) <= MAX_ATTACK_R[Z.CUR.unit]) return null;
         if (R.unit != PREACHER || Z.euclidDist(R) > 49) return moveToward(R.x,R.y);
-
+        if (Z.CUR.unit == PREACHER && !Z.confident[R.y][R.x]) return moveToward(R.x,R.y);
         int oriDist = Z.sq(Z.CUR.x-R.x)+Z.sq(Z.CUR.y-R.y), oriDam = totDamage(Z.CUR.x,Z.CUR.y);
         int bestDam = MOD, bestDist = MOD; Action2 A = null;
 
         for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j) 
             if (canMove(Z.CUR,i,j)) {
                 int dam = totDamageAfter(Z.CUR.x+i,Z.CUR.y+j), dist = Z.sq(Z.CUR.x+i-R.x)+Z.sq(Z.CUR.y+j-R.y);
-                if (Math.sqrt(dist)+0.5 < Math.sqrt(oriDist) && (dam < bestDam || (dam == bestDam && dist < bestDist))) {
+                if (Math.sqrt(dist)+0.5 <= Math.sqrt(oriDist) && (dam < bestDam || (dam == bestDam && dist < bestDist))) {
                     bestDam = dam; bestDist = dist; A = Z.moveAction(i,j);
                 }
 			}
@@ -225,9 +231,14 @@ public class Attackable extends Movable {
     }
 
     public Action2 aggressive() {
-        Action2 A = tryAttack(); if (A != null) return A;
-        A = moveEnemy(); if (A != null) return A;
-        // Z.log("NO MOVE?");
+        Action2 A = moveEnemy(); if (A != null) return A;
         return nextMove(Z.closestUnseen());
+    }
+
+    public Action2 runDefault() {
+        Z.sendToCastle(); 
+        Action2 A = react(); if (A != null) return A;
+        if (!Z.attackMode) return patrol();
+        return aggressive();
     }
 }

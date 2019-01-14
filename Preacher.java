@@ -4,8 +4,5 @@ import static bc19.Consts.*;
 
 public class Preacher extends Attackable {
     public Preacher(MyRobot z) { super(z); }
-    Action2 run() { 
-        Z.sendToCastle();
-    	return aggressive(); 
-   	}
+    Action2 run() { return runDefault(); }
 }

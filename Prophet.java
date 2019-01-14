@@ -5,13 +5,5 @@ import static bc19.Consts.*;
 public class Prophet extends Attackable {
     public Prophet(MyRobot z) { super(z); }
 
-    Action2 run() {
-    	Z.sendToCastle();
-        Action2 A = react(); if (A != null) return A;
-        return patrol();
-        /*A = moveEnemy(); if (A != null) return A;
-        if (Z.otherCastle.size() == 0) { return patrol(); }
-        return null;*/
-        // return Z.nextMove(Z.closestUnseen());
-    }
+    Action2 run() { return runDefault(); }
 }
