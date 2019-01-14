@@ -153,6 +153,7 @@ public class Castle extends Building {
         Z.closeUnits[2] = Math.max(Z.closeUnits[2],Z.numKarb+Z.numFuel);
         if (Z.CUR.unit == CASTLE && Z.myCastle.get(0) == 64 * Z.CUR.x + Z.CUR.y && Z.CUR.turn % 3 == 0) {
             Z.log("================ ROUND " + Z.CUR.turn + " ================ ");
+            if (Z.CUR.turn == 3) Z.log("H: "+Z.h+" W: "+Z.w);
             Z.log("TIME: "+Z.me.time);
             Z.log("KARBONITE: "+Z.karbonite);
             Z.log("FUEL: "+Z.fuel);

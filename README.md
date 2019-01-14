@@ -1,10 +1,24 @@
 # Todo
-- ensure that enemy signals can't get confused with ours
-- ensure that signaling robots who are outside of vision range but inside getVisibleRobots() can't mess up the code
+- crusaders should not leave the rest behind
+- claim center with churches?
+- waves of rushes
 - macro attack formation (line instead of clump)
 - conserve fuel!!!
 
 # Seeds
-- Small: 
-- Medium: 
-- Large: 111907212
+Focus:
+ - 34: 1126503047
+ - 43: 1154777616
+ - 47: 1896234665
+ - 56: 38278356
+
+More:
+ - 40: 1934780446
+ - 42: 890811418
+ - 52: 1831028888
+ - 53: 111907212
+ - 59: 1251883604
+
+
+https://stonet2000.github.io/ReadBC19seed/
+https://github.com/ChiCubed/Clairvoyance
