@@ -4,6 +4,7 @@
 - waves of rushes
 - macro attack formation (line instead of clump)
 - conserve fuel!!!
+- let castles know when enemy castles are destroyed
 
 # Seeds
 Focus:
