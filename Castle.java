@@ -117,6 +117,49 @@ public class Castle extends Building {
         sortKarb(); sortFuel();
     }
 
+    void updateVars() {
+        for (int i = 0; i < Z.karbcount; i++) Z.isOccupiedKarb[i] = false;
+        for (int i = 0; i < Z.fuelcount; i++) Z.isOccupiedFuel[i] = false;
+
+        // find current assignments
+        for (Robot2 R: Z.robots) if (!Z.castle.contains(R.id) && R.castle_talk % 7 == 2) {
+            int ind = -1;
+            for (int i = 0; i < Z.karbcount; i++) if(Z.karbToPil[i] == R.id) ind = i;
+            Z.isOccupiedKarb[ind] = true;
+            ind = -1;
+            for (int i = 0; i < Z.fuelcount; i++) if (Z.fuelToPil[i] == R.id) ind = i;
+            Z.isOccupiedFuel[ind] = true;
+        }
+
+        Z.numKarb = 0; Z.numFuel = 0;
+        for (int i = 0; i < Z.karbcount; i++) if (Z.isOccupiedKarb[i]) Z.numKarb ++;
+        for (int i = 0; i < Z.fuelcount; i++) if (Z.isOccupiedFuel[i]) Z.numFuel ++;
+
+        Z.numAttack = 0; 
+        for (int i = 0; i < 6; ++i) {
+            Z.numUnits[i] = 0;
+            Z.closeUnits[i] = 0;
+        }
+        for (Robot2 R: Z.robots) if (R.team == Z.CUR.team) {
+            if (Z.castle.contains(R.id)) {
+                Z.numUnits[0] ++;
+                if (Z.euclidDist(Z.CUR,R) <= 100) Z.closeUnits[0] ++;
+            } else {
+                int t = R.castle_talk % 7; if (t == 6) t = 2;
+                Z.numUnits[t] ++; if (t >= 3) Z.numAttack ++;
+                if (Z.euclidDist(Z.CUR,R) <= 100) Z.closeUnits[t] ++;
+            }
+        }
+        Z.closeUnits[2] = Math.max(Z.closeUnits[2],Z.numKarb+Z.numFuel);
+        if (Z.CUR.unit == CASTLE && Z.myCastle.get(0) == 64 * Z.CUR.x + Z.CUR.y && Z.CUR.turn % 3 == 0) {
+            Z.log("================ ROUND " + Z.CUR.turn + " ================ ");
+            Z.log("TIME: "+Z.me.time);
+            Z.log("KARBONITE: "+Z.karbonite);
+            Z.log("FUEL: "+Z.fuel);
+            String T = "UNITS "; for (int i = 0; i < 6; ++i) T += " "+Z.numUnits[i];
+            Z.log(T);
+        }
+    }
 
     int getMessage(int x) { return x+2000; }
 
@@ -219,7 +262,7 @@ public class Castle extends Building {
         return Z.numAttack < Math.max(6, Z.fdiv(Z.me.turn,10)) || canTake;
     }
     Action2 build() {
-        if (Z.movableUnits() >= 30 && Z.numUnits[2] >= 10 && Z.fuel < 100*Z.movableUnits()) return null;
+        if (Z.movableUnits() >= 30 && Z.numUnits[2] >= 10 && Z.fuel < Z.DESIRED*Z.allAttackers()) return null;
         if (shouldPilgrim()) return makePilgrim();
         if (shouldRush()) {
             Action2 A = Z.tryBuild(PREACHER); if (A != null) return A;
@@ -266,40 +309,7 @@ public class Castle extends Building {
 		if (Z.me.turn == 1) initVars();
         determineLoc();
         updatePilgrimID();
-
-        for (int i = 0; i < Z.karbcount; i++) Z.isOccupiedKarb[i] = false;
-        for (int i = 0; i < Z.fuelcount; i++) Z.isOccupiedFuel[i] = false;
-
-        // find current assignments
-        for (Robot2 R: Z.robots) if (!Z.castle.contains(R.id) && R.castle_talk % 7 == 2) {
-            int ind = -1;
-            for (int i = 0; i < Z.karbcount; i++) if(Z.karbToPil[i] == R.id) ind = i;
-            Z.isOccupiedKarb[ind] = true;
-            ind = -1;
-            for (int i = 0; i < Z.fuelcount; i++) if (Z.fuelToPil[i] == R.id) ind = i;
-            Z.isOccupiedFuel[ind] = true;
-        }
-
-        Z.numKarb = 0; Z.numFuel = 0;
-        for (int i = 0; i < Z.karbcount; i++) if (Z.isOccupiedKarb[i]) Z.numKarb ++;
-        for (int i = 0; i < Z.fuelcount; i++) if (Z.isOccupiedFuel[i]) Z.numFuel ++;
-
-        Z.numAttack = 0; 
-        for (int i = 0; i < 6; ++i) {
-            Z.numUnits[i] = 0;
-            Z.closeUnits[i] = 0;
-        }
-        for (Robot2 R: Z.robots) if (R.team == Z.CUR.team) {
-            if (Z.castle.contains(R.id)) {
-                Z.numUnits[0] ++;
-                if (Z.euclidDist(Z.CUR,R) <= 100) Z.closeUnits[0] ++;
-            } else {
-                int t = R.castle_talk % 7; if (t == 6) t = 2;
-                Z.numUnits[t] ++; if (t >= 3) Z.numAttack ++;
-                if (Z.euclidDist(Z.CUR,R) <= 100) Z.closeUnits[t] ++;
-            }
-        }
-        Z.closeUnits[2] = Math.max(Z.closeUnits[2],Z.numKarb+Z.numFuel);
+        updateVars();
 
         if (Z.me.turn > 1) { // first turn reserved to determine location of other castles
 			Action2 A = panicBuild(); if(A != null) return A;

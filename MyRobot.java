@@ -10,6 +10,7 @@ public class MyRobot extends BCAbstractRobot {
     Robot2 ORI, CUR;
 
     // MAP (arrays are by y and then x)
+    int DESIRED = 150;
     int w, h; // width, height
     Robot2[] robots;
     Robot2[][] robotMap; // stores last robot seen in pos
@@ -32,6 +33,7 @@ public class MyRobot extends BCAbstractRobot {
 
     // FOR CASTLE
     int numKarb, numFuel;
+    int lastAttackSignal;
     int numAttack;
     int[] numUnits = new int[6], closeUnits = new int[6];
     int[] sortedKarb, sortedFuel, karbToPil, fuelToPil, karbPos, fuelPos;
@@ -753,19 +755,22 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     int movableUnits() {
-        int res = 0;
-        for (int i = 2; i < 6; ++i) res += numUnits[i];
+        int res = 0; for (int i = 2; i < 6; ++i) res += numUnits[i];
+        return res;
+    }
+
+    int allAttackers() {
+        int res = 0; for (int i = 3; i < 6; ++i) res += numUnits[i];
         return res;
     }
 
     int closeAttackers() {
-        int res = 0;
-        for (int i = 3; i < 6; ++i) res += closeUnits[i];
+        int res = 0; for (int i = 3; i < 6; ++i) res += closeUnits[i];
         return res;
     }
 
     boolean shouldBeginAttack() {
-        return CUR.turn > 200 || (closeAttackers() > 20 && fuel >= 90*movableUnits());
+        return CUR.turn > 300 || (closeAttackers() > 20 && fuel >= 0.9*DESIRED*allAttackers());
     }
 
     int farthestDefenderRadius() {
@@ -780,7 +785,6 @@ public class MyRobot extends BCAbstractRobot {
 
     public Action turn() {
         updateData();
-        if(CUR.unit == CASTLE && CUR.team == 0 && myCastle.get(0) == 64 * CUR.x + CUR.y && CUR.turn % 3 == 0) log("================ ROUND " + CUR.turn + " ================ "+me.time);
         genBfsDist(CUR.unit == CRUSADER ? 9 : 4);
         if (CUR.unit == 2) genDistSafe();
         else genEnemyDist();
@@ -822,21 +826,14 @@ public class MyRobot extends BCAbstractRobot {
         }
         if (A == null) A = new Action2();
         if (A.type == 0) {
-            // log("MOVED "+CUR.x+" "+CUR.y+" "+A.dx+" "+A.dy);
             robotMap[CUR.y][CUR.x] = null; robotMapID[CUR.y][CUR.x] = 0;
             CUR.x += A.dx; CUR.y += A.dy;
             robotMap[CUR.y][CUR.x] = CUR; robotMapID[CUR.y][CUR.x] = CUR.id;
         }
         if (CUR.unit != CASTLE) warnOthers();
-        /*if (CUR.unit == 3) {
-            String T = ""; 
-            T += myCastle.size() + " | ";
-            T += myStructID.size() + " | ";
-            for (int i: myStructID) T += i+" ";
-            log(T);
-        }*/
 
-        if (CUR.unit == CASTLE && !signaled && (shouldBeginAttack() || attackMode)) {
+        if (CUR.unit == CASTLE && !signaled && (shouldBeginAttack() || attackMode) && lastAttackSignal <= CUR.turn-5) {
+            lastAttackSignal = CUR.turn;
             attackMode = true;
             int r = farthestDefenderRadius();
             if (r > 0) {
