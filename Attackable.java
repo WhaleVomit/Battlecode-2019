@@ -238,7 +238,10 @@ public class Attackable extends Movable {
     public Action2 runDefault() {
         Z.sendToCastle(); 
         Action2 A = react(); if (A != null) return A;
-        if (!Z.attackMode) return patrol();
+        if (!Z.attackMode) {
+            if (enoughResources()) return moveHome();
+            return patrol();
+        } 
         return aggressive();
     }
 }

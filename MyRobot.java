@@ -402,8 +402,9 @@ public class MyRobot extends BCAbstractRobot {
     }
     public void addYour(ArrayList<Integer> A, Robot2 R) {
         int p = 64*R.x+R.y;
-        if (!yesStruct(R.x,R.y) || A.contains(p)) return;
+        if (!yesStruct(R.x,R.y)) return;
         if (R.id != MOD && !myStructID.contains(R.id)) myStructID.add(R.id);
+        if (A.contains(p)) return;
         A.add(p);
         if (robotMapID[R.y][R.x] == -1) { robotMapID[R.y][R.x] = R.id; robotMap[R.y][R.x] = R; }
     }
@@ -734,10 +735,21 @@ public class MyRobot extends BCAbstractRobot {
             robotMap[CUR.y][CUR.x] = CUR; robotMapID[CUR.y][CUR.x] = CUR.id;
         }
         if (CUR.unit != CASTLE) warnOthers();
+        /*if (CUR.unit == 3) {
+            String T = ""; 
+            T += myCastle.size() + " | ";
+            T += myStructID.size() + " | ";
+            for (int i: myStructID) T += i+" ";
+            log(T);
+        }*/
+
         if (CUR.unit == CASTLE && !signaled && (shouldBeginAttack() || attackMode)) {
             attackMode = true;
             int r = farthestDefenderRadius();
-            if (r > 0) signal(20000,r);
+            if (r > 0) {
+                log("TRY TO SIGNAL "+CUR.x+" "+CUR.y+" "+r+" "+fuel);
+                signal(20000,r);
+            }
         }
         return conv(A);
     }
