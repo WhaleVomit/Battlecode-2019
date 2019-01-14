@@ -403,6 +403,12 @@ public class MyRobot extends BCAbstractRobot {
             if (passable(CUR.x + dx, CUR.y + dy)) return buildAction(t, dx, dy);
         return null;
     }
+    public Action2 tryBuildNoSignal(int t) {
+        if (!canBuild(t)) return null;
+        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy)
+            if (passable(CUR.x + dx, CUR.y + dy)) return buildAction(t, dx, dy);
+        return null;
+    }
     public boolean yesStruct(int x, int y) {
 		if (!valid(x,y) || robotMapID[y][x] == 0) return false;
         if (robotMapID[y][x] > 0 && !robotMap[y][x].isStructure()) return false;
@@ -593,7 +599,7 @@ public class MyRobot extends BCAbstractRobot {
 
     void warnOthers() { // CUR.x, CUR.y are new pos, not necessarily equal to me.x, me.y;
         if (fuel < 100 || superseded(CUR.x,CUR.y)) return;
-        Robot2 R = closestAttacker(ORI, 1-CUR.team); if (euclidDist(ORI,R) > VISION_R[CUR.unit]) return;
+        Robot2 R = closestAttacker(ORI,1-CUR.team); if (euclidDist(ORI,R) > VISION_R[CUR.unit]) return;
         int numEnemies = numAttackersSeen();
         // try to activate around 2*numEnemies allies
         // count number allies already activated
