@@ -97,7 +97,6 @@ public class Pilgrim extends Movable {
 		return null;
 	}
 	
-<<<<<<< HEAD
 	int lastDanger(int x, int y) {
 		int ret = -MOD;
         for (int i = y-10; i <= y+10; ++i) for (int j = x-10; j <= x+10; ++j)
@@ -107,7 +106,8 @@ public class Pilgrim extends Movable {
             		ret = Math.max(ret,Z.lastTurn[i][j]);
             }
         return ret;
-=======
+    }
+    
 	boolean inDanger() {
         for(int dx = -10; dx <= 10; dx++) for(int dy = -10; dy <= 10; dy++) {
 			int x = Z.CUR.x + dx;
@@ -129,7 +129,6 @@ public class Pilgrim extends Movable {
             }
 		}
 		return false;
->>>>>>> d52529a6acbe06ed899ec4caac089e67eff71f47
 	}
 
 	void init() {

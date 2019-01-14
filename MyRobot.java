@@ -199,18 +199,7 @@ public class MyRobot extends BCAbstractRobot {
             }
         });
 	}
-<<<<<<< HEAD
-=======
-	
-	void sort(ArrayList<pi> dirs) {
-        Collections.sort(dirs, new Comparator<pi>() {
-            public int compare(pi a, pi b) {
-                return (a.f * a.f + a.s * a.s) - (b.f * b.f + b.s * b.s);
-            }
-        });
-	}
 
->>>>>>> d52529a6acbe06ed899ec4caac089e67eff71f47
     void genBfsDist(int mx) {
         if (bfsDist == null) { bfsDist = new int[h][w];  nextMove = new int[h][w]; }
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
@@ -272,7 +261,7 @@ public class MyRobot extends BCAbstractRobot {
         ArrayList<pi> possDirs = new ArrayList<pi>();
         for (int dx = -2; dx <= 2; ++dx) for (int dy = -2; dy <= 2; ++dy) 
             if (dx*dx + dy*dy <= 4) possDirs.add(new pi(dx,dy));
-        sort(possDirs);
+        sortr(possDirs);
 
         while (Q.size() > 0) {
             int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
@@ -669,7 +658,7 @@ public class MyRobot extends BCAbstractRobot {
 			int y = CUR.y+dy;
 			if(dx*dx + dy*dy <= 16 && yourAttacker(x,y) && clearVision(robotMap[y][x])) dirs.add(new pi(dx,dy));
 		}
-		sort(dirs);
+		sortr(dirs);
 		int ind = Math.min(necessary-1, dirs.size()-1); if(ind == -1) return;
 		int dx = dirs.get(ind).f; int dy = dirs.get(ind).s;
         int needDist = dx*dx + dy*dy;
