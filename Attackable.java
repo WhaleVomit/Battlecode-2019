@@ -215,11 +215,11 @@ public class Attackable extends Movable {
     }
     public Action2 patrol() {
         int t = Z.closestStruct(true);
-        if (Z.euclidDist(Z.CUR, Z.fdiv(t,64), t%64) > 200) return moveHome();
+        if (Z.bfsDist(t) > 9) return moveHome();
         int x = Z.fdiv(t,64), y = t % 64;
 
         int bestVal = MOD, bestDist = MOD, pos = MOD;
-        for (int X = x-10; X <= x+10; ++X) for (int Y = y-10; Y <= y+10; ++Y) if (Z.valid(X,Y)) {
+        for (int X = x-10; X <= x+10; ++X) for (int Y = y-10; Y <= y+10; ++Y) if (Z.valid(X,Y) && Z.bfsDist(64*X + Y) <= 9) {
             int val = patrolVal(X,Y,x,y);
             if (val < bestVal || (val == bestVal && Z.bfsDist[Y][X] < bestDist)) {
                 bestVal = val; bestDist = Z.bfsDist[Y][X]; pos = 64*X+Y;
