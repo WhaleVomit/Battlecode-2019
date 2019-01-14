@@ -7,7 +7,7 @@ import static bc19.Consts.*;
 
 public class MyRobot extends BCAbstractRobot {
     // int turn = 0; turns since start of game
-    Robot2 ORI, CUR; 
+    Robot2 ORI, CUR;
 
     // MAP (arrays are by y and then x)
     int w, h; // width, height
@@ -48,11 +48,11 @@ public class MyRobot extends BCAbstractRobot {
     // MATH
     int fdiv(int a, int b) { return (a-(a%b))/b; }
     int sq(int x) { return x*x; }
-    String coordinates(int t) { 
+    String coordinates(int t) {
         int y = t%64, x = fdiv(t,64);
         return "("+x+", "+y+")";
     }
-    
+
     // ACTION
     Action2 moveAction(int dx, int dy) {
         Action2 A = new Action2();
@@ -61,7 +61,7 @@ public class MyRobot extends BCAbstractRobot {
     }
     Action2 mineAction() {
         Action2 A = new Action2();
-        A.type = 1; 
+        A.type = 1;
         return A;
     }
     Action2 giveAction(int dx, int dy, int karb, int fuel) {
@@ -85,7 +85,7 @@ public class MyRobot extends BCAbstractRobot {
         Robot2 R = new Robot2(null);
         R.id = MOD; R.unit = unit; R.team = team; R.x = x; R.y = y;
         return R;
-    } 
+    }
 
     // ARRAYLIST
     void removeDup(ArrayList<Integer> A) {
@@ -98,15 +98,15 @@ public class MyRobot extends BCAbstractRobot {
     // EUCLID DIST
     int euclidDist(int x1, int y1, int x2, int y2) { return sq(x1-x2) + sq(y1-y2); }
     int euclidDist(Robot2 A, int x, int y) { return A == null ? MOD : euclidDist(A.x,A.y,x,y); }
-    int euclidDist(Robot2 A, Robot2 B) { 
+    int euclidDist(Robot2 A, Robot2 B) {
         if (A == null || B == null) return MOD;
-        return euclidDist(A.x,A.y,B.x,B.y); 
+        return euclidDist(A.x,A.y,B.x,B.y);
     }
     int euclidDist(Robot2 A) { return euclidDist(CUR,A); }
     boolean adjacent(Robot2 A, Robot2 B) { return euclidDist(A,B) <= 2; }
-    boolean inVisionRange(Robot2 A, Robot2 B) { 
+    boolean inVisionRange(Robot2 A, Robot2 B) {
         if (A == null || A.unit == -1) return false;
-        return euclidDist(A,B) <= VISION_R[A.unit]; 
+        return euclidDist(A,B) <= VISION_R[A.unit];
     }
     boolean inVisionRange(int x, int y) {
 		return euclidDist(CUR,x,y) <= VISION_R[CUR.unit];
@@ -190,33 +190,29 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     // BFS DIST
-    void dumbsort(ArrayList<pi> dirs) {
-		for (int i = 0; i < dirs.size()-1; i++) {
-            for (int j = 0; j < dirs.size() - i - 1; j++) {
-				int f1 = dirs.get(j).f; int s1 = dirs.get(j).s;
-				int f2 = dirs.get(j+1).f; int s2 = dirs.get(j+1).s;
-                if (f1*f1+s1*s1 < f2*f2+s2*s2) {
-                    // swap arr[j+1] and arr[j]
-                    pi temp = dirs.get(j);
-                    dirs.set(j,dirs.get(j+1));
-                    dirs.set(j+1,temp);
-                }
+    void notdumbsort(ArrayList<pi> dirs) {
+        Collections.sort(dirs, new Comparator<pi>() {
+
+            public int compare(pi a, pi b) {
+                return (a.f * a.f + a.s * a.s) - (b.f * b.f + b.s * b.s);
             }
-        }
+
+        });
 	}
+
     void genBfsDist(int mx) {
         if (bfsDist == null) { bfsDist = new int[h][w];  nextMove = new int[h][w]; }
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
             bfsDist[i][j] = MOD; nextMove[i][j] = MOD;
         }
         LinkedList<Integer> Q = new LinkedList<Integer>(); bfsDist[CUR.y][CUR.x] = 0; Q.add(64 * CUR.x + CUR.y);
-        
+
         ArrayList<pi> possDirs = new ArrayList<pi>();
         for(int dx = -3; dx <= 3; ++dx) {
 			for(int dy = -3; dy <= 3; ++dy) {
 				if(dx*dx + dy*dy <= mx) possDirs.add(new pi(dx,dy));
 			}
-		} dumbsort(possDirs);
+		} notdumbsort(possDirs);
 
         while (Q.size() > 0) {
             int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
@@ -466,7 +462,7 @@ public class MyRobot extends BCAbstractRobot {
     int getSignal(Robot2 R) {
         return 441*(R.unit-3)+21*(R.x-CUR.x+10)+(R.y-CUR.y+10)+1;
     }
-    
+
     boolean clearVision(Robot2 R) {
         if (CUR.unit == CASTLE && fdiv(R.castle_talk,7) % 2 == 1) return false;
         for (int i = -10; i <= 10; ++i)
@@ -520,7 +516,7 @@ public class MyRobot extends BCAbstractRobot {
             signaled = true;
         }
     }
-    
+
     void pr() {
 		for(int i = 0; i <h; i++) {
 			String s = "";
@@ -532,7 +528,7 @@ public class MyRobot extends BCAbstractRobot {
 	}
 
     void updateData() {
-        h = map.length; w = map[0].length; 
+        h = map.length; w = map[0].length;
         ORI = new Robot2(me); CUR = new Robot2(me);
         signaled = false;
         robots = new Robot2[getVisibleRobots().length];
@@ -607,7 +603,7 @@ public class MyRobot extends BCAbstractRobot {
 
     int farthestDefenderRadius() {
         int t = 0;
-        for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) 
+        for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j)
             if (i*i+j*j <= 100 && yourAttacker(CUR.x+i,CUR.y+j)) {
                 Robot2 R = robotMap[CUR.y+j][CUR.x+i];
                 if (fdiv(R.castle_talk,14) % 2 == 0) t = Math.max(t,i*i+j*j);
