@@ -79,7 +79,7 @@ public class Pilgrim extends Movable {
 	
 	int closeFreeResource(boolean karb, boolean fuel) {
 		boolean[][] b = new boolean[Z.h][Z.w];
-		for (int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) 
+		for (int x = 0; x < Z.w; x++) for (int y = 0; y < Z.h; y++) 
 			if (((karb && Z.karboniteMap[y][x]) || (fuel && Z.fuelMap[y][x])) && Z.robotMapID[y][x] <= 0) 
 				b[y][x] = true;
 		return Z.closestUnused(b);
@@ -92,26 +92,23 @@ public class Pilgrim extends Movable {
 	}
 
 	Action2 greedy() {
-		//Z.log("karb: " + Z.CUR.karbonite + ", fuel: " + Z.CUR.fuel + " | get karb? " + (Z.CUR.karbonite != 20) + " get fuel? " + (Z.CUR.fuel != 100));
 		int x = closeFreeResource(Z.CUR.karbonite != 20, Z.CUR.fuel != 100);
-		//Z.log("currently at: " + Z.CUR.x + " " + Z.CUR.y + ", want to go to " + Z.fdiv(x,64) + " " + (x%64) + " which is " + Z.karboniteMap[(x%64)][Z.fdiv(x,64)] + " " + Z.fuelMap[(x%64)][Z.fdiv(x,64)]);
 		if (Z.bfsDist(x) <= 2) return nextMove(x);
 		return null;
 	}
 	
-	boolean inDanger() {
-        for (int i = 0; i < Z.h; ++i) for (int j = 0; j < Z.w; ++j)
+	int lastDanger(int x, int y) {
+		int ret = -MOD;
+        for (int i = y-10; i <= y+10; ++i) for (int j = x-10; j <= x+10; ++j)
             if (Z.teamAttacker(j,i,1-Z.CUR.team)) {
             	Robot2 R = Z.robotMap[i][j];
-            	int dis = Z.euclidDist(R);
-            	int dangerous = Z.sq((int)Math.sqrt(VISION_R[R.unit])+2);
-            	if (R.unit == PREACHER) dangerous = 64;
-            	if (dis <= dangerous) return true;
+            	if (Z.euclidDist(R,j,i) <= Z.dangerRadius(R)) 
+            		ret = Math.max(ret,Z.lastTurn[i][j]);
             }
-		return false;
+        return ret;
 	}
 
-    Action2 run() {
+	void init() {
 		if (Z.resourceLoc.f == -1) { // Z.CUR.turn == 1
             for (Robot2 r : Z.robots) {
 				int s = r.signal; // Z.log("signal recieved: "+s);
@@ -125,36 +122,48 @@ public class Pilgrim extends Movable {
 			Z.sendToCastle(6);
         } else Z.sendToCastle();
 		setResource();
-        
-        if (inDanger()) {
+	}
+
+	Action2 react() {
+        if (Z.dangerous[Z.CUR.y][Z.CUR.x]) {
 			Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team); 
 			Z.goHome = true; 
 			return moveAway(R);
 		}
-        Action2 A = null;
-        if (shouldBuildChurch()) { A = Z.tryBuild(CHURCH); if (A != null) return A; }
-
+        if (shouldBuildChurch()) { return Z.tryBuild(CHURCH); }
         if (Z.CUR.karbonite < 5 && Z.CUR.fuel < 25) Z.goHome = false;
         if (Z.CUR.karbonite > 16 && b+100 >= a) Z.goHome = true;
         if (Z.CUR.fuel > 80 && a+100 >= b) Z.goHome = true;
         if (Z.CUR.fuel == 100 || Z.CUR.karbonite == 20) Z.goHome = true;
         if (Z.goHome) return moveHome();
+        return mine();
+	}
+
+    Action2 run() {
+    	init();
+    	Action2 A = react(); if (A != null) return A;
         
-        if (Z.resourceLoc.f != -1 && Z.robotMapID[Z.resourceLoc.s][Z.resourceLoc.f] <= 0 
-        	&& nextMove(Z.resourceLoc.f, Z.resourceLoc.s) != null) 
-        	return nextMove(Z.resourceLoc.f, Z.resourceLoc.s);
-        	
-        A = mine(); if (A != null) return A;
-        
-        A = greedy(); if (A != null) return A;
-        if (Z.resource == 0) {
-			boolean[][] karboMap = new boolean[Z.h][Z.w];
-			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) karboMap[y][x] = (Z.robotMapID[y][x] <= 0 && getkarboscore(x,y) > 0);
-			return nextMove(Z.closestOurSide(karboMap));
-		} else {
-			boolean[][] fuelMap = new boolean[Z.h][Z.w];
-			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) fuelMap[y][x] = (Z.robotMapID[y][x] <= 0 && getfuelscore(x,y) > 0);
-			return nextMove(Z.closestOurSide(fuelMap));
-		}
+        int d = MOD;
+        if (Z.resourceLoc.f != -1 && Z.robotMapID[Z.resourceLoc.s][Z.resourceLoc.f] <= 0)
+        	d = Z.bfsDistSafe[Z.resourceLoc.s][Z.resourceLoc.f];
+
+        int bestKarb = MOD, bestFuel = MOD;
+        for (int i = 0; i < Z.h; ++i) for (int j = 0; j < Z.w; ++j) {
+        	if (Z.karboniteMap[i][j] && Z.CUR.karbonite < 20) {
+        		if (Z.bfsDistSafe[i][j] < Z.bfsDistSafe(bestKarb)) bestKarb = 64*j+i;
+        	}
+        	if (Z.fuelMap[i][j] && Z.CUR.fuel < 100) {
+        		if (Z.bfsDistSafe[i][j] < Z.bfsDistSafe(bestFuel)) bestFuel = 64*j+i;
+        	}
+        }
+        int distKarb = Z.bfsDistSafe(bestKarb), distFuel = Z.bfsDistSafe(bestFuel);
+        if (Math.min(d,Math.min(distKarb,distFuel)) == MOD) return greedy();
+        if (Math.min(distKarb,distFuel) <= 2) {
+        	if (distKarb <= distFuel) return nextMoveSafe(bestKarb);
+        	return nextMoveSafe(bestFuel);
+        }
+        if (d <= Math.min(distKarb,distFuel)+10) return nextMoveSafe(Z.resourceLoc.f,Z.resourceLoc.s);
+        if (Z.resource == 0 && distKarb != MOD) return nextMoveSafe(bestKarb);
+        return nextMoveSafe(bestFuel);
     }
 }

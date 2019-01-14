@@ -19,12 +19,18 @@ public class Movable {
     }
     public Action2 nextMove(int x, int y) {
         if (Z.nextMove[y][x] == MOD) return null;
-        if (Z.bfsDist[y][x] == 1 && !Z.passable(x,y)) return null;
         int Y = Z.nextMove[y][x] % 64, X = Z.fdiv(Z.nextMove[y][x],64);
         if (!canMove(Z.CUR,X-Z.CUR.x,Y-Z.CUR.y)) return null;
         return Z.moveAction(X-Z.CUR.x, Y-Z.CUR.y);
     }
     public Action2 nextMove(int x) { return x == MOD ? null : nextMove(Z.fdiv(x,64), x % 64); }
+    public Action2 nextMoveSafe(int x, int y) {
+        if (Z.nextMoveSafe[y][x] == MOD) return null;
+        int Y = Z.nextMoveSafe[y][x] % 64, X = Z.fdiv(Z.nextMoveSafe[y][x],64);
+        if (!canMove(Z.CUR,X-Z.CUR.x,Y-Z.CUR.y)) return null;
+        return Z.moveAction(X-Z.CUR.x, Y-Z.CUR.y);
+    }
+    public Action2 nextMoveSafe(int x) { return x == MOD ? null : nextMoveSafe(Z.fdiv(x,64), x % 64); }
     public Action2 moveToward(int x, int y) { return nextMove(Z.closeEmpty(x, y)); }
     public Action2 moveToward(int x) { return moveToward(Z.fdiv(x,64),x%64); }
     public Action2 moveToward(Robot2 R) { return R == null ? null : moveToward(R.x, R.y); }

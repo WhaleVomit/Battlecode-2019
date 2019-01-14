@@ -16,8 +16,9 @@ public class MyRobot extends BCAbstractRobot {
     int[][] robotMapID, lastTurn; // stores last id seen in pos
 
     int[][] bfsDist, nextMove;
+    int[][] bfsDistSafe, nextMoveSafe;
     boolean updEnemy = false;
-    boolean[][] confident;
+    boolean[][] confident, dangerous;
     int[][][] enemyDist;
     ArrayList<Integer> myCastle = new ArrayList<>(), otherCastle = new ArrayList<>();
     ArrayList<Integer> myChurch = new ArrayList<>(), otherChurch = new ArrayList<>();
@@ -198,7 +199,6 @@ public class MyRobot extends BCAbstractRobot {
             }
         });
 	}
-
     void genBfsDist(int mx) {
         if (bfsDist == null) { bfsDist = new int[h][w];  nextMove = new int[h][w]; }
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
@@ -227,6 +227,57 @@ public class MyRobot extends BCAbstractRobot {
 			}
         }
     }
+    int bfsDist(int x) { return x == MOD ? MOD : bfsDist[x % 64][fdiv(x,64)]; }
+    int dangerRadius(Robot2 R) {
+        if (R.unit == 3 || R.unit == 5) return 64;
+        return 100;
+    }
+    void genDistSafe() {
+        if (bfsDistSafe == null) { 
+            bfsDistSafe = new int[h][w];  
+            nextMoveSafe = new int[h][w]; 
+            dangerous = new boolean[h][w];
+        }
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
+            bfsDistSafe[i][j] = MOD; nextMoveSafe[i][j] = MOD;
+            dangerous[i][j] = false;
+        }
+
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) 
+            if (enemyAttacker(j,i) && lastTurn[i][j] >= CUR.turn-20) {
+                int d = dangerRadius(robotMap[i][j]);
+                for (int I = -10; I <= 10; ++I) for (int J = -10; J <= 10; ++J) 
+                    if (I*I+J*J <= d && inMap(j+J,i+I)) dangerous[i+I][j+J] = true;
+            } 
+
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
+            if (yourAttacker(j,i) && lastTurn[i][j] >= CUR.turn-20) 
+                for (int I = -3; I <= 3; ++I) for (int J = -3; J <= 3; ++J) 
+                    if (I*I+J*J <= 9 && inMap(j+J,i+I)) dangerous[i+I][j+J] = false;
+
+        LinkedList<Integer> Q = new LinkedList<Integer>(); bfsDistSafe[CUR.y][CUR.x] = 0; Q.add(64 * CUR.x + CUR.y);
+
+        ArrayList<pi> possDirs = new ArrayList<pi>();
+        for (int dx = -2; dx <= 2; ++dx) for (int dy = -2; dy <= 2; ++dy) 
+            if (dx*dx + dy*dy <= 4) possDirs.add(new pi(dx,dy));
+        sort(possDirs);
+
+        while (Q.size() > 0) {
+            int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
+            for(pi p: possDirs) {
+                int dx = p.f; int dy = p.s;
+                int X = x+dx; int Y = y+dy;
+                if (passable(X,Y) && !dangerous[Y][X] && bfsDistSafe[Y][X] == MOD) {
+                    bfsDistSafe[Y][X] = bfsDistSafe[y][x] + 1;
+                    nextMoveSafe[Y][X] = nextMoveSafe[y][x];
+                    if (nextMoveSafe[Y][X] == MOD) nextMoveSafe[Y][X] = 64 * X + Y;
+                    Q.add(64 * X + Y);
+                }
+            }
+        }
+    }
+
+    int bfsDistSafe(int x) { return x == MOD ? MOD : bfsDistSafe[x%64][fdiv(x,64)]; }
     void genEnemyDist() {
         if (enemyDist == null) {
             enemyDist = new int[h][w][2];
@@ -247,7 +298,6 @@ public class MyRobot extends BCAbstractRobot {
             Q.add(2*i);
             enemyDist[i%64][fdiv(i,64)][0] = 0;
         }
-
         while (Q.size() > 0) {
             int t = Q.poll();
             int k = t % 2; t = fdiv(t,2);
@@ -263,7 +313,6 @@ public class MyRobot extends BCAbstractRobot {
             }
         }
     }
-    int bfsDist(int x) { return x == MOD ? MOD : bfsDist[x % 64][fdiv(x,64)]; }
     int closest(ArrayList<Integer> A) {
         int bestDist = MOD, bestPos = MOD; if (A == null) return bestPos;
         for (int x : A) if (bfsDist(x) < bestDist) {
@@ -690,7 +739,8 @@ public class MyRobot extends BCAbstractRobot {
         updateData();
         if(CUR.unit == CASTLE && CUR.team == 0 && myCastle.get(0) == 64 * CUR.x + CUR.y && CUR.turn % 3 == 0) log("================ ROUND " + CUR.turn + " ================ "+me.time);
         genBfsDist(CUR.unit == CRUSADER ? 9 : 4);
-        genEnemyDist();
+        if (CUR.unit == 2) genDistSafe();
+        else genEnemyDist();
         if (CUR.turn == 1) log("TYPE: "+CUR.unit);
         if (CUR.unit == CASTLE) warnOthers();
 
