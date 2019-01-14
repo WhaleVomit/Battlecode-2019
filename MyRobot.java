@@ -194,7 +194,7 @@ public class MyRobot extends BCAbstractRobot {
         Collections.sort(dirs, new Comparator<pi>() {
 
             public int compare(pi a, pi b) {
-                return (a.f * a.f + a.s * a.s) - (b.f * b.f + b.s * b.s);
+                return (b.f * b.f + b.s * b.s) - (a.f * a.f + a.s * a.s);
             }
 
         });
@@ -482,7 +482,7 @@ public class MyRobot extends BCAbstractRobot {
                 int type = fdiv(tmp,441)+3; tmp %= 441;
                 int x = fdiv(tmp,21)-10; x += R.x;
                 int y = (tmp%21)-10; y += R.y;
-                log("ADDED "+CUR.x+" "+CUR.y+" "+x+" "+y);
+                // log("ADDED "+CUR.x+" "+CUR.y+" "+x+" "+y);
                 robotMapID[y][x] = MOD; robotMap[y][x] = makeRobot(type,1-CUR.team,x,y);
                 lastTurn[y][x] = CUR.turn;
             } else if (R.team == CUR.team && R.unit == CASTLE && R.signal >= 7000 && R.signal < 11100 && adjacent(CUR,R)) {
@@ -613,7 +613,7 @@ public class MyRobot extends BCAbstractRobot {
 
     public Action turn() {
         updateData();
-        if(CUR.unit == CASTLE && CUR.team == 0 && myCastle.get(0) == 64 * CUR.x + CUR.y) log("================ ROUND " + CUR.turn + " ================ "+me.time);
+        if(CUR.unit == CASTLE && CUR.team == 0 && myCastle.get(0) == 64 * CUR.x + CUR.y && CUR.turn % 3 == 0) log("================ ROUND " + CUR.turn + " ================ "+me.time);
         genBfsDist(CUR.unit == CRUSADER ? 9 : 4);
         genEnemyDist();
         if (CUR.turn == 1) log("TYPE: "+CUR.unit);
