@@ -100,6 +100,12 @@ public class Pilgrim extends Movable {
 	}
 	
 	boolean inDanger() {
+		for(int dx = -3; dx <= 3; dx++) {
+			for(int dy = -3; dy <= 3; dy++) {
+				int x = Z.CUR.x + dx; int y = Z.CUR.y + dy;
+				if(Z.yourAttacker(x,y)) return false;
+			}
+		}
         for (int i = 0; i < Z.h; ++i) for (int j = 0; j < Z.w; ++j)
             if (Z.teamAttacker(j,i,1-Z.CUR.team)) {
             	Robot2 R = Z.robotMap[i][j];
