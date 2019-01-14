@@ -18,15 +18,23 @@ public class Pilgrim extends Movable {
 
     boolean shouldBuildChurch() {
 		// has to be on resource square with no resource next to it
-		if(!Z.karboniteMap[Z.CUR.y][Z.CUR.x] && !Z.fuelMap[Z.CUR.y][Z.CUR.x]) return false;
+		if (!Z.canBuild(1)) return false;
+		if (!Z.karboniteMap[Z.CUR.y][Z.CUR.x] && !Z.fuelMap[Z.CUR.y][Z.CUR.x]) return false;
 		boolean isNextToEmpty = false;
-		for(int dx = -1; dx <= 1; dx++) for(int dy = -1; dy <= 1; dy++) {
+		for(int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) {
 			int newx = Z.CUR.x+dx; int newy = Z.CUR.y+dy;
 			if(Z.passable(newx, newy) && !Z.karboniteMap[newy][newx] && !Z.fuelMap[newy][newx]) isNextToEmpty = true;
 		}
 		if (!isNextToEmpty) return false;
 
-		return Z.bfsDist(Z.closestStruct(true)) >= 4; // has to be at least 4 away from nearest deposit
+		int s = Z.closestStruct(true);
+		int d = Z.bfsDist(s);
+		boolean res = (d == MOD || (d >= 5 && Z.euclidDist(s) >= 100)); // has to be at least 4 away from nearest deposit
+		if (res) {
+			Z.log("BUILD CHURCH? "+Z.CUR.x+" "+Z.CUR.y+" "+Z.coordinates(s)+" "+d+" "+Z.myChurch.size());
+			for (int i: Z.myChurch) Z.log(Z.coordinates(i));
+		}
+		return res;
 	}
 
 	double getkarboscore(int x, int y) { // checks if this 5x5 square is a good spot to mine

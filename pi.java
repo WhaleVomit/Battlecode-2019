@@ -18,6 +18,9 @@ public class pi {
 		if (x == null) return false;
 		return f == x.f && s == x.s;
 	}
+	public String toString() {
+		return "("+f+", "+s+")";
+	}
 	/*public int compareTo(pi x) {
 		if (f != x.f) return Integer.valueOf(f).compareTo(x.f);
 		return Integer.valueOf(s).compareTo(x.s);

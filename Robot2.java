@@ -35,6 +35,10 @@ public class Robot2 {
     	return team == t && unit != -1 && CAN_ATTACK[unit];
     }
 
+    String coordinates() {
+        return "("+x+", "+y+")";
+    }
+
     String getInfo() {
     	String res = "";
     	res += id+" ";
