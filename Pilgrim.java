@@ -100,20 +100,25 @@ public class Pilgrim extends Movable {
 	}
 	
 	boolean inDanger() {
-		for(int dx = -3; dx <= 3; dx++) {
-			for(int dy = -3; dy <= 3; dy++) {
-				int x = Z.CUR.x + dx; int y = Z.CUR.y + dy;
-				if(Z.yourAttacker(x,y)) return false;
-			}
-		}
-        for (int i = 0; i < Z.h; ++i) for (int j = 0; j < Z.w; ++j)
-            if (Z.teamAttacker(j,i,1-Z.CUR.team)) {
-            	Robot2 R = Z.robotMap[i][j];
+        for(int dx = -10; dx <= 10; dx++) for(int dy = -10; dy <= 10; dy++) {
+			int x = Z.CUR.x + dx;
+			int y = Z.CUR.y + dy;
+            if (Z.enemyAttacker(x,y)) {
+            	Robot2 R = Z.robotMap[y][x];
             	int dis = Z.euclidDist(R);
             	int dangerous = Z.sq((int)Math.sqrt(VISION_R[R.unit])+2);
             	if (R.unit == PREACHER) dangerous = 64;
-            	if (dis <= dangerous) return true;
+            	boolean hasSupport = false;
+            	for(int dx2 = -10; dx2 <= 10; dx2++) for(int dy2 = -10; dy2 <= 10; dy2++) {
+					if(dx2*dx2 + dy2*dy2 < dangerous) {
+						int x2 = R.x + dx2;
+						int y2 = R.y + dy2;
+						if(Z.yourAttacker(x2,y2)) hasSupport = true;
+					}
+				}
+            	if (dis <= dangerous && !hasSupport) return true;
             }
+		}
 		return false;
 	}
 
