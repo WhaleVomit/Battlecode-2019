@@ -302,6 +302,7 @@ public class Castle extends Building {
         Z.closeUnits[2] = Math.max(Z.closeUnits[2],Z.numKarb+Z.numFuel);
 
         if (Z.me.turn > 1) { // first turn reserved to determine location of other castles
+			Action2 A = panicBuild(); if(A != null) return A;
             return build();
             //if (Z.me.team == 0) return testCrusader();
             //else return testPreacher();

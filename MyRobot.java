@@ -192,13 +192,25 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     // BFS DIST
-    void sort(ArrayList<pi> dirs) {
+    void sortr(ArrayList<pi> dirs) {
         Collections.sort(dirs, new Comparator<pi>() {
             public int compare(pi a, pi b) {
                 return (b.f * b.f + b.s * b.s) - (a.f * a.f + a.s * a.s);
             }
         });
 	}
+<<<<<<< HEAD
+=======
+	
+	void sort(ArrayList<pi> dirs) {
+        Collections.sort(dirs, new Comparator<pi>() {
+            public int compare(pi a, pi b) {
+                return (a.f * a.f + a.s * a.s) - (b.f * b.f + b.s * b.s);
+            }
+        });
+	}
+
+>>>>>>> d52529a6acbe06ed899ec4caac089e67eff71f47
     void genBfsDist(int mx) {
         if (bfsDist == null) { bfsDist = new int[h][w];  nextMove = new int[h][w]; }
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
@@ -209,7 +221,7 @@ public class MyRobot extends BCAbstractRobot {
         ArrayList<pi> possDirs = new ArrayList<pi>();
         for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy) 
 			if (dx*dx + dy*dy <= mx) possDirs.add(new pi(dx,dy));
-        sort(possDirs);
+        sortr(possDirs);
 
         while (Q.size() > 0) {
             int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
@@ -444,6 +456,12 @@ public class MyRobot extends BCAbstractRobot {
             if (passable(CUR.x + dx, CUR.y + dy)) return buildAction(t, dx, dy);
         return null;
     }
+    public Action2 tryBuildNoSignal(int t) {
+        if (!canBuild(t)) return null;
+        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy)
+            if (passable(CUR.x + dx, CUR.y + dy)) return buildAction(t, dx, dy);
+        return null;
+    }
     public boolean yesStruct(int x, int y) {
 		if (!valid(x,y) || robotMapID[y][x] == 0) return false;
         if (robotMapID[y][x] > 0 && !robotMap[y][x].isStructure()) return false;
@@ -619,16 +637,42 @@ public class MyRobot extends BCAbstractRobot {
             }
         return false;
     }
+    
+    int numAttackersSeen() { // number of enemies in vision range
+		int res = 0;
+		for(int dx = -10; dx <= 10; dx++) {
+			for(int dy = -10; dy <= 10; dy++) {
+				if(dx*dx + dy*dy <= VISION_R[CUR.unit]) {
+					if(enemyAttacker(CUR.x+dx, CUR.y+dy)) res++;
+				}
+			}
+		}
+		return res;
+	}
 
     void warnOthers() { // CUR.x, CUR.y are new pos, not necessarily equal to me.x, me.y;
         if (fuel < 100 || superseded(CUR.x,CUR.y)) return;
-        Robot2 R = closestAttacker(ORI, 1-CUR.team); if (euclidDist(ORI,R) > VISION_R[CUR.unit]) return;
-        int needDist = 0;
-        for (int i = -4; i <= 4; ++i) for (int j = -4; j <= 4; ++j) {
-            int x = CUR.x+i, y = CUR.y+j;
-            if (i*i+j*j <= 16 && yourAttacker(x,y) && clearVision(robotMap[y][x]))
-                needDist = Math.max(needDist,i*i+j*j);
-        }
+        Robot2 R = closestAttacker(ORI,1-CUR.team); if (euclidDist(ORI,R) > VISION_R[CUR.unit]) return;
+        int numEnemies = numAttackersSeen();
+        // try to activate around 2*numEnemies allies
+        // count number allies already activated
+        int cnt = 0;
+        for(int dx = -10; dx <= 10; dx++) for(int dy = -10; dy <= 10; dy++) {
+			int x = CUR.x+dx; int y = CUR.y+dy;
+			if(yourAttacker(x, y) && !clearVision(robotMap[y][x])) cnt++;
+		}
+		int necessary = Math.max(2*numEnemies - cnt, 0);
+		// activate as much as necessary
+        ArrayList<pi> dirs = new ArrayList<pi>();
+        for(int dx = -4; dx <= 4; dx++) for(int dy = -4; dy <= 4; dy++) {
+			int x = CUR.x+dx;
+			int y = CUR.y+dy;
+			if(dx*dx + dy*dy <= 16 && yourAttacker(x,y) && clearVision(robotMap[y][x])) dirs.add(new pi(dx,dy));
+		}
+		sort(dirs);
+		int ind = Math.min(necessary-1, dirs.size()-1); if(ind == -1) return;
+		int dx = dirs.get(ind).f; int dy = dirs.get(ind).s;
+        int needDist = dx*dx + dy*dy;
         if (needDist > 0) {
             // log("SIGNAL ENEMY: OPOS "+ORI.coordinates()+", CPOS "+CUR.coordinates()+", EPOS "+R.coordinates()+" "+getSignal(R));
             signal(getSignal(R),needDist);

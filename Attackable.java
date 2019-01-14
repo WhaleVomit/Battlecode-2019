@@ -148,8 +148,9 @@ public class Attackable extends Movable {
     }
 
     public Action2 position() {
-		Robot2 R = Z.closestEnemy(Z.CUR); if (Z.euclidDist(R) > 196) R = null;
-        if (R == null) return null;   
+		Robot2 R = Z.closestEnemy(Z.CUR);
+		if (Z.euclidDist(R) > 196 ||
+		   (Z.euclidDist(R) > 81 && Z.bfsDistHome() > 9)) return null;   
         if (Z.euclidDist(R) < MIN_ATTACK_R[Z.CUR.unit]) {
             Action2 A = moveAway(R);
             // Z.log("OOPS "+Z.CUR.unit+" "+Z.CUR.x+" "+Z.CUR.y+A.dx+" "+A.dy);
@@ -241,7 +242,6 @@ public class Attackable extends Movable {
             if (enoughResources()) return moveHome();
             return patrol();
         } 
-        if(Z.CUR.id == 763) Z.log("B");
         return aggressive();
     }
 }

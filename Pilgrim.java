@@ -97,6 +97,7 @@ public class Pilgrim extends Movable {
 		return null;
 	}
 	
+<<<<<<< HEAD
 	int lastDanger(int x, int y) {
 		int ret = -MOD;
         for (int i = y-10; i <= y+10; ++i) for (int j = x-10; j <= x+10; ++j)
@@ -106,6 +107,29 @@ public class Pilgrim extends Movable {
             		ret = Math.max(ret,Z.lastTurn[i][j]);
             }
         return ret;
+=======
+	boolean inDanger() {
+        for(int dx = -10; dx <= 10; dx++) for(int dy = -10; dy <= 10; dy++) {
+			int x = Z.CUR.x + dx;
+			int y = Z.CUR.y + dy;
+            if (Z.enemyAttacker(x,y)) {
+            	Robot2 R = Z.robotMap[y][x];
+            	int dis = Z.euclidDist(R);
+            	int dangerous = Z.sq((int)Math.sqrt(VISION_R[R.unit])+2);
+            	if (R.unit == PREACHER) dangerous = 64;
+            	boolean hasSupport = false;
+            	for(int dx2 = -10; dx2 <= 10; dx2++) for(int dy2 = -10; dy2 <= 10; dy2++) {
+					if(dx2*dx2 + dy2*dy2 < dangerous) {
+						int x2 = R.x + dx2;
+						int y2 = R.y + dy2;
+						if(Z.yourAttacker(x2,y2)) hasSupport = true;
+					}
+				}
+            	if (dis <= dangerous && !hasSupport) return true;
+            }
+		}
+		return false;
+>>>>>>> d52529a6acbe06ed899ec4caac089e67eff71f47
 	}
 
 	void init() {
