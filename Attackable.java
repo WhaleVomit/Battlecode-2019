@@ -207,7 +207,7 @@ public class Attackable extends Movable {
         if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {
             if (Z.sq(X-x)+Z.sq(Y-y) <= 2 && Z.numOpen(64*x+y) <= 2 && !(X == Z.CUR.x && Y == Z.CUR.y)) return MOD;
             int val = Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
-            if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += 4;
+            if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += 10;
             if (X == Z.CUR.x && Y == Z.CUR.y) val -= 2;
             return val;
         }
@@ -215,7 +215,6 @@ public class Attackable extends Movable {
     }
     public Action2 patrol() {
         int t = Z.closestStruct(true);
-        if (Z.bfsDist(t) > 9) return moveHome();
         int x = Z.fdiv(t,64), y = t % 64;
 
         int bestVal = MOD, bestDist = MOD, pos = MOD;
@@ -242,6 +241,7 @@ public class Attackable extends Movable {
             if (enoughResources()) return moveHome();
             return patrol();
         } 
+        if(Z.CUR.id == 763) Z.log("B");
         return aggressive();
     }
 }
