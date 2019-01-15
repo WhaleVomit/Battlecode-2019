@@ -229,7 +229,7 @@ public class Attackable extends Movable {
     Action2 aggressive() {
         Robot2 R = Z.closestEnemy(Z.CUR);
         if (Z.CUR.unit == CRUSADER && Z.CUR.health == Z.lastHealth) {
-            int a = notCrusaders(), b = shortestNotCrusaderDist(R);
+            int b = shortestNotCrusaderDist(R);
             if (b != MOD && Z.euclidDist(R) <= b) {
                 Z.log("MOVE MORE SLOWLY");
                 return moveTowardShort(Z.closestStruct(false));

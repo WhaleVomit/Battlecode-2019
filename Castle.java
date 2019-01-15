@@ -275,7 +275,7 @@ public class Castle extends Building {
 
     boolean shouldPilgrim() {
         if (Z.signaled || !Z.canBuild(PILGRIM)) return false;
-        if (3*Z.numUnits[PILGRIM] > 2*(Z.karbcount+Z.fuelcount)) return false;
+        if (Z.numUnits[PILGRIM] > 0.6*(Z.karbcount+Z.fuelcount+5)) return false;
         if (Z.euclidDist(Z.CUR,Z.closestAttacker(Z.CUR,1-Z.CUR.team)) <= 64) return false;
         return 2*Z.closeUnits[PILGRIM] <= Z.closeUnits[3]+Z.closeUnits[4]+Z.closeUnits[5];
     }

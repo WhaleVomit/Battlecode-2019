@@ -429,13 +429,6 @@ public class MyRobot extends BCAbstractRobot {
         }
     }
 
-    int closest(ArrayList<Integer> A) {
-        int bestDist = MOD, bestPos = MOD; if (A == null) return bestPos;
-        for (int x : A) if (bfsDist(x) < bestDist) {
-            bestDist = bfsDist(x); bestPos = x;
-        }
-        return bestPos;
-    }
     int closestUnseen() {
         int bestDist = MOD, bestPos = MOD;
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
@@ -533,6 +526,7 @@ public class MyRobot extends BCAbstractRobot {
         }
         return bestPos;
     }
+    int closeEmpty(int x) { return x == MOD ? MOD : closeEmpty(fdiv(x,64),x%64); }
     int closeEmptyShort(int x, int y) {
         int bestDist = MOD, bestPos = MOD;
         for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
@@ -556,6 +550,13 @@ public class MyRobot extends BCAbstractRobot {
         return bestPos;
     }
     int closeEmptySafe(int x) { return x == MOD ? MOD : closeEmptySafe(fdiv(x,64),x%64); }
+    int closest(ArrayList<Integer> A) {
+        int bestDist = MOD, bestPos = MOD; if (A == null) return bestPos;
+        for (int x : A) if (bfsDist(closeEmpty(x)) < bestDist) {
+            bestDist = bfsDist(closeEmpty(x)); bestPos = x;
+        }
+        return bestPos;
+    }
     int bfsDistHome() { return Math.min(bfsDist(closest(myCastle)),bfsDist(closest(myChurch))); }
     int closestChurch(boolean ourteam) { return closest(ourteam ? myChurch : otherChurch); }
     int closestCastle(boolean ourteam) { return closest(ourteam ? myCastle : otherCastle); }
@@ -885,8 +886,17 @@ public class MyRobot extends BCAbstractRobot {
         return res;
     }
 
+    int needAttackers() {
+        return (int)Math.floor(2*enemyDist[CUR.y][CUR.x][0]/3)-5;
+    }
+
     boolean shouldBeginAttack() {
-        return CUR.turn > 200 || (closeAttackers() > 20 && fuel >= 0.9*DESIRED*allAttackers());
+        if (enemyDist[CUR.y][CUR.x][0] < 10) return false;
+        log("HUH "+needAttackers());
+        for (Robot2 R: robots) 
+            if (R.team == CUR.team && R.unit == CASTLE && R.castle_talk == 255) 
+                if (closeAttackers() >= 0.75*needAttackers()) return true;
+        return CUR.turn > 800 || (closeAttackers() >= needAttackers() && fuel >= 0.9*DESIRED*allAttackers());
     }
 
     int farthestDefenderRadius() {
@@ -907,6 +917,7 @@ public class MyRobot extends BCAbstractRobot {
                 log("SIGNAL ATTACK "+CUR.x+" "+CUR.y+" "+r+" "+fuel+" "+closeAttackers());
                 signal(20000,r);
                 lastAttackSignal = CUR.turn;
+                castleTalk(255);
             }
         }
     }
@@ -966,6 +977,7 @@ public class MyRobot extends BCAbstractRobot {
         if (CUR.unit != CASTLE) warnOthers();
         startAttack();
         lastHealth = CUR.health;
+        if (CUR.turn > 10 && lastAttackSignal < CUR.turn && CUR.castle_talk == 255) castleTalk(0);
         return conv(A);
     }
 }
