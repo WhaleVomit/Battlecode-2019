@@ -388,7 +388,7 @@ public class Castle extends Building {
         if (Z.CUR.turn > 3) Z.castleTalk(Z.closeAttackers()%256);
         if (Z.me.turn > 1) { // first turn reserved to determine location of other castles
 			Action2 A = panicBuild(); if(A != null) return A;
-            return build();
+            if(shouldBuild) return build();
             //if (Z.me.team == 0) return testCrusader();
             //else return testPreacher();
         }
