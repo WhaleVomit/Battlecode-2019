@@ -143,10 +143,10 @@ public class Castle extends Building {
         }
 
         sortKarb(); sortFuel();
-        for (int i = 0; i < Z.karbcount; ++i) {
+        /*for (int i = 0; i < Z.karbcount; ++i) {
             int p = Z.karbPos[Z.sortedKarb[i]];
             Z.log("AA "+Z.karbPos[Z.sortedKarb[i]]+" "+Z.coordinates(p)+" "+ourSide(p)+" "+Z.bfsDist(p));
-        }
+        }*/
     }
 
     void updateVars() {
