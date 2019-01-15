@@ -99,7 +99,6 @@ public class Pilgrim extends Movable {
 		}
 		// Z.log("TRI "+Z.bfsDist.length+" "+Z.nextMoveSafe.length+" "+Z.dangerous.length);
         if (shouldBuildChurch()) return Z.tryBuildChurch();
-        Action2 A = mine(); if (A != null) return A;
 	}
 
 	Action2 moveTowardResource() {
@@ -125,24 +124,26 @@ public class Pilgrim extends Movable {
         }*/
         
         if(Z.bfsDistHome() >= churchThreshold) Z.goHome = false;
-
+if(Z.CUR.id == 331) Z.log(Z.CUR.x + " " + Z.CUR.y + " B");
         if (Z.goHome) return moveHome();
-        
-        if (Z.resourceLoc.f != -1 && Z.robotMapID[Z.resourceLoc.s][Z.resourceLoc.f] <= 0) {
+        if(Z.CUR.id == 331) Z.log(Z.CUR.x + " " + Z.CUR.y + " C");
+        if (Z.resourceLoc.f != -1 && (Z.passable(Z.resourceLoc.f,Z.resourceLoc.s) || Z.CUR.x == Z.resourceLoc.f && Z.CUR.y == Z.resourceLoc.s)) {
 			if(Z.bfsDistSafe[Z.resourceLoc.s][Z.resourceLoc.f] != MOD) return nextMoveSafe(Z.resourceLoc.f, Z.resourceLoc.s);
 		}
-		
+		if(Z.CUR.id == 331) Z.log(Z.CUR.x + " " + Z.CUR.y + " D");
         if (Math.min(distKarb,distFuel) <= 2) {
         	if (distKarb <= distFuel) return nextMoveSafe(bestKarb);
         	return nextMoveSafe(bestFuel);
         }
-        
+        if(Z.CUR.id == 331) Z.log(Z.CUR.x + " " + Z.CUR.y + " E");
         if (Z.resource == 0 && distKarb != MOD) return nextMoveSafe(bestKarb);
         return nextMoveSafe(bestFuel);
 	}
 
     Action2 run() {
+		if(Z.CUR.id == 331) Z.log(Z.CUR.x + " " + Z.CUR.y + " A");
     	init(); Action2 A = react(); if (A != null) return A;
-        return moveTowardResource();
+        A = moveTowardResource(); if(A != null) return A;
+        return mine();
     }
 }
