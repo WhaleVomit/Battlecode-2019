@@ -44,8 +44,7 @@ public class Robot2 {
     	res += id+" ";
     	res += unit+" ";
     	res += team+" ";
-    	res += x+" ";
-    	res += y+" ";
+    	res += coordinates()+" ";
     	res += castle_talk+" ";
     	res += signal+" ";
     	res += "|\n";

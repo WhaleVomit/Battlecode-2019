@@ -12,64 +12,49 @@ public class Attackable extends Movable {
         if (R.unit == PILGRIM) return 5;
         return 4;
     }
+    public boolean inAttackRange(Robot2 R, int x, int y) { // can R attack (x,y)? assuming there is a robot at (x,y)
+        int d = Z.euclidDist(R,x,y);
+        int mn = MIN_ATTACK_R[R.unit]; if (R.unit == PREACHER) mn = 3;
+        return d >= mn && d <= MAX_ATTACK_R[R.unit];
+    }
+
     public int preacherVal(Robot2 P, int x, int y) {
-        int t = 0;
         if (!Z.valid(x,y)) return 0;
-        for (int i = x-1; i <= x+1; ++i)
-            for (int j = y-1; j <= y+1; ++j)
-                if (Z.valid(i,j) && Z.robotMapID[j][i] > 0) {
-                    Robot2 R = Z.robotMap[j][i];
-                    int val = attackPriority(R);
-                    val *= (R.team == P.team) ? -4 : 1;
-                    if (R.isStructure()) val *= 2;
-                    if (R.unit == CASTLE && R.team != Z.CUR.team && R.id == MOD) continue;
-                    t += val;
-                }
+        int t = 0;
+        for (int i = x-1; i <= x+1; ++i) for (int j = y-1; j <= y+1; ++j)
+            if (Z.valid(i,j) && Z.robotMapID[j][i] > 0) {
+                Robot2 R = Z.robotMap[j][i];
+                int val = attackPriority(R);
+                val *= (R.team == P.team) ? -4 : 1;
+                if (R.isStructure()) val *= 2;
+                if (R.unit == CASTLE && R.team != Z.CUR.team && R.id == MOD) continue;
+                t += val;
+            }
         return t;
     }
     public boolean containsConfident(int x, int y) {
         for (int i = x-1; i <= x+1; ++i) for (int j = y-1; j <= y+1; ++j) 
-            if (Z.enemyRobot(i,j) && Z.confident[j][i]) return true;
+            if (Z.enemyRobot(i,j) && Z.lastTurn[j][i] >= Z.CUR.turn-1) return true;
         return false;
     }
     public int canAttack(int dx, int dy) {
         if (ATTACK_F_COST[Z.CUR.unit] > Z.fuel) return -MOD;
-        int dist = dx * dx + dy * dy;
-        if (Z.CUR.unit == CRUSADER) {
-            if (dist < 1 || dist > 16) return -MOD;
-        } else if (Z.CUR.unit == PROPHET) {
-            if (dist < 16 || dist > 64) return -MOD;
-        } else if (Z.CUR.unit == PREACHER) {
-            if (dist < 1 || dist > 16) return -MOD;
-        } else return -MOD;
-
         int x = Z.CUR.x + dx, y = Z.CUR.y + dy;
+        if (!inAttackRange(Z.CUR,x,y)) return -MOD;
         if (Z.CUR.unit == CRUSADER || Z.CUR.unit == PROPHET) {
-			if (!Z.containsRobot(x, y)) return -MOD;
-            if (Z.robotMap[y][x].team == Z.CUR.team) return -MOD;
+			if (!Z.enemyRobot(x,y)) return -MOD;
             return attackPriority(Z.robotMap[y][x]);
         } else {
-            if (dist < 3 || dist > 16 || !containsConfident(x,y)) return -MOD;
+            if (!containsConfident(x,y)) return -MOD;
             return preacherVal(Z.CUR,x,y);
         }
     }
 
     // PREACHER EVASION
-    public boolean containsEnemyPreacher(int x, int y) {
-        for (int i = -1; i <= 1; ++i) for (int j = -1; j <= 1; ++j)
-            if (Z.enemyRobot(x+i,y+j,PREACHER)) return true;
-        return false;
-    }
-    public boolean containsEnemy(int x, int y) {
-        for (int i = -1; i <= 1; ++i) for (int j = -1; j <= 1; ++j)
-            if (Z.enemyRobot(x+i,y+j)) return true;
-        return false;
-    }
     public int maxPreacherVal(Robot2 P, int x, int y) { // P is the preacher
         int tot = 0;
         for (int X = x-1; X <= x+1; ++X) for (int Y = y-1; Y <= y+1; ++Y) 
-            if (Z.euclidDist(P,X,Y) <= 16) 
-                tot = Math.max(tot,preacherVal(P,X,Y));
+            if (inAttackRange(P,X,Y)) tot = Math.max(tot,preacherVal(P,X,Y));
         return tot;
     }
     public int totPreacherDamage(int x, int y) {
@@ -79,22 +64,14 @@ public class Attackable extends Movable {
                 res += maxPreacherVal(Z.robotMap[j][i],x,y);
         return 2*res;
     }
-    public boolean enemyCanAttack(Robot2 R, int x, int y) { // can R attack (x,y)? assuming there is a robot at (x,y)
-        return Z.euclidDist(R,x,y) >= MIN_ATTACK_R[R.unit] && Z.euclidDist(R,x,y) <= MAX_ATTACK_R[R.unit];
-    }
     public int totDamage(int x, int y) { // sum of damage of all enemy units that can attack this position
         int res = totPreacherDamage(x,y);
-        // Z.log("AAA "+res);
         for (int i = -8; i <= 8; ++i) for (int j = -8; j <= 8; ++j) 
             if (Z.enemyAttacker(x+i,y+j)) {
                 Robot2 R = Z.robotMap[y+j][x+i];
                 if (R.unit == 5) continue;
-                if (enemyCanAttack(R,x,y)) {
-                    // Z.log("ADDDDDD "+R.unit+" "+DAMAGE[R.unit]);
-                    res += DAMAGE[R.unit];
-                }
+                if (inAttackRange(R,x,y)) res += DAMAGE[R.unit];
             } 
-        // Z.log("BBB "+res);
         return res;
     }
     public int totPreacherDamageAfter(int x, int y) {
@@ -126,7 +103,7 @@ public class Attackable extends Movable {
     public Action2 dealWithPreacher() {
         if (totPreacherDamage(Z.CUR.x,Z.CUR.y) == 0) return null;
         int C = Z.closestStruct(true); int cx = Z.fdiv(C,64), cy = C%64;
-        if (Z.CUR.unit == PROPHET) {
+        if (Z.CUR.unit == PROPHET) { // move away
             for (int i = -2; i <= 2; ++i) for (int j = -2; j <= 2; ++j)
                 if (canMove(Z.CUR,i,j) && totDamageAfter(Z.CUR.x+i,Z.CUR.y+j) == 0) 
                     return Z.moveAction(i,j);
@@ -134,7 +111,7 @@ public class Attackable extends Movable {
             int bestDist = MOD; Action2 bestMove = null;
             for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j) {
                 int x = Z.CUR.x+i, y = Z.CUR.y+j;
-                if (canMove(Z.CUR,i,j) && containsEnemyPreacher(x,y) && totDamageAfter(x,y) == 0) {
+                if (canMove(Z.CUR,i,j) && Z.adjEnemyPreacher(x,y) && totDamageAfter(x,y) == 0) {
                     int dist = Z.sq(cx-x)+Z.sq(cy-y);
                     if (dist < bestDist) {
                         bestDist = dist;
@@ -149,8 +126,7 @@ public class Attackable extends Movable {
 
     public Action2 position() {
 		Robot2 R = Z.closestEnemy(Z.CUR);
-		if (Z.euclidDist(R) > 196 ||
-		   (Z.euclidDist(R) > 81 && Z.bfsDistHome() > 9)) return null;   
+		if (Z.euclidDist(R) > 196 || (Z.euclidDist(R) > 100 && Z.bfsDistHome() > 9)) return null;   
         if (Z.euclidDist(R) < MIN_ATTACK_R[Z.CUR.unit]) {
             Action2 A = moveAway(R);
             // Z.log("OOPS "+Z.CUR.unit+" "+Z.CUR.x+" "+Z.CUR.y+A.dx+" "+A.dy);
@@ -163,7 +139,7 @@ public class Attackable extends Movable {
 
         if (Z.euclidDist(R) <= MAX_ATTACK_R[Z.CUR.unit]) return null;
         if (R.unit != PREACHER || Z.euclidDist(R) > 49) return moveToward(R.x,R.y);
-        if (Z.CUR.unit == PREACHER && !Z.confident[R.y][R.x]) return moveToward(R.x,R.y);
+        if (Z.CUR.unit == PREACHER && Z.lastTurn[R.y][R.x] <= Z.CUR.turn-2) return moveToward(R.x,R.y);
         int oriDist = Z.sq(Z.CUR.x-R.x)+Z.sq(Z.CUR.y-R.y), oriDam = totDamage(Z.CUR.x,Z.CUR.y);
         int bestDam = MOD, bestDist = MOD; Action2 A = null;
 
@@ -199,13 +175,11 @@ public class Attackable extends Movable {
         if (besPri == 0) return null;
         return Z.attackAction(DX,DY);
     }
-
     public Action2 react() {
         Action2 A = dealWithPreacher();  if (A != null) return A;
         A = tryAttack(); if (A != null) return A;
         return position();
     }
-
     public int patrolVal(int X, int Y, int x, int y) {
         if (Z.numOpen(64*x+y) <= 2) Z.notClose = true;
         if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {

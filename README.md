@@ -1,6 +1,6 @@
 # Todo
 - errors
-	- test crusaders
+	- crusaders run ahead
 	- waves of rushes still not so good
 	- troops attacking when they shouldn't be
 	- don't let too many defenders chase after small groups of attackers

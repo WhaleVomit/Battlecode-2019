@@ -10,42 +10,43 @@ public class MyRobot extends BCAbstractRobot {
     Robot2 ORI, CUR;
 
     // MAP (arrays are by y and then x)
-    int DESIRED = 150;
+    int DESIRED = 150; // ratio of fuel to attack troops
     int w, h; // width, height
+    boolean hsim, wsim;
     Robot2[] robots;
     Robot2[][] robotMap; // stores last robot seen in pos
     int[][] robotMapID, lastTurn; // stores last id seen in pos
 
     int[][] bfsDist, nextMove;
-    int[][] distEnemy, distAlly, bfsDistSafe, nextMoveSafe;
-    boolean updEnemy = false, notClose = false;
-    boolean[][] confident, dangerous;
-    int[][][] enemyDist;
+    boolean updEnemy = false;
     ArrayList<Integer> myCastle = new ArrayList<>(), otherCastle = new ArrayList<>();
     ArrayList<Integer> myChurch = new ArrayList<>(), otherChurch = new ArrayList<>();
     ArrayList<Integer> myStructID = new ArrayList<>(), myCastleID = new ArrayList<>();
     pi[] pos = new pi[4097];
 
-    // PERSONAL
-    boolean goHome; // whether unit is going home or not
     boolean signaled;
-    boolean attackMode;
 
-    // FOR CASTLE
-    int numKarb, numFuel;
-    int lastAttackSignal;
-    int numAttack;
+    // PILGRIM
+    int[][] distEnemy, distAlly, bfsDistSafe, nextMoveSafe;
+    boolean[][] dangerous;
+    boolean goHome; // unit is going home or not
+    int resource = -1; // karbonite or fuel
+    pi resourceLoc = new pi(-1,-1);
+
+    // ATTACKER
+    int lastHealth;
+    int[][][] enemyDist;
+    boolean notClose, attackMode; // notClose = if castle is too crowded
+
+    // CASTLE
+    int numKarb, numFuel, lastAttackSignal;
     int[] numUnits = new int[6], closeUnits = new int[6];
-    int[] sortedKarb, sortedFuel, karbToPil, fuelToPil, karbPos, fuelPos;
-    boolean[] isOccupiedKarb , isOccupiedFuel;
-    int karbcount=0, fuelcount=0;
+    int[] sortedKarb, sortedFuel, pilToKarb, pilToFuel, karbPos, fuelPos;
+    boolean[] isOccupiedKarb, isOccupiedFuel;
+    int karbcount, fuelcount;
     Map<Integer,Integer> castleX = new HashMap<>();
     Map<Integer,Integer> castleY = new HashMap<>();
     pi assignedPilgrimPos = new pi(-1,-1);
-
-    // FOR PILGRIM
-    int resource = -1; // karbonite or fuel
-    pi resourceLoc = new pi(-1,-1);
 
     // MATH
     int fdiv(int a, int b) { return (a-(a%b))/b; }
@@ -94,12 +95,12 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     // ARRAYLIST
-    void removeDup(ArrayList<Integer> A) {
+    /*void removeDup(ArrayList<Integer> A) {
         ArrayList<Integer> B = new ArrayList<>();
         for (Integer i : A) if (!B.contains(i)) B.add(i);
         A.clear();
         for (Integer i : B) A.add(i);
-    }
+    }*/
 
     // EUCLID DIST
     int euclidDist(int x1, int y1, int x2, int y2) { return sq(x1-x2) + sq(y1-y2); }
@@ -115,9 +116,7 @@ public class MyRobot extends BCAbstractRobot {
         if (A == null || A.unit == -1) return false;
         return euclidDist(A,B) <= VISION_R[A.unit];
     }
-    boolean inVisionRange(int x, int y) {
-		return euclidDist(CUR,x,y) <= VISION_R[CUR.unit];
-	}
+    boolean inVisionRange(int x, int y) { return euclidDist(CUR,x,y) <= VISION_R[CUR.unit]; }
 
     // ROBOT
     Action conv(Action2 A) {
@@ -135,8 +134,9 @@ public class MyRobot extends BCAbstractRobot {
     void dumpRobots() { String T = ""; for (Robot2 R: robots) T += R.getInfo(); log(T); }
     String toString(ArrayList<Integer> A) {
         String res = "{";
-        for (int i: A) {
-            res += coordinates(i)+", ";
+        for (int i = 0; i < A.size(); ++i) {
+            res += coordinates(i);
+            if (i != A.size()-1) res += ", ";
         }
         res += "}";
         return res;
@@ -171,8 +171,10 @@ public class MyRobot extends BCAbstractRobot {
             }
         return true;
     }
+
     boolean inMap(int x, int y) { return x >= 0 && x < w && y >= 0 && y < h; }
     boolean valid(int x, int y) { return inMap(x,y) && map[y][x]; }
+    boolean containsResource(int x, int y) { return valid(x,y) && (karboniteMap[y][x] || fuelMap[y][x]); }
     boolean passable(int x, int y) { return valid(x, y) && (robotMapID[y][x] <= 0 || robotMapID[y][x] == MOD); }
     boolean containsRobot(int x, int y) { return valid(x, y) && robotMapID[y][x] > 0; }
 
@@ -186,6 +188,16 @@ public class MyRobot extends BCAbstractRobot {
     boolean yourAttacker(int x, int y) { return teamAttacker(x,y,CUR.team); }
     boolean enemyAttacker(int x, int y) { return teamAttacker(x,y,1-CUR.team); }
 
+    boolean adjEnemyPreacher(int x, int y) {
+        for (int i = -1; i <= 1; ++i) for (int j = -1; j <= 1; ++j)
+            if (enemyRobot(x+i,y+j,PREACHER)) return true;
+        return false;
+    }
+    boolean containsEnemy(int x, int y) {
+        for (int i = -1; i <= 1; ++i) for (int j = -1; j <= 1; ++j)
+            if (enemyRobot(x+i,y+j)) return true;
+        return false;
+    }
     int numOpen(int t) { // how many squares around t are free
         int y = t % 64; int x = fdiv(t,64);
         int ret = 0;
@@ -193,6 +205,39 @@ public class MyRobot extends BCAbstractRobot {
             if (passable(i,j)) ret ++;
         return ret;
     }
+    int lastDanger(int x, int y) {
+        int ret = -MOD;
+        for (int i = y-10; i <= y+10; ++i) for (int j = x-10; j <= x+10; ++j)
+            if (teamAttacker(j,i,1-CUR.team)) {
+                Robot2 R = robotMap[i][j];
+                if (euclidDist(R,j,i) <= dangerRadius(R)) 
+                    ret = Math.max(ret,lastTurn[i][j]);
+            }
+        return ret;
+    }
+    int dangerRadius(Robot2 R) {
+        if (R.unit == 3 || R.unit == 5) return 64;
+        return 100;
+    }
+    /*boolean inDanger() {
+        for(int dx = -10; dx <= 10; dx++) for(int dy = -10; dy <= 10; dy++) {
+            int x = CUR.x + dx, y = CUR.y + dy;
+            if (enemyAttacker(x,y)) {
+                Robot2 R = Z.robotMap[y][x];
+                int dis = dangerRadius(R);
+                boolean hasSupport = false;
+                for(int dx2 = -10; dx2 <= 10; dx2++) for(int dy2 = -10; dy2 <= 10; dy2++) {
+                    if (dx2*dx2 + dy2*dy2 < dangerous) {
+                        int x2 = R.x + dx2;
+                        int y2 = R.y + dy2;
+                        if(Z.yourAttacker(x2,y2)) hasSupport = true;
+                    }
+                }
+                if (dis <= dangerous && !hasSupport) return true;
+            }
+        }
+        return false;
+    }*/
     Robot2 closestEnemy(Robot2 R) {
         Robot2 bes = null;
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
@@ -211,7 +256,7 @@ public class MyRobot extends BCAbstractRobot {
     void sortr(ArrayList<pi> dirs) {
         Collections.sort(dirs, new Comparator<pi>() {
             public int compare(pi a, pi b) {
-				if(CUR.unit == CRUSADER) return (b.f * b.f + b.s * b.s) - (a.f * a.f + a.s * a.s);
+				if (CUR.unit == CRUSADER) return (b.f * b.f + b.s * b.s) - (a.f * a.f + a.s * a.s);
 				else {
 					boolean diaA = a.f == 0 || a.s == 0;
 					boolean diaB = b.f == 0 || b.s == 0;
@@ -259,10 +304,7 @@ public class MyRobot extends BCAbstractRobot {
         }
     }
     int bfsDist(int x) { return x == MOD ? MOD : bfsDist[x % 64][fdiv(x,64)]; }
-    int dangerRadius(Robot2 R) {
-        if (R.unit == 3 || R.unit == 5) return 64;
-        return 100;
-    }
+
     void genDistSafe() {
         if (bfsDistSafe == null) {
             bfsDistSafe = new int[h][w]; nextMoveSafe = new int[h][w];
@@ -317,8 +359,8 @@ public class MyRobot extends BCAbstractRobot {
             }
         }
     }
-
     int bfsDistSafe(int x) { return x == MOD ? MOD : bfsDistSafe[x%64][fdiv(x,64)]; }
+
     void genEnemyDist() {
         if (enemyDist == null) {
             enemyDist = new int[h][w][2];
@@ -354,6 +396,7 @@ public class MyRobot extends BCAbstractRobot {
             }
         }
     }
+
     int closest(ArrayList<Integer> A) {
         int bestDist = MOD, bestPos = MOD; if (A == null) return bestPos;
         for (int x : A) if (bfsDist(x) < bestDist) {
@@ -379,7 +422,7 @@ public class MyRobot extends BCAbstractRobot {
     }
     int closestOurSide(boolean[][] B) { // prioritize all locations on our side first
 		if(B == null) return MOD;
-		if(hsim()) {
+		if (hsim) {
 			// check our side
 			int bestPos = MOD, bestDist = MOD;
 			int mid = fdiv(h,2);
@@ -472,8 +515,9 @@ public class MyRobot extends BCAbstractRobot {
     public boolean canBuild(int t) {
         if (!(fuel >= CONSTRUCTION_F[t] && karbonite >= CONSTRUCTION_K[t])) return false;
         for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
-			if (t == CHURCH && (karboniteMap[CUR.y + dy][CUR.x+dx] || fuelMap[CUR.y+dy][CUR.x+dx])) continue;
-            if (passable(CUR.x + dx, CUR.y + dy)) return true;
+            int x = CUR.x+dx, y =CUR.y+dy;
+			if (t == CHURCH && containsResource(x,y)) continue;
+            if (passable(x,y)) return true;
 		}
         return false;
     }
@@ -483,8 +527,11 @@ public class MyRobot extends BCAbstractRobot {
             signal(encodeCastleLocations(), 2);
             signaled = true;
         }
-        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy)
-            if (passable(CUR.x + dx, CUR.y + dy)) return buildAction(t, dx, dy);
+        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
+            int x = CUR.x+dx, y =CUR.y+dy;
+            if (t == CHURCH && containsResource(x,y)) continue;
+            if (passable(x,y)) return buildAction(t, dx, dy);
+        }
         return null;
     }
     public Action2 tryBuildNoSignal(int t) {
@@ -538,12 +585,12 @@ public class MyRobot extends BCAbstractRobot {
         } else {
             if (R.team == CUR.team) {
                 addYour(myCastle,R);
-                if (wsim()) addOther(otherCastle,makeRobot(0,1-CUR.team,w-1-R.x,R.y));
-                if (hsim()) addOther(otherCastle,makeRobot(0,1-CUR.team,R.x,h-1-R.y));
+                if (wsim) addOther(otherCastle,makeRobot(0,1-CUR.team,w-1-R.x,R.y));
+                if (hsim) addOther(otherCastle,makeRobot(0,1-CUR.team,R.x,h-1-R.y));
             } else if(R.team != CUR.team) {
                 addOther(otherCastle,R);
-                if (wsim()) addYour(myCastle,makeRobot(0,CUR.team,w-1-R.x,R.y));
-                if (hsim()) addYour(myCastle,makeRobot(0,CUR.team,R.x,h-1-R.y));
+                if (wsim) addYour(myCastle,makeRobot(0,CUR.team,w-1-R.x,R.y));
+                if (hsim) addYour(myCastle,makeRobot(0,CUR.team,R.x,h-1-R.y));
             }
         }
     }
@@ -674,36 +721,36 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     void pr() {
-		for(int i = 0; i <h; i++) {
+		for(int i = 0; i < h; i++) {
 			String s = "";
 			for(int j = 0 ; j < w; j++) {
-				s = s + " " + robotMapID[i][j];
+				s += " " + robotMapID[i][j];
 			}
 			log(s);
 		}
 	}
 
-    void updateData() {
-        h = map.length; w = map[0].length;
-        ORI = new Robot2(me); CUR = new Robot2(me);
-        signaled = false;
-        robots = new Robot2[getVisibleRobots().length];
-        for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
-
-        if (robotMap == null) {
+    void getVars() {
+        if (me.turn == 1) {
+            h = map.length; w = map[0].length;
             robotMap = new Robot2[h][w];
             robotMapID = new int[h][w];
             lastTurn = new int[h][w];
-            confident = new boolean[h][w];
+            hsim = hsim(); wsim = wsim();
             for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) robotMapID[i][j] = -1;
         }
 
-        for (Robot2 R: robots) if (myStructID.contains(R.id) && R.signal == 20000) attackMode = true;
+        ORI = new Robot2(me); CUR = new Robot2(me); signaled = false;
+        robots = new Robot2[getVisibleRobots().length];
+        for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
 
         for (int i = 1; i <= 4096; ++i) pos[i] = null;
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (robotMapID[i][j] > 0 && robotMapID[i][j] < MOD)
             pos[robotMapID[i][j]] = new pi(j,i);
+    }
 
+    void updateData() {
+        for (Robot2 R: robots) if (myStructID.contains(R.id) && R.signal == 20000) attackMode = true;
         checkSignal(); // info might not be accurate: some troops may be dead already
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
             int t = getVisibleRobotMap()[i][j];
@@ -726,10 +773,6 @@ public class MyRobot extends BCAbstractRobot {
 
         rem(myCastle); rem(otherCastle);
         rem(myChurch); rem(otherChurch);
-        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
-            if (lastTurn[i][j] >= CUR.turn-2) confident[i][j] = true;
-            else confident[i][j] = false;
-        }
     }
 
     void sendToCastle(int res) { // 0 to 5: unit, 6: assigned pilgrim
@@ -778,11 +821,11 @@ public class MyRobot extends BCAbstractRobot {
     void startAttack() {
         if (CUR.unit != CASTLE || signaled) return;
         if (shouldBeginAttack() && lastAttackSignal <= CUR.turn-20) { // (CUR.team == 0 && attackMode)) 
-            lastAttackSignal = CUR.turn; // if (CUR.team == 0) attackMode = true;
             int r = farthestDefenderRadius();
-            if (r > 0) {
-                log("TRY TO SIGNAL "+CUR.x+" "+CUR.y+" "+r+" "+fuel);
+            if (r > 0 && fuel >= r) {
+                log("SIGNAL ATTACK "+CUR.x+" "+CUR.y+" "+r+" "+fuel);
                 signal(20000,r);
+                lastAttackSignal = CUR.turn;
             }
         }
     }
@@ -831,7 +874,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     public Action turn() {
-        updateData();
+        getVars(); updateData();
         genBfsDist(CUR.unit == CRUSADER ? 9 : 4);
         if (CUR.unit == 2) genDistSafe();
         else genEnemyDist();
