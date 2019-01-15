@@ -1,13 +1,14 @@
 # Todo
-- crusaders should not leave the rest behind
-- claim center with churches
-- waves of rushes
-- macro attack formation (line instead of clump)
-- conserve fuel!!!
+- **pilgrim errors**
+- test
+- waves of rushes still not so good
+- **troops attacking when they shouldn't be**
+- **too many units reacting to single attacker**
+- **conserve fuel!!!**
 	- save appropriate amount
+- **claim center with churches**
+- macro attack formation (line instead of clump)
 - let castles know when enemy castles are destroyed
-- units should not completely surround castle
-- more even unit distribution
 
 # Seeds
 Focus:

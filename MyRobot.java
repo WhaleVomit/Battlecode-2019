@@ -18,12 +18,12 @@ public class MyRobot extends BCAbstractRobot {
 
     int[][] bfsDist, nextMove;
     int[][] distEnemy, distAlly, bfsDistSafe, nextMoveSafe;
-    boolean updEnemy = false;
+    boolean updEnemy = false, notClose = false;
     boolean[][] confident, dangerous;
     int[][][] enemyDist;
     ArrayList<Integer> myCastle = new ArrayList<>(), otherCastle = new ArrayList<>();
     ArrayList<Integer> myChurch = new ArrayList<>(), otherChurch = new ArrayList<>();
-    ArrayList<Integer> myStructID = new ArrayList<>();
+    ArrayList<Integer> myStructID = new ArrayList<>(), myCastleID = new ArrayList<>();
     pi[] pos = new pi[4097];
 
     // PERSONAL
@@ -39,7 +39,6 @@ public class MyRobot extends BCAbstractRobot {
     int[] sortedKarb, sortedFuel, karbToPil, fuelToPil, karbPos, fuelPos;
     boolean[] isOccupiedKarb , isOccupiedFuel;
     int karbcount=0, fuelcount=0;
-    Set<Integer> castle = new HashSet<>();
     Map<Integer,Integer> castleX = new HashMap<>();
     Map<Integer,Integer> castleY = new HashMap<>();
     pi assignedPilgrimPos = new pi(-1,-1);
@@ -87,6 +86,10 @@ public class MyRobot extends BCAbstractRobot {
     Robot2 makeRobot(int unit, int team, int x, int y) {
         Robot2 R = new Robot2(null);
         R.id = MOD; R.unit = unit; R.team = team; R.x = x; R.y = y;
+        return R;
+    }
+    Robot2 makeRobot(int id, int unit, int team, int x, int y) {
+        Robot2 R = makeRobot(unit,team,x,y); R.id = id;
         return R;
     }
 
@@ -492,6 +495,7 @@ public class MyRobot extends BCAbstractRobot {
         int p = 64*R.x+R.y;
         if (!yesStruct(R.x,R.y)) return;
         if (R.id != MOD && !myStructID.contains(R.id)) myStructID.add(R.id);
+        if (R.unit == CASTLE && R.id != MOD && !myCastleID.contains(R.id)) myCastleID.add(R.id);
         if (A.contains(p)) return;
         A.add(p);
         if (robotMapID[R.y][R.x] == -1) { robotMapID[R.y][R.x] = R.id; robotMap[R.y][R.x] = R; }
@@ -751,7 +755,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     boolean shouldBeginAttack() {
-        return CUR.turn > 900 || (closeAttackers() > 20 && fuel >= 0.9*DESIRED*allAttackers());
+        return CUR.turn > 800 || (closeAttackers() > 20 && fuel >= 0.9*DESIRED*allAttackers());
     }
 
     int farthestDefenderRadius() {
@@ -764,15 +768,20 @@ public class MyRobot extends BCAbstractRobot {
         return t;
     }
 
-    public Action turn() {
-        updateData();
-        genBfsDist(CUR.unit == CRUSADER ? 9 : 4);
-        if (CUR.unit == 2) genDistSafe();
-        else genEnemyDist();
-        if (CUR.turn == 1) log("TYPE: "+CUR.unit);
-        if (CUR.unit == CASTLE) warnOthers();
+    void startAttack() {
+        if (CUR.unit != CASTLE || signaled) return;
+        if (shouldBeginAttack() && lastAttackSignal <= CUR.turn-20) { // (CUR.team == 0 && attackMode)) 
+            lastAttackSignal = CUR.turn; // if (CUR.team == 0) attackMode = true;
+            int r = farthestDefenderRadius();
+            if (r > 0) {
+                log("TRY TO SIGNAL "+CUR.x+" "+CUR.y+" "+r+" "+fuel);
+                signal(20000,r);
+            }
+        }
+    }
 
-        Action2 A;
+    public Action2 chooseAction() {
+        Action2 A = null;
         switch (CUR.unit) {
             case CASTLE: {
                 Castle C = new Castle(this);
@@ -811,17 +820,19 @@ public class MyRobot extends BCAbstractRobot {
             CUR.x += A.dx; CUR.y += A.dy;
             robotMap[CUR.y][CUR.x] = CUR; robotMapID[CUR.y][CUR.x] = CUR.id;
         }
-        if (CUR.unit != CASTLE) warnOthers();
+        return A;
+    }
 
-        if (CUR.unit == CASTLE && !signaled && (shouldBeginAttack() || (CUR.team == 0 && attackMode)) && lastAttackSignal <= CUR.turn-5) {
-            lastAttackSignal = CUR.turn;
-            if(CUR.team == 0) attackMode = true;
-            int r = farthestDefenderRadius();
-            if (r > 0) {
-                log("TRY TO SIGNAL "+CUR.x+" "+CUR.y+" "+r+" "+fuel);
-                signal(20000,r);
-            }
-        }
+    public Action turn() {
+        updateData();
+        genBfsDist(CUR.unit == CRUSADER ? 9 : 4);
+        if (CUR.unit == 2) genDistSafe();
+        else genEnemyDist();
+        if (CUR.turn == 1) log("TYPE: "+CUR.unit);
+        if (CUR.unit == CASTLE) warnOthers();
+        Action2 A = chooseAction();
+        if (CUR.unit != CASTLE) warnOthers();
+        startAttack();
         return conv(A);
     }
 }

@@ -155,11 +155,12 @@ public class Attackable extends Movable {
             Action2 A = moveAway(R);
             // Z.log("OOPS "+Z.CUR.unit+" "+Z.CUR.x+" "+Z.CUR.y+A.dx+" "+A.dy);
             // Z.log("?? "+totPreacherDamageAfter(Z.CUR.x+A.dx,Z.CUR.y+A.dy)+" "+totPreacherDamageAfter(Z.CUR.x,Z.CUR.y));
-            if (A != null && totPreacherDamageAfter(Z.CUR.x+A.dx,Z.CUR.y+A.dy) > totPreacherDamageAfter(Z.CUR.x,Z.CUR.y)) {
+            if (A != null && totPreacherDamageAfter(Z.CUR.x+A.dx,Z.CUR.y+A.dy) > 
+                            totPreacherDamageAfter(Z.CUR.x,Z.CUR.y)) 
                 A = new Action2(); 
-            }
             return A;
         }
+
         if (Z.euclidDist(R) <= MAX_ATTACK_R[Z.CUR.unit]) return null;
         if (R.unit != PREACHER || Z.euclidDist(R) > 49) return moveToward(R.x,R.y);
         if (Z.CUR.unit == PREACHER && !Z.confident[R.y][R.x]) return moveToward(R.x,R.y);
@@ -186,11 +187,6 @@ public class Attackable extends Movable {
         return A;
     }
 
-    public Action2 react() {
-        Action2 A = dealWithPreacher();  if (A != null) return A;
-        A = tryAttack(); if (A != null) return A;
-        return position();
-    }
     public Action2 tryAttack() {
         int besPri = 0, DX = MOD, DY = MOD;
         for (int dx = -8; dx <= 8; ++dx)
@@ -204,9 +200,16 @@ public class Attackable extends Movable {
         return Z.attackAction(DX,DY);
     }
 
+    public Action2 react() {
+        Action2 A = dealWithPreacher();  if (A != null) return A;
+        A = tryAttack(); if (A != null) return A;
+        return position();
+    }
+
     public int patrolVal(int X, int Y, int x, int y) {
+        if (Z.numOpen(64*x+y) <= 2) Z.notClose = true;
         if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {
-            if (Z.sq(X-x)+Z.sq(Y-y) <= 2 && Z.numOpen(64*x+y) <= 2 && !(X == Z.CUR.x && Y == Z.CUR.y)) return MOD;
+            if (Z.sq(X-x)+Z.sq(Y-y) <= 2 && Z.notClose) return MOD;
             int val = Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
             if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += 10;
             if (X == Z.CUR.x && Y == Z.CUR.y) val -= 2;
@@ -230,7 +233,35 @@ public class Attackable extends Movable {
         return nextMove(pos);
     }
 
+    int notCrusaders() {
+        int ret = 0;
+        for (int i = -6; i <= 6; ++i) for (int j = -6; j <= 6; ++j) if (i*i+j*j <= 36) {
+            int x = Z.CUR.x+i, y = Z.CUR.y+j;
+            if (Z.yourAttacker(x,y) && Z.robotMap[y][x].unit != 3) ret ++;
+        }
+        return ret;
+    }
+
+    int shortestNotCrusaderDist(Robot2 R) {
+        int ret = MOD;
+        for (int i = -6; i <= 6; ++i) for (int j = -6; j <= 6; ++j) if (i*i+j*j <= 36) {
+            int x = Z.CUR.x+i, y = Z.CUR.y+j;
+            if (Z.yourAttacker(x,y) && Z.robotMap[y][x].unit != 3) {
+                ret = Math.min(ret,Z.euclidDist(R,x,y));
+            }
+        }
+        return ret;
+    }
+
     public Action2 aggressive() {
+        Robot2 R = Z.closestEnemy(Z.CUR);
+        if (Z.CUR.unit == CRUSADER) {
+            int a = notCrusaders(), b = shortestNotCrusaderDist(R);
+            if (a >= 2 && Math.sqrt(Z.euclidDist(R))+2 <= Math.sqrt(b)) {
+                Z.log("CRUSADER SHOULD WAIT FOR OTHERS");
+                return null;
+            }
+        }
         Action2 A = moveEnemy(); if (A != null) return A;
         return nextMove(Z.closestUnseen());
     }
