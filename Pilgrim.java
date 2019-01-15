@@ -49,7 +49,6 @@ public class Pilgrim extends Movable {
 
     boolean shouldBuildChurch() {
 		// has to be on resource square with no resource next to it
-		if (!Z.canBuild(CHURCH)) return false;
 		if (!Z.containsResource(Z.CUR.x,Z.CUR.y)) return false;
 		if (Z.bfsDist(Z.closestStruct(true)) >= churchThreshold) {
 			Z.castleTalk(34);
@@ -106,10 +105,10 @@ public class Pilgrim extends Movable {
 	Action2 moveTowardResource() {
         int bestKarb = MOD, bestFuel = MOD;
         for (int i = 0; i < Z.h; ++i) for (int j = 0; j < Z.w; ++j) {
-        	if (Z.robotMapID[i][j] <= 0 && Z.karboniteMap[i][j] && Z.CUR.karbonite < 20) {
+        	if ((Z.passable(j,i) || Z.CUR.x == j && Z.CUR.y == i) && Z.karboniteMap[i][j] && Z.CUR.karbonite < 20) {
         		if (Z.bfsDistSafe[i][j] < Z.bfsDistSafe(bestKarb)) bestKarb = 64*j+i;
         	}
-        	if (Z.robotMapID[i][j] <= 0 && Z.fuelMap[i][j] && Z.CUR.fuel < 100) {
+        	if ((Z.passable(j,i) || Z.CUR.x == j && Z.CUR.y == i) && Z.fuelMap[i][j] && Z.CUR.fuel < 100) {
         		if (Z.bfsDistSafe[i][j] < Z.bfsDistSafe(bestFuel)) bestFuel = 64*j+i;
         	}
         }
@@ -119,10 +118,11 @@ public class Pilgrim extends Movable {
         if (Z.resource == 0 && Z.CUR.karbonite > 16) Z.goHome = true;
         if (Z.resource == 1 && Z.CUR.fuel > 80) Z.goHome = true;
 
-        if (Math.min(distKarb,distFuel) == MOD) {
+		if (Z.CUR.karbonite > 16 || Z.CUR.fuel > 80) Z.goHome = true;
+        /*if (Math.min(distKarb,distFuel) == MOD) {
         	if (Z.CUR.karbonite > 16 || Z.CUR.fuel > 80) Z.goHome = true;
         	else return greedy();
-        }
+        }*/
         
         if(Z.bfsDistHome() >= churchThreshold) Z.goHome = false;
 
