@@ -201,6 +201,13 @@ public class MyRobot extends BCAbstractRobot {
             }
         });
 	}
+    void sort(ArrayList<pi> dirs) {
+        Collections.sort(dirs, new Comparator<pi>() {
+            public int compare(pi a, pi b) {
+                return (a.f * a.f + a.s * a.s) - (b.f * b.f + b.s * b.s);
+            }
+        });
+	}
 
     void genBfsDist(int mx) {
         if (bfsDist == null) { bfsDist = new int[h][w];  nextMove = new int[h][w]; }
@@ -443,8 +450,10 @@ public class MyRobot extends BCAbstractRobot {
 
     public boolean canBuild(int t) {
         if (!(fuel >= CONSTRUCTION_F[t] && karbonite >= CONSTRUCTION_K[t])) return false;
-        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy)
+        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
+			if (t == CHURCH && (karboniteMap[CUR.y + dy][CUR.x+dx] || fuelMap[CUR.y+dy][CUR.x+dx])) continue;
             if (passable(CUR.x + dx, CUR.y + dy)) return true;
+		}
         return false;
     }
     public Action2 tryBuild(int t) {
@@ -670,7 +679,7 @@ public class MyRobot extends BCAbstractRobot {
 			int y = CUR.y+dy;
 			if(dx*dx + dy*dy <= 16 && yourAttacker(x,y) && clearVision(robotMap[y][x])) dirs.add(new pi(dx,dy));
 		}
-		sortr(dirs);
+		sort(dirs);
 		int ind = Math.min(necessary-1, dirs.size()-1); if(ind == -1) return;
 		int dx = dirs.get(ind).f; int dy = dirs.get(ind).s;
         int needDist = dx*dx + dy*dy;
