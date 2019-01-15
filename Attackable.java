@@ -187,8 +187,8 @@ public class Attackable extends Movable {
     }
 
     public Action2 react() {
-        //Action2 A = dealWithPreacher();  if (A != null) return A;
-        Action2 A = tryAttack(); if (A != null) return A;
+        Action2 A = dealWithPreacher();  if (A != null) return A;
+        A = tryAttack(); if (A != null) return A;
         return position();
     }
     public Action2 tryAttack() {

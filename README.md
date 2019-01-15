@@ -1,10 +1,13 @@
 # Todo
 - crusaders should not leave the rest behind
-- claim center with churches?
+- claim center with churches
 - waves of rushes
 - macro attack formation (line instead of clump)
 - conserve fuel!!!
+	- save appropriate amount
 - let castles know when enemy castles are destroyed
+- units should not completely surround castle
+- more even unit distribution
 
 # Seeds
 Focus:
