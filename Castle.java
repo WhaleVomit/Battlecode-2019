@@ -215,9 +215,8 @@ public class Castle extends Building {
     boolean tryAssignKarb() {
         for (int i = 0; i < Z.karbcount; i++) 
             if (!Z.isOccupiedKarb[i]) {
-                Z.log("HA "+i);
-                assignKarb(i);
-                return true;
+                // Z.log("HA "+i);
+                assignKarb(i); return true;
             }
         return false;
     }

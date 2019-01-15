@@ -565,9 +565,10 @@ public class MyRobot extends BCAbstractRobot {
 
     public boolean canBuild(int t) {
         if (!(fuel >= CONSTRUCTION_F[t] && karbonite >= CONSTRUCTION_K[t])) return false;
-        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {         
-            if (t == CHURCH && (karboniteMap[CUR.y+dy][CUR.x+dx] || fuelMap[CUR.y+dy][CUR.x+dx])) continue;
-            if (passable(CUR.x + dx, CUR.y + dy)) return true;
+        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {                     
+            int x = CUR.x+dx, y = CUR.y+dy;
+            if (t == CHURCH && containsResource(x,y)) continue;
+            if (passable(x,y)) return true;
 		}
         return false;
     }
@@ -605,7 +606,7 @@ public class MyRobot extends BCAbstractRobot {
             signaled = true;
         }        
         for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
-            int x = CUR.x+dx, y =CUR.y+dy;
+            int x = CUR.x+dx, y = CUR.y+dy;
             if (t == CHURCH && containsResource(x,y)) continue;
             if (passable(x,y)) return buildAction(t, dx, dy);
         }
@@ -882,7 +883,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     boolean shouldBeginAttack() {
-        return CUR.turn > 800 || (closeAttackers() > 20 && fuel >= 0.9*DESIRED*allAttackers());
+        return CUR.turn > 200 || (closeAttackers() > 20 && fuel >= 0.9*DESIRED*allAttackers());
     }
 
     int farthestDefenderRadius() {
