@@ -1,13 +1,14 @@
 # Todo
-- **pilgrim errors**
-- test
-- waves of rushes still not so good
-- **troops attacking when they shouldn't be**
-- **too many units reacting to single attacker**
-	- save appropriate amount
-- **claim center with churches**
-- macro attack formation (line instead of clump)
-- let castles know when enemy castles are destroyed
+- errors
+	- test crusaders
+	- waves of rushes still not so good
+	- troops attacking when they shouldn't be
+	- don't let too many defenders chase after small groups of attackers
+	- fuel: save appropriate amount
+- add
+	- claim center with churches
+	- let castles know when enemy castles are destroyed
+
 
 # Seeds
 Focus:
