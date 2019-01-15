@@ -301,7 +301,7 @@ public class Castle extends Building {
         else if (2*Z.numFuel <= Z.numKarb) assigned = tryAssignFuel();
         else if (a < b) assigned = tryAssignKarb();
         else assigned = tryAssignFuel();
-        if (Z.numUnits[PILGRIM]%6 == 5) {
+        if (Z.numUnits[PILGRIM]%6 == 3) {
 			assigned = tryAssignAggressive();
 		}
         if (!assigned) assignRand();
