@@ -172,10 +172,10 @@ public class Pilgrim extends Movable {
 
         int bestKarb = MOD, bestFuel = MOD;
         for (int i = 0; i < Z.h; ++i) for (int j = 0; j < Z.w; ++j) {
-        	if (Z.karboniteMap[i][j] && Z.CUR.karbonite < 20) {
+        	if (Z.robotMapID[i][j] <= 0 && Z.karboniteMap[i][j] && Z.CUR.karbonite < 20) {
         		if (Z.bfsDistSafe[i][j] < Z.bfsDistSafe(bestKarb)) bestKarb = 64*j+i;
         	}
-        	if (Z.fuelMap[i][j] && Z.CUR.fuel < 100) {
+        	if (Z.robotMapID[i][j] <= 0 && Z.fuelMap[i][j] && Z.CUR.fuel < 100) {
         		if (Z.bfsDistSafe[i][j] < Z.bfsDistSafe(bestFuel)) bestFuel = 64*j+i;
         	}
         }
@@ -185,7 +185,7 @@ public class Pilgrim extends Movable {
         	if (distKarb <= distFuel) return nextMoveSafe(bestKarb);
         	return nextMoveSafe(bestFuel);
         }
-        if (d <= Math.min(distKarb,distFuel)+10) return nextMoveSafe(Z.resourceLoc.f,Z.resourceLoc.s);
+        if (d <= Math.min(distKarb,distFuel)+20) return nextMoveSafe(Z.resourceLoc.f,Z.resourceLoc.s);
         if (Z.resource == 0 && distKarb != MOD) return nextMoveSafe(bestKarb);
         return nextMoveSafe(bestFuel);
     }
