@@ -7,6 +7,7 @@
 - let castles know when enemy castles are destroyed
 - units should not completely surround castle
 - more even unit distribution
+- don't let too many defenders chase after small groups of attackers
 
 # Seeds
 Focus:
