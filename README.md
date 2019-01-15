@@ -1,7 +1,6 @@
 # Todo
 - crusaders should not leave the rest behind
 - claim center with churches
-- waves of rushes
 - macro attack formation (line instead of clump)
 - conserve fuel!!!
 	- save appropriate amount
