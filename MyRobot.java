@@ -18,6 +18,7 @@ public class MyRobot extends BCAbstractRobot {
     int[][] robotMapID, lastTurn; // stores last id seen in pos
 
     int[][] bfsDist, nextMove;
+    int[][] bfsDistShort, nextMoveShort;
     boolean updEnemy = false;
     ArrayList<Integer> myCastle = new ArrayList<>(), otherCastle = new ArrayList<>();
     ArrayList<Integer> myChurch = new ArrayList<>(), otherChurch = new ArrayList<>();
@@ -287,7 +288,7 @@ public class MyRobot extends BCAbstractRobot {
 
         while (Q.size() > 0) {
             int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
-            for(pi p: possDirs) {
+            for (pi p: possDirs) {
 				int dx = p.f; int dy = p.s;
 				int X = x+dx; int Y = y+dy;
 				if (valid(X,Y) && bfsDist[Y][X] == MOD) {
@@ -303,6 +304,36 @@ public class MyRobot extends BCAbstractRobot {
     }
     int bfsDist(int x) { return x == MOD ? MOD : bfsDist[x % 64][fdiv(x,64)]; }
 
+    void genBfsDistShort(int mx) {
+        if (bfsDistShort == null) { bfsDistShort = new int[h][w]; nextMoveShort = new int[h][w]; }
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
+            bfsDistShort[i][j] = MOD; nextMoveShort[i][j] = MOD;
+        }
+        LinkedList<Integer> Q = new LinkedList<Integer>(); bfsDistShort[CUR.y][CUR.x] = 0; Q.add(64 * CUR.x + CUR.y);
+
+        ArrayList<pi> possDirs = new ArrayList<pi>();
+        for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy)
+            if (dx*dx + dy*dy <= mx) possDirs.add(new pi(dx,dy));
+        sortr(possDirs, mx); // for (pi a: possDirs) log(a.toString());
+
+        while (Q.size() > 0) {
+            int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
+            for (pi p: possDirs) {
+                int dx = p.f; int dy = p.s;
+                int X = x+dx; int Y = y+dy;
+                if (valid(X,Y) && bfsDist[Y][X] == MOD) {
+                    bfsDistShort[Y][X] = bfsDistShort[y][x] + 1;
+                    nextMoveShort[Y][X] = nextMoveShort[y][x];
+                    if (robotMapID[Y][X] <= 0)  {
+                        if (nextMove[Y][X] == MOD) nextMoveShort[Y][X] = 64 * X + Y;
+                        Q.add(64 * X + Y);
+                    }
+                }
+            }
+        }
+    }
+    int bfsDistShort(int x) { return x == MOD ? MOD : bfsDistShort[x % 64][fdiv(x,64)]; }
+
     void genDistSafe() {
         if (bfsDistSafe == null) {
             bfsDistSafe = new int[h][w]; nextMoveSafe = new int[h][w];
@@ -315,7 +346,7 @@ public class MyRobot extends BCAbstractRobot {
             dangerous[i][j] = false;
         }
 
-        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (lastTurn[i][j] >= CUR.turn-20) {
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (lastTurn[i][j] >= CUR.turn-40) {
             if (yourAttacker(j,i)) {
                 int d = dangerRadius(robotMap[i][j]);
                 for (int I = -10; I <= 10; ++I) for (int J = -10; J <= 10; ++J) {
@@ -492,14 +523,36 @@ public class MyRobot extends BCAbstractRobot {
         int bestDist = MOD, bestPos = MOD;
         for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
             int X = x+i, Y = y+j;
-            if (passable(X,Y)) {
+            if (passable(X,Y)) 
 				if ((i*i+j*j < bestDist) || (i*i+j*j == bestDist && bfsDist(64*X + Y) < bfsDist(bestPos))) {
 					bestDist = i*i+j*j; bestPos = 64*X+Y;
 				}
-			}
         }
         return bestPos;
     }
+    int closeEmptyShort(int x, int y) {
+        int bestDist = MOD, bestPos = MOD;
+        for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
+            int X = x+i, Y = y+j;
+            if (passable(X,Y)) 
+                if ((i*i+j*j < bestDist) || (i*i+j*j == bestDist && bfsDistShort(64*X + Y) < bfsDistShort(bestPos))) {
+                    bestDist = i*i+j*j; bestPos = 64*X+Y;
+                }
+        }
+        return bestPos;
+    }
+    int closeEmptySafe(int x, int y) {
+        int bestDist = MOD, bestPos = MOD;
+        for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j) {
+            int X = x+i, Y = y+j;
+            if (passable(X,Y)) 
+                if ((i*i+j*j < bestDist) || (i*i+j*j == bestDist && bfsDistSafe(64*X + Y) < bfsDistSafe(bestPos))) {
+                    bestDist = i*i+j*j; bestPos = 64*X+Y;
+                }
+        }
+        return bestPos;
+    }
+    int closeEmptySafe(int x) { return x == MOD ? MOD : closeEmptySafe(fdiv(x,64),x%64); }
     int bfsDistHome() { return Math.min(bfsDist(closest(myCastle)),bfsDist(closest(myChurch))); }
     int closestChurch(boolean ourteam) { return closest(ourteam ? myChurch : otherChurch); }
     int closestCastle(boolean ourteam) { return closest(ourteam ? myCastle : otherCastle); }
@@ -874,6 +927,7 @@ public class MyRobot extends BCAbstractRobot {
     public Action turn() {
         getVars(); updateData();
         genBfsDist(CUR.unit == CRUSADER ? 9 : 4);
+        if (CUR.unit == CRUSADER) genBfsDistShort(4);
         if (CUR.unit == 2) genDistSafe();
         else genEnemyDist();
         if (CUR.turn == 1) log("TYPE: "+CUR.unit);
@@ -881,6 +935,7 @@ public class MyRobot extends BCAbstractRobot {
         Action2 A = chooseAction();
         if (CUR.unit != CASTLE) warnOthers();
         startAttack();
+        lastHealth = CUR.health;
         return conv(A);
     }
 }

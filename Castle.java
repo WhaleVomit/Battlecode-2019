@@ -62,7 +62,7 @@ public class Castle extends Building {
 
     boolean ourSide(int pos) {
 		int x = Z.fdiv(pos,64); int y = pos%64;
-        Z.log("WHAT "+Z.hsim+" "+Z.wsim);
+        // Z.log("WHAT "+Z.hsim+" "+Z.wsim);
 		if(Z.hsim) {
 			int mid = Z.fdiv(Z.h,2);
 			if(Z.me.y >= mid) {

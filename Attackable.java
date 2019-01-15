@@ -215,7 +215,6 @@ public class Attackable extends Movable {
         }
         return ret;
     }
-
     int shortestNotCrusaderDist(Robot2 R) {
         int ret = MOD;
         for (int i = -6; i <= 6; ++i) for (int j = -6; j <= 6; ++j) if (i*i+j*j <= 36) {
@@ -227,20 +226,20 @@ public class Attackable extends Movable {
         return ret;
     }
 
-    public Action2 aggressive() {
+    Action2 aggressive() {
         Robot2 R = Z.closestEnemy(Z.CUR);
-        if (Z.CUR.unit == CRUSADER) {
+        if (Z.CUR.unit == CRUSADER && Z.CUR.health == Z.lastHealth) {
             int a = notCrusaders(), b = shortestNotCrusaderDist(R);
-            if (a >= 2 && Math.sqrt(Z.euclidDist(R))+2 <= Math.sqrt(b)) {
-                Z.log("CRUSADER SHOULD WAIT FOR OTHERS");
-                return null;
+            if (b != MOD && Z.euclidDist(R) <= b) {
+                Z.log("MOVE MORE SLOWLY");
+                return moveTowardShort(Z.closestStruct(false));
             }
         }
-        Action2 A = moveEnemy(); if (A != null) return A;
+        Action2 A = moveEnemyStruct(); if (A != null) return A;
         return nextMove(Z.closestUnseen());
     }
 
-    public Action2 runDefault() {
+    Action2 runDefault() {
         Z.sendToCastle(); 
         Action2 A = react(); if (A != null) return A;
         if (!Z.attackMode) {
