@@ -51,10 +51,8 @@ public class Pilgrim extends Movable {
 		// has to be on resource square with no resource next to it
 		if (!Z.containsResource(Z.CUR.x,Z.CUR.y)) return false;
 		if (Z.bfsDist(Z.closestStruct(true)) >= churchThreshold) {
-			if(Z.canBuild(CHURCH)) {
-				Z.castleTalk(34);
-				return true;
-			}
+			Z.castleTalk(34);
+			if(Z.canBuild(CHURCH)) return true;
 		}
 		return false;
 	}
