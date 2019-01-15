@@ -104,9 +104,9 @@ public class MyRobot extends BCAbstractRobot {
     }*/
 
     // EUCLID DIST
-    int euclidDist(int x1, int y1, int x2, int y2) { 
+    int euclidDist(int x1, int y1, int x2, int y2) {
         if (x1 == -1 || x2 == -1) return MOD;
-        return sq(x1-x2) + sq(y1-y2); 
+        return sq(x1-x2) + sq(y1-y2);
     }
     int euclidDist(Robot2 A, int x, int y) { return A == null ? MOD : euclidDist(A.x,A.y,x,y); }
     int euclidDist(Robot2 A, Robot2 B) {
@@ -214,7 +214,7 @@ public class MyRobot extends BCAbstractRobot {
         for (int i = y-10; i <= y+10; ++i) for (int j = x-10; j <= x+10; ++j)
             if (teamAttacker(j,i,1-CUR.team)) {
                 Robot2 R = robotMap[i][j];
-                if (euclidDist(R,j,i) <= dangerRadius(R)) 
+                if (euclidDist(R,j,i) <= dangerRadius(R))
                     ret = Math.max(ret,lastTurn[i][j]);
             }
         return ret;
@@ -519,7 +519,7 @@ public class MyRobot extends BCAbstractRobot {
         int bestDist = MOD, bestPos = MOD;
         for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
             int X = x+i, Y = y+j;
-            if (passable(X,Y)) 
+            if (passable(X,Y))
 				if ((i*i+j*j < bestDist) || (i*i+j*j == bestDist && bfsDist(64*X + Y) < bfsDist(bestPos))) {
 					bestDist = i*i+j*j; bestPos = 64*X+Y;
 				}
@@ -531,7 +531,7 @@ public class MyRobot extends BCAbstractRobot {
         int bestDist = MOD, bestPos = MOD;
         for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
             int X = x+i, Y = y+j;
-            if (passable(X,Y)) 
+            if (passable(X,Y))
                 if ((i*i+j*j < bestDist) || (i*i+j*j == bestDist && bfsDistShort(64*X + Y) < bfsDistShort(bestPos))) {
                     bestDist = i*i+j*j; bestPos = 64*X+Y;
                 }
@@ -542,7 +542,7 @@ public class MyRobot extends BCAbstractRobot {
         int bestDist = MOD, bestPos = MOD;
         for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j) {
             int X = x+i, Y = y+j;
-            if (passable(X,Y)) 
+            if (passable(X,Y))
                 if ((i*i+j*j < bestDist) || (i*i+j*j == bestDist && bfsDistSafe(64*X + Y) < bfsDistSafe(bestPos))) {
                     bestDist = i*i+j*j; bestPos = 64*X+Y;
                 }
@@ -569,7 +569,7 @@ public class MyRobot extends BCAbstractRobot {
 
     public boolean canBuild(int t) {
         if (!(fuel >= CONSTRUCTION_F[t] && karbonite >= CONSTRUCTION_K[t])) return false;
-        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {                     
+        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
             int x = CUR.x+dx, y = CUR.y+dy;
             if (t == CHURCH && containsResource(x,y)) continue;
             if (passable(x,y)) return true;
@@ -608,7 +608,7 @@ public class MyRobot extends BCAbstractRobot {
         if (CAN_ATTACK[t]) {
             signal(encodeCastleLocations(), 2);
             signaled = true;
-        }        
+        }
         for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
             int x = CUR.x+dx, y = CUR.y+dy;
             if (t == CHURCH && containsResource(x,y)) continue;
@@ -678,7 +678,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     int compress(int i) {
-        int x = fdiv(i, 64), y = i % 64; 
+        int x = fdiv(i, 64), y = i % 64;
         x = fdiv(x, 8); y = fdiv(y, 8);// approximating location
         return 8*x+y;
     }
@@ -892,9 +892,9 @@ public class MyRobot extends BCAbstractRobot {
 
     boolean shouldBeginAttack() {
         if (enemyDist[CUR.y][CUR.x][0] < 10) return false;
-        log("HUH "+needAttackers());
-        for (Robot2 R: robots) 
-            if (R.team == CUR.team && R.unit == CASTLE && R.castle_talk == 255) 
+        //log("HUH " + needAttackers() + " " + closeAttackers() + " " + fuel);
+        for (Robot2 R: robots)
+            if (R.team == CUR.team && R.castle_talk == 255)
                 if (closeAttackers() >= 0.75*needAttackers()) return true;
         return CUR.turn > 800 || (closeAttackers() >= needAttackers() && fuel >= 0.9*DESIRED*allAttackers());
     }
@@ -911,7 +911,7 @@ public class MyRobot extends BCAbstractRobot {
 
     void startAttack() {
         if (CUR.unit != CASTLE || signaled) return;
-        if (shouldBeginAttack() && lastAttackSignal <= CUR.turn-20) { // (CUR.team == 0 && attackMode)) 
+        if (shouldBeginAttack() && lastAttackSignal <= CUR.turn-20) { // (CUR.team == 0 && attackMode))
             int r = farthestDefenderRadius();
             if (r > 0 && fuel >= r) {
                 log("SIGNAL ATTACK "+CUR.x+" "+CUR.y+" "+r+" "+fuel+" "+closeAttackers());

@@ -115,7 +115,7 @@ public class Castle extends Building {
             }
         }
     }
-    
+
     boolean betterAgg(int pos1, int pos2) {
 		boolean b1 = ourSide(pos1), b2 = ourSide(pos2);
         if (b1 != b2)
@@ -123,7 +123,7 @@ public class Castle extends Building {
 		else if(!b1 && b2) return true;
 		return Z.bfsDist(pos1) < Z.bfsDist(pos2);
 	}
-    
+
     void sortKarbAgg() {
 		for (int i = 0; i < Z.karbcount-1; i++) {
             for (int j = 0; j < Z.karbcount - i - 1; j++) {
@@ -136,7 +136,7 @@ public class Castle extends Building {
             }
         }
 	}
-	
+
 	void sortFuelAgg(){
         for (int i = 0; i < Z.fuelcount-1; i++) {
             for (int j = 0; j < Z.fuelcount - i - 1; j++) {
@@ -182,7 +182,7 @@ public class Castle extends Building {
             Z.log("AA "+Z.karbPos[Z.sortedKarb[i]]+" "+Z.coordinates(p)+" "+ourSide(p)+" "+Z.bfsDist(p));
         }*/
     }
-    
+
     boolean shouldBuild = true;
 
     void updateVars() {
@@ -211,12 +211,12 @@ public class Castle extends Building {
             } else {
 				if(R.castle_talk == 34) shouldBuild = false;
                 int t = R.castle_talk % 7; if (t == 6) t = 2;
-                Z.numUnits[t] ++; 
+                Z.numUnits[t] ++;
                 if (Z.euclidDist(R) <= 100) Z.closeUnits[t] ++;
             }
         }
         Z.closeUnits[2] = Math.max(Z.closeUnits[2],Z.numKarb+Z.numFuel);
-        if (Z.CUR.unit == CASTLE && Z.myCastle.get(0) == 64 * Z.CUR.x + Z.CUR.y && Z.CUR.turn % 3 == 0) {
+        if (Z.CUR.unit == CASTLE && Z.myCastle.get(0) == 64 * Z.CUR.x + Z.CUR.y && Z.CUR.turn % 10 == 0) {
             Z.log("================ ROUND " + Z.CUR.turn + " ================ ");
             if (Z.CUR.turn == 3) Z.log("H: "+Z.h+" W: "+Z.w);
             Z.log("TIME: "+Z.me.time);
@@ -251,7 +251,7 @@ public class Castle extends Building {
     }
 
     boolean tryAssignKarb() {
-        for (int i = 0; i < Z.karbcount; i++) 
+        for (int i = 0; i < Z.karbcount; i++)
             if (!Z.isOccupiedKarb[i]) {
                 // Z.log("HA "+i);
                 assignKarb(i); return true;
@@ -260,13 +260,13 @@ public class Castle extends Building {
     }
 
     boolean tryAssignFuel() {
-        for (int i = 0; i < Z.fuelcount; i++) 
+        for (int i = 0; i < Z.fuelcount; i++)
             if (!Z.isOccupiedFuel[i]) {
                 assignFuel(i); return true;
             }
         return false;
     }
-    
+
     boolean tryAssignAggressive() {
 		int tot = Z.karbcount+Z.fuelcount;
         int x = (int)(Math.random()*tot);
@@ -295,7 +295,7 @@ public class Castle extends Building {
 	}
 
     Action2 makePilgrim() {
-        double a = Z.karbonite, b = (Z.fuel-Z.DESIRED*Z.allAttackers())/5.0; 
+        double a = Z.karbonite, b = (Z.fuel-Z.DESIRED*Z.allAttackers())/5.0;
         boolean assigned = false;
         if (Z.CUR.turn <= 30 || 2*Z.numKarb <= Z.numFuel) assigned = tryAssignKarb();
         else if (2*Z.numFuel <= Z.numKarb) assigned = tryAssignFuel();
@@ -343,28 +343,28 @@ public class Castle extends Building {
 
     boolean shouldPilgrim() {
         if (Z.signaled || !Z.canBuild(PILGRIM)) return false;
-        if (Z.numUnits[PILGRIM] > 0.6*(Z.karbcount+Z.fuelcount+5)) return false;
+        if (Z.numUnits[PILGRIM] > 0.5*(Z.karbcount+Z.fuelcount+5)) return false;
         if (Z.euclidDist(Z.CUR,Z.closestAttacker(Z.CUR,1-Z.CUR.team)) <= 64) return false;
         return 2*Z.closeUnits[PILGRIM] <= Z.closeUnits[3]+Z.closeUnits[4]+Z.closeUnits[5];
     }
     boolean shouldRush() { return Z.CUR.turn <= 20; }
-    boolean tooMany() { return Z.movableUnits() >= 30 && Z.numUnits[2] >= 10 && Z.fuel < Z.DESIRED*Z.allAttackers(); }
+    boolean tooMany() { return (Z.CUR.team == BLUE && Z.movableUnits() >= 30 || Z.CUR.team == RED && Z.closeAttackers() >= Z.needAttackers()) && Z.numUnits[2] >= 10 && Z.fuel < Z.DESIRED*Z.allAttackers(); }
     Action2 build() {
         if (tooMany()) return null;
         if (shouldPilgrim()) return makePilgrim();
         int mn = MOD;
-        Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team); 
+        Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
         if (Z.CUR.turn > 4 && Z.euclidDist(R) > VISION_R[Z.CUR.unit]) {
-            for (Robot2 C: Z.robots) if (Z.myCastleID.contains(C.id)) 
+            for (Robot2 C: Z.robots) if (Z.myCastleID.contains(C.id))
                 mn = Math.min(mn,C.castle_talk);
             // Z.log("HUH "+Z.CUR.x+" "+Z.CUR.y+" "+Z.closeAttackers()+" "+mn);
-            if (Z.closeAttackers() > mn+2) return null; 
+            if (Z.closeAttackers() > mn+2) return null;
         }
 
         if (shouldRush()) {
             Action2 A = Z.tryBuild(PREACHER); if (A != null) return A;
             return Z.tryBuild(CRUSADER);
-        } 
+        }
 
         double a = Z.closeUnits[3], b = Z.closeUnits[4]/2.0, c = Z.closeUnits[5];
         if (b <= Math.min(a,c)) return Z.tryBuild(PROPHET);
