@@ -96,7 +96,7 @@ public class Pilgrim extends Movable {
 			Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team); 
 			Z.goHome = true; return moveAway(R);
 		}
-        if (shouldBuildChurch()) return Z.tryBuild(CHURCH);
+        if (shouldBuildChurch()) return Z.tryBuildChurch();
         Action2 A = mine(); if (A != null) return A;
 	}
 
