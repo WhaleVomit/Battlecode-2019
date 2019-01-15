@@ -566,23 +566,46 @@ public class MyRobot extends BCAbstractRobot {
     public boolean canBuild(int t) {
         if (!(fuel >= CONSTRUCTION_F[t] && karbonite >= CONSTRUCTION_K[t])) return false;
         for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
-            int x = CUR.x+dx, y =CUR.y+dy;
-			if (t == CHURCH && containsResource(x,y)) continue;
-            if (passable(x,y)) return true;
+			if (t == CHURCH && (karboniteMap[CUR.y + dy][CUR.x+dx] || fuelMap[CUR.y+dy][CUR.x+dx])) continue;
+            if (passable(CUR.x + dx, CUR.y + dy)) return true;
 		}
         return false;
     }
+    public Action2 tryBuildChurch() {
+		if(!canBuild(CHURCH)) return null;
+		int bestDx = MOD, bestDy = MOD, bestCnt = 0; // try to build adjacent to as many as possible
+		for(int dx = -1; dx <= 1; dx++) {
+			for(int dy = -1; dy <= 1; dy++) {
+				int x = CUR.x+dx; int y = CUR.y+dy;
+				if(passable(x,y) && !karboniteMap[y][x] && !fuelMap[y][x]) {
+					int cnt = 0;
+					for(int dx2 = -1; dx2 <= 1; dx2++) {
+						for(int dy2 = -1; dy2 <= 1; dy2++) {
+							if(!(dx2 == 0 && dy2 == 0)) {
+								int x2 = x+dx2; int y2 = y+dy2;
+								if(passable(x2,y2) && (karboniteMap[y2][x2] || fuelMap[y2][x2])) cnt++;
+							}
+						}
+					}
+					if(cnt > bestCnt) {
+						bestDx = dx;
+						bestDy = dy;
+						bestCnt = cnt;
+					}
+				}
+			}
+		}
+		if(bestDx == MOD) return null;
+		return buildAction(CHURCH, bestDx, bestDy);
+	}
     public Action2 tryBuild(int t) {
         if (!canBuild(t)) return null;
         if (CAN_ATTACK[t]) {
             signal(encodeCastleLocations(), 2);
             signaled = true;
         }
-        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
-            int x = CUR.x+dx, y =CUR.y+dy;
-            if (t == CHURCH && containsResource(x,y)) continue;
-            if (passable(x,y)) return buildAction(t, dx, dy);
-        }
+        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy)
+            if (passable(CUR.x + dx, CUR.y + dy)) return buildAction(t, dx, dy);
         return null;
     }
     public Action2 tryBuildNoSignal(int t) {
