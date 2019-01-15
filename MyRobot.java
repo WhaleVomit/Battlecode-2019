@@ -254,7 +254,9 @@ public class MyRobot extends BCAbstractRobot {
 
     // BFS DIST
     int getVal(pi x) {
-        return 10*(x.f*x.f+x.s*x.s)+(x.f != 0 && x.s != 0);
+        int val = 10*(Math.abs(x.f)+Math.abs(x.s));
+        if (x.f != 0 && x.s != 0) val ++;
+        return val;
     }
     void sortr(ArrayList<pi> dirs, int mx) {
         Collections.sort(dirs, new Comparator<pi>() {
@@ -281,7 +283,7 @@ public class MyRobot extends BCAbstractRobot {
         ArrayList<pi> possDirs = new ArrayList<pi>();
         for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy)
 			if (dx*dx + dy*dy <= mx) possDirs.add(new pi(dx,dy));
-        sortr(possDirs, mx);
+        sortr(possDirs, mx); // for (pi a: possDirs) log(a.toString());
 
         while (Q.size() > 0) {
             int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
