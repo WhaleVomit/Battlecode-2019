@@ -253,16 +253,20 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     // BFS DIST
-    void sortr(ArrayList<pi> dirs) {
+    void sortr(ArrayList<pi> dirs, int mx) {
         Collections.sort(dirs, new Comparator<pi>() {
             public int compare(pi a, pi b) {
+<<<<<<< HEAD
 				if (CUR.unit == CRUSADER) return (b.f * b.f + b.s * b.s) - (a.f * a.f + a.s * a.s);
+=======
+				if(mx > 4) return (b.f * b.f + b.s * b.s) - (a.f * a.f + a.s * a.s);
+>>>>>>> c42bf6789a9ce1466ebb37c8567d904302b92c79
 				else {
-					boolean diaA = a.f == 0 || a.s == 0;
-					boolean diaB = b.f == 0 || b.s == 0;
+					boolean diaA = !(a.f == 0 || a.s == 0);
+					boolean diaB = !(b.f == 0 || b.s == 0);
 					if(diaA == diaB) return (b.f * b.f + b.s * b.s) - (a.f * a.f + a.s * a.s);
-					if(diaA && !diaB) return 1;
-					return -1;
+					if(diaA && !diaB) return -1;
+					return 1;
 				}
             }
         });
@@ -285,7 +289,7 @@ public class MyRobot extends BCAbstractRobot {
         ArrayList<pi> possDirs = new ArrayList<pi>();
         for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy)
 			if (dx*dx + dy*dy <= mx) possDirs.add(new pi(dx,dy));
-        sortr(possDirs);
+        sortr(possDirs, mx);
 
         while (Q.size() > 0) {
             int x = Q.poll(); int y = x % 64; x = fdiv(x,64);
@@ -343,7 +347,7 @@ public class MyRobot extends BCAbstractRobot {
         ArrayList<pi> possDirs = new ArrayList<pi>();
         for (int dx = -2; dx <= 2; ++dx) for (int dy = -2; dy <= 2; ++dy)
             if (dx*dx + dy*dy <= 4) possDirs.add(new pi(dx,dy));
-        sortr(possDirs);
+        sortr(possDirs, MOD);
 
         while (Q.size() > 0) {
             int x = Q.poll(); int y = x % 64; x = fdiv(x,64);

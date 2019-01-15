@@ -17,8 +17,8 @@ public class Building {
 				}
 			}
 		}
-		int crus = 2*cnt[PROPHET]; if(!Z.canBuild(CRUSADER)) crus = 0;
-		int proph = 2*cnt[PREACHER] + 2*cnt[CRUSADER]; if(!Z.canBuild(PROPHET)) proph = 0;
+		int crus = 2*cnt[PREACHER] + cnt[CASTLE]; if(!Z.canBuild(CRUSADER) || cnt[PREACHER] >= 3) crus = 0;
+		int proph = 2*cnt[PREACHER] + 2*cnt[CRUSADER] + 2*cnt[PROPHET]; if(!Z.canBuild(PROPHET)) proph = 0;
 		int preach = cnt[CASTLE] + cnt[CHURCH] + cnt[PILGRIM] + 2*cnt[CRUSADER]; if(!Z.canBuild(PREACHER)) preach = 0;
 		
 		if(crus + proph + preach == 0) return MOD;
