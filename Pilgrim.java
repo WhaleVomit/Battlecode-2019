@@ -51,9 +51,7 @@ public class Pilgrim extends Movable {
 		// has to be on resource square with no resource next to it
 		if (!Z.canBuild(CHURCH)) return false;
 		if (!Z.containsResource(Z.CUR.x,Z.CUR.y)) return false;
-		int s = Z.closestStruct(true); int d = Z.bfsDist(s);
-		boolean ok = (d == MOD || (d >= 5 && Z.euclidDist(s) >= 100)); // has to be at least 4 away from nearest deposit
-		return ok;
+		return Z.bfsDist(Z.closestStruct(true)) >= churchThreshold;
 	}
 
 	int closeFreeResource(boolean karb, boolean fuel) {
@@ -122,7 +120,7 @@ public class Pilgrim extends Movable {
         	else return greedy();
         }
         
-        if(Z.bfsDistHome() >= 10) {
+        if(Z.bfsDistHome() >= churchThreshold) {
 			// signal castle to stop building
 			Z.castleTalk(34);
 			Z.goHome = false;

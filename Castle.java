@@ -186,6 +186,7 @@ public class Castle extends Building {
     boolean shouldBuild = true;
 
     void updateVars() {
+		shouldBuild = true;
         for (int i = 0; i < Z.karbcount; i++) Z.isOccupiedKarb[i] = false;
         for (int i = 0; i < Z.fuelcount; i++) Z.isOccupiedFuel[i] = false;
 
