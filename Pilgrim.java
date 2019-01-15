@@ -121,34 +121,17 @@ public class Pilgrim extends Movable {
         /*if (Math.min(distKarb,distFuel) == MOD) {
         	if (Z.CUR.karbonite > 16 || Z.CUR.fuel > 80) Z.goHome = true;
         	else return greedy();
-<<<<<<< HEAD
-        }
-
-=======
         }*/
-        
->>>>>>> ac896ca0c75719b648450b5336a1b6ac87abe121
+
         if(Z.bfsDistHome() >= churchThreshold) Z.goHome = false;
         if (Z.goHome) return moveHome();
-<<<<<<< HEAD
-
-        if (Z.resourceLoc.f != -1 && Z.robotMapID[Z.resourceLoc.s][Z.resourceLoc.f] <= 0) {
-			if(Z.bfsDistSafe[Z.resourceLoc.s][Z.resourceLoc.f] != MOD) return nextMoveSafe(Z.resourceLoc.f, Z.resourceLoc.s);
-		}
-
-=======
         if (Z.resourceLoc.f != -1 && (Z.passable(Z.resourceLoc.f,Z.resourceLoc.s) || Z.CUR.x == Z.resourceLoc.f && Z.CUR.y == Z.resourceLoc.s)) {
 			if(Z.bfsDistSafe[Z.resourceLoc.s][Z.resourceLoc.f] != MOD) return nextMoveSafe(Z.resourceLoc.f, Z.resourceLoc.s);
 		}
->>>>>>> ac896ca0c75719b648450b5336a1b6ac87abe121
         if (Math.min(distKarb,distFuel) <= 2) {
         	if (distKarb <= distFuel) return nextMoveSafe(bestKarb);
         	return nextMoveSafe(bestFuel);
         }
-<<<<<<< HEAD
-
-=======
->>>>>>> ac896ca0c75719b648450b5336a1b6ac87abe121
         if (Z.resource == 0 && distKarb != MOD) return nextMoveSafe(bestKarb);
         return nextMoveSafe(bestFuel);
 	}
