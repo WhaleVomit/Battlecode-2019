@@ -213,11 +213,11 @@ public class MyRobot extends BCAbstractRobot {
             public int compare(pi a, pi b) {
 				if(CUR.unit == CRUSADER) return (b.f * b.f + b.s * b.s) - (a.f * a.f + a.s * a.s);
 				else {
-					boolean diaA = a.f == 0 || a.s == 0;
-					boolean diaB = b.f == 0 || b.s == 0;
+					boolean diaA = !(a.f == 0 || a.s == 0);
+					boolean diaB = !(b.f == 0 || b.s == 0);
 					if(diaA == diaB) return (b.f * b.f + b.s * b.s) - (a.f * a.f + a.s * a.s);
-					if(diaA && !diaB) return 1;
-					return -1;
+					if(diaA && !diaB) return -1;
+					return 1;
 				}
             }
         });
