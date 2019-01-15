@@ -1,11 +1,12 @@
 # Todo
 - errors
-	- crusaders run ahead (maybe fixed?)
-	- waves of rushes not so good
-	- separate rush strat for close castles
-	- castle attack together
+	- **crusaders run ahead (maybe fixed?)**
+	- **separate rush strat for close castles**
+	- **waves of rushes not so good**
+	- **castle attack together**
 	- don't let too many defenders chase after small groups of attackers
 	- fuel: save appropriate amount
+	- send attackers with pilgrims
 - add
 	- claim center with churches
 	- let castles know when enemy castles are destroyed

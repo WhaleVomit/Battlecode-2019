@@ -68,7 +68,7 @@ public class Movable {
         if (Z.CUR.unit == PILGRIM) {
             int p = Z.closeEmptySafe(Z.closestStruct(true));
             if (Z.bfsDistSafe(p) != MOD) {
-                Z.log("SAFE PATH");
+                // Z.log("SAFE PATH");
                 return nextMoveSafe(p);
             }
         } 

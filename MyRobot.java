@@ -104,7 +104,10 @@ public class MyRobot extends BCAbstractRobot {
     }*/
 
     // EUCLID DIST
-    int euclidDist(int x1, int y1, int x2, int y2) { return sq(x1-x2) + sq(y1-y2); }
+    int euclidDist(int x1, int y1, int x2, int y2) { 
+        if (x1 == -1 || x2 == -1) return MOD;
+        return sq(x1-x2) + sq(y1-y2); 
+    }
     int euclidDist(Robot2 A, int x, int y) { return A == null ? MOD : euclidDist(A.x,A.y,x,y); }
     int euclidDist(Robot2 A, Robot2 B) {
         if (A == null || B == null) return MOD;
@@ -346,7 +349,7 @@ public class MyRobot extends BCAbstractRobot {
             dangerous[i][j] = false;
         }
 
-        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (lastTurn[i][j] >= CUR.turn-40) {
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (lastTurn[i][j] >= CUR.turn-60) {
             if (yourAttacker(j,i)) {
                 int d = dangerRadius(robotMap[i][j]);
                 for (int I = -10; I <= 10; ++I) for (int J = -10; J <= 10; ++J) {
@@ -901,7 +904,7 @@ public class MyRobot extends BCAbstractRobot {
         if (shouldBeginAttack() && lastAttackSignal <= CUR.turn-20) { // (CUR.team == 0 && attackMode)) 
             int r = farthestDefenderRadius();
             if (r > 0 && fuel >= r) {
-                log("SIGNAL ATTACK "+CUR.x+" "+CUR.y+" "+r+" "+fuel);
+                log("SIGNAL ATTACK "+CUR.x+" "+CUR.y+" "+r+" "+fuel+" "+closeAttackers());
                 signal(20000,r);
                 lastAttackSignal = CUR.turn;
             }
