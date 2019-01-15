@@ -212,6 +212,13 @@ public class MyRobot extends BCAbstractRobot {
             }
         });
 	}
+    void sort(ArrayList<pi> dirs) {
+        Collections.sort(dirs, new Comparator<pi>() {
+            public int compare(pi a, pi b) {
+                return (a.f * a.f + a.s * a.s) - (b.f * b.f + b.s * b.s);
+            }
+        });
+	}
 
     void genBfsDist(int mx) {
         if (bfsDist == null) { bfsDist = new int[h][w];  nextMove = new int[h][w]; }
@@ -221,7 +228,7 @@ public class MyRobot extends BCAbstractRobot {
         LinkedList<Integer> Q = new LinkedList<Integer>(); bfsDist[CUR.y][CUR.x] = 0; Q.add(64 * CUR.x + CUR.y);
 
         ArrayList<pi> possDirs = new ArrayList<pi>();
-        for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy) 
+        for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy)
 			if (dx*dx + dy*dy <= mx) possDirs.add(new pi(dx,dy));
         sortr(possDirs);
 
@@ -247,8 +254,8 @@ public class MyRobot extends BCAbstractRobot {
         return 100;
     }
     void genDistSafe() {
-        if (bfsDistSafe == null) { 
-            bfsDistSafe = new int[h][w]; nextMoveSafe = new int[h][w]; 
+        if (bfsDistSafe == null) {
+            bfsDistSafe = new int[h][w]; nextMoveSafe = new int[h][w];
             distAlly = new int[h][w]; distEnemy = new int[h][w];
             dangerous = new boolean[h][w];
         }
@@ -265,24 +272,24 @@ public class MyRobot extends BCAbstractRobot {
                     int D = I*I+J*J;
                     if (D <= d && inMap(j+J,i+I)) distAlly[i+I][j+J] = Math.min(distAlly[i+I][j+J],D);
                 }
-            } 
+            }
             if (enemyAttacker(j,i)) {
                 int d = dangerRadius(robotMap[i][j]);
                 for (int I = -10; I <= 10; ++I) for (int J = -10; J <= 10; ++J) {
                     int D = I*I+J*J;
                     if (D <= d && inMap(j+J,i+I)) distEnemy[i+I][j+J] = Math.min(distEnemy[i+I][j+J],D);
                 }
-            } 
+            }
         }
 
-        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) 
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
             if (distEnemy[i][j] != MOD && Math.sqrt(distEnemy[i][j])-2 <= Math.sqrt(distAlly[i][j]))
                 dangerous[i][j] = true;
 
         LinkedList<Integer> Q = new LinkedList<Integer>(); bfsDistSafe[CUR.y][CUR.x] = 0; Q.add(64 * CUR.x + CUR.y);
 
         ArrayList<pi> possDirs = new ArrayList<pi>();
-        for (int dx = -2; dx <= 2; ++dx) for (int dy = -2; dy <= 2; ++dy) 
+        for (int dx = -2; dx <= 2; ++dx) for (int dy = -2; dy <= 2; ++dy)
             if (dx*dx + dy*dy <= 4) possDirs.add(new pi(dx,dy));
         sortr(possDirs);
 
@@ -454,8 +461,10 @@ public class MyRobot extends BCAbstractRobot {
 
     public boolean canBuild(int t) {
         if (!(fuel >= CONSTRUCTION_F[t] && karbonite >= CONSTRUCTION_K[t])) return false;
-        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy)
+        for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
+			if (t == CHURCH && (karboniteMap[CUR.y + dy][CUR.x+dx] || fuelMap[CUR.y+dy][CUR.x+dx])) continue;
             if (passable(CUR.x + dx, CUR.y + dy)) return true;
+		}
         return false;
     }
     public Action2 tryBuild(int t) {
@@ -610,7 +619,7 @@ public class MyRobot extends BCAbstractRobot {
             }
         return false;
     }
-    
+
     int numAttackersSeen() { // number of enemies in vision range
 		int res = 0;
 		for(int dx = -10; dx <= 10; dx++) {
@@ -642,7 +651,7 @@ public class MyRobot extends BCAbstractRobot {
 			int y = CUR.y+dy;
 			if(dx*dx + dy*dy <= 16 && yourAttacker(x,y) && clearVision(robotMap[y][x])) dirs.add(new pi(dx,dy));
 		}
-		sortr(dirs);
+		sort(dirs);
 		int ind = Math.min(necessary-1, dirs.size()-1); if(ind == -1) return;
 		int dx = dirs.get(ind).f; int dy = dirs.get(ind).s;
         int needDist = dx*dx + dy*dy;
@@ -742,7 +751,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     boolean shouldBeginAttack() {
-        return CUR.turn > 300 || (closeAttackers() > 20 && fuel >= 0.9*DESIRED*allAttackers());
+        return CUR.turn > 900 || (closeAttackers() > 20 && fuel >= 0.9*DESIRED*allAttackers());
     }
 
     int farthestDefenderRadius() {
@@ -804,9 +813,9 @@ public class MyRobot extends BCAbstractRobot {
         }
         if (CUR.unit != CASTLE) warnOthers();
 
-        if (CUR.unit == CASTLE && !signaled && (shouldBeginAttack() || attackMode) && lastAttackSignal <= CUR.turn-5) {
+        if (CUR.unit == CASTLE && !signaled && (shouldBeginAttack() || (CUR.team == 0 && attackMode)) && lastAttackSignal <= CUR.turn-5) {
             lastAttackSignal = CUR.turn;
-            attackMode = true;
+            if(CUR.team == 0) attackMode = true;
             int r = farthestDefenderRadius();
             if (r > 0) {
                 log("TRY TO SIGNAL "+CUR.x+" "+CUR.y+" "+r+" "+fuel);
