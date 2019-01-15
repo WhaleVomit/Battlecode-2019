@@ -116,7 +116,6 @@ public class Pilgrim extends Movable {
         	if (distKarb <= distFuel) return nextMoveSafe(bestKarb);
         	return nextMoveSafe(bestFuel);
         }
-<<<<<<< HEAD
 
         if (Z.CUR.karbonite < 5 && Z.CUR.fuel < 25) Z.goHome = false;
         if (Z.resource == 0 && Z.CUR.karbonite > 16) Z.goHome = true;
@@ -132,10 +131,7 @@ public class Pilgrim extends Movable {
         }
 
         if (Z.goHome) return moveHome();
-        if (d <= Math.min(distKarb,distFuel)+10) return nextMoveSafe(Z.resourceLoc.f,Z.resourceLoc.s);
-=======
         if (d <= Math.min(distKarb,distFuel)+20) return nextMoveSafe(Z.resourceLoc.f,Z.resourceLoc.s);
->>>>>>> c42bf6789a9ce1466ebb37c8567d904302b92c79
         if (Z.resource == 0 && distKarb != MOD) return nextMoveSafe(bestKarb);
         return nextMoveSafe(bestFuel);
 	}

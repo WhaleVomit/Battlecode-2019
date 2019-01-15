@@ -253,21 +253,13 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     // BFS DIST
+    int getVal(pi x) {
+        return 10*(x.f*x.f+x.s*x.s)+(x.f != 0 && x.s != 0);
+    }
     void sortr(ArrayList<pi> dirs, int mx) {
         Collections.sort(dirs, new Comparator<pi>() {
             public int compare(pi a, pi b) {
-<<<<<<< HEAD
-				if (CUR.unit == CRUSADER) return (b.f * b.f + b.s * b.s) - (a.f * a.f + a.s * a.s);
-=======
-				if(mx > 4) return (b.f * b.f + b.s * b.s) - (a.f * a.f + a.s * a.s);
->>>>>>> c42bf6789a9ce1466ebb37c8567d904302b92c79
-				else {
-					boolean diaA = !(a.f == 0 || a.s == 0);
-					boolean diaB = !(b.f == 0 || b.s == 0);
-					if(diaA == diaB) return (b.f * b.f + b.s * b.s) - (a.f * a.f + a.s * a.s);
-					if(diaA && !diaB) return -1;
-					return 1;
-				}
+                return getVal(b)-getVal(a);
             }
         });
 	}
