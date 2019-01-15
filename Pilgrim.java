@@ -111,28 +111,34 @@ public class Pilgrim extends Movable {
         		if (Z.bfsDistSafe[i][j] < Z.bfsDistSafe(bestFuel)) bestFuel = 64*j+i;
         	}
         }
-
         int distKarb = Z.bfsDistSafe(bestKarb), distFuel = Z.bfsDistSafe(bestFuel);
-        if (Math.min(distKarb,distFuel) <= 2) {
-        	if (distKarb <= distFuel) return nextMoveSafe(bestKarb);
-        	return nextMoveSafe(bestFuel);
-        }
 
         if (Z.CUR.karbonite < 5 && Z.CUR.fuel < 25) Z.goHome = false;
         if (Z.resource == 0 && Z.CUR.karbonite > 16) Z.goHome = true;
         if (Z.resource == 1 && Z.CUR.fuel > 80) Z.goHome = true;
 
-        int d = MOD;
-        if (Z.resourceLoc.f != -1 && Z.robotMapID[Z.resourceLoc.s][Z.resourceLoc.f] <= 0)
-        	d = Z.bfsDistSafe[Z.resourceLoc.s][Z.resourceLoc.f];
-
-        if (Math.min(d,Math.min(distKarb,distFuel)) == MOD) {
+        if (Math.min(distKarb,distFuel) == MOD) {
         	if (Z.CUR.karbonite > 16 || Z.CUR.fuel > 80) Z.goHome = true;
         	else return greedy();
         }
+        
+        if(Z.bfsDistHome() >= 10) {
+			// signal castle to stop building
+			Z.castleTalk(34);
+			Z.goHome = false;
+		}
 
         if (Z.goHome) return moveHome();
-        if (d <= Math.min(distKarb,distFuel)+20) return nextMoveSafe(Z.resourceLoc.f,Z.resourceLoc.s);
+        
+        if (Z.resourceLoc.f != -1 && Z.robotMapID[Z.resourceLoc.s][Z.resourceLoc.f] <= 0) {
+			if(Z.bfsDistSafe[Z.resourceLoc.s][Z.resourceLoc.f] != MOD) return nextMoveSafe(Z.resourceLoc.f, Z.resourceLoc.s);
+		}
+		
+        if (Math.min(distKarb,distFuel) <= 2) {
+        	if (distKarb <= distFuel) return nextMoveSafe(bestKarb);
+        	return nextMoveSafe(bestFuel);
+        }
+        
         if (Z.resource == 0 && distKarb != MOD) return nextMoveSafe(bestKarb);
         return nextMoveSafe(bestFuel);
 	}
