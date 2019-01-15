@@ -4,7 +4,6 @@
 - waves of rushes still not so good
 - **troops attacking when they shouldn't be**
 - **too many units reacting to single attacker**
-- **conserve fuel!!!**
 	- save appropriate amount
 - **claim center with churches**
 - macro attack formation (line instead of clump)
