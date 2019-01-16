@@ -304,11 +304,17 @@ public class Castle extends Building {
     Z.assignedPilgrimPos = null;
   }
 
+  int myPilgrim() {
+    int res = 0;
+    for (Robot2 R: Z.robots) if (Z.pilToKarb[R.id] != -1 || Z.pilToFuel[R.id] != -1) res ++;
+    return res;
+  }
+
   boolean shouldPilgrim() {
     if (Z.nextSignal != null || !Z.canBuild(PILGRIM)) return false;
     if (Z.U.totUnits[PILGRIM] > 0.5*(Z.karbcount+Z.fuelcount+5)) return false;
     if (Z.euclidDist(Z.CUR,Z.closestAttacker(Z.CUR,1-Z.CUR.team)) <= 64) return false;
-    return 2*Z.U.closeUnits[PILGRIM] <= Z.U.closeAttackers(); // FIX
+    return 2*myPilgrim() <= Z.U.closeAttackers(); // FIX
   }
   boolean shouldRush() { return Z.CUR.turn <= 20; }
 

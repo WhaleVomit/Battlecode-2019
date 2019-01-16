@@ -62,7 +62,7 @@ public class Pilgrim extends Movable {
 
   Action2 react() {
     Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
-    if (Z.euclidDist(R) <= 100) {
+    if (Z.danger[Z.CUR.y][Z.CUR.x] > 0) {
       Z.goHome = true;
       Action2 A = tryGive(); if (A != null) return A;
       return moveAway(R);
