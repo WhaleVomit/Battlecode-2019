@@ -335,7 +335,7 @@ public class Castle extends Building {
     if (Z.CUR.turn > 4 && Z.euclidDist(R) > VISION_R[Z.CUR.unit]) {
       for (Robot2 C: Z.robots) if (Z.myCastleID.contains(C.id))
       mn = Math.min(mn,C.castle_talk);
-      if (Z.enemyDist[Z.CUR.y][Z.CUR.x][0] > 25 && Z.U.closeAttackers() > mn+2) return null;
+      if (Z.U.closeAttackers() > mn+2) return null;
     }
 
     return Z.tryBuild(Z.U.decideUnit());
