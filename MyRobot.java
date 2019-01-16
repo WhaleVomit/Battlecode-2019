@@ -40,7 +40,7 @@ public class MyRobot extends BCAbstractRobot {
     boolean notClose, attackMode; // notClose = if castle is too crowded
 
     // CASTLE
-    int numKarb, numFuel, lastAttackSignal;
+    int numKarb, numFuel;
     int[] numUnits = new int[6], closeUnits = new int[6];
     int[] sortedKarb, sortedFuel, pilToKarb, pilToFuel, karbPos, fuelPos;
     boolean[] isOccupiedKarb, isOccupiedFuel;
@@ -911,12 +911,11 @@ public class MyRobot extends BCAbstractRobot {
 
     void startAttack() {
         if (CUR.unit != CASTLE || signaled) return;
-        if (shouldBeginAttack() && lastAttackSignal <= CUR.turn-20) { // (CUR.team == 0 && attackMode))
+        if (shouldBeginAttack()) { // (CUR.team == 0 && attackMode))
             int r = farthestDefenderRadius();
             if (r > 0 && fuel >= r) {
                 log("SIGNAL ATTACK "+CUR.x+" "+CUR.y+" "+r+" "+fuel+" "+closeAttackers());
                 signal(20000,r);
-                lastAttackSignal = CUR.turn;
                 castleTalk(255);
             }
         }
@@ -977,7 +976,6 @@ public class MyRobot extends BCAbstractRobot {
         if (CUR.unit != CASTLE) warnOthers();
         startAttack();
         lastHealth = CUR.health;
-        if (CUR.turn > 10 && lastAttackSignal < CUR.turn && CUR.castle_talk == 255) castleTalk(0);
         return conv(A);
     }
 }

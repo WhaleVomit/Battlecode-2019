@@ -348,7 +348,7 @@ public class Castle extends Building {
         return 2*Z.closeUnits[PILGRIM] <= Z.closeUnits[3]+Z.closeUnits[4]+Z.closeUnits[5];
     }
     boolean shouldRush() { return Z.CUR.turn <= 20; }
-    boolean tooMany() { return (Z.CUR.team == BLUE && Z.movableUnits() >= 30 || Z.CUR.team == RED && Z.closeAttackers() >= Z.needAttackers()) && Z.numUnits[2] >= 10 && Z.fuel < Z.DESIRED*Z.allAttackers(); }
+    boolean tooMany() { return Z.closeAttackers() >= Z.needAttackers() && Z.numUnits[2] >= 10 && Z.fuel < Z.DESIRED*Z.allAttackers(); }
     Action2 build() {
         if (tooMany()) return null;
         if (shouldPilgrim()) return makePilgrim();
