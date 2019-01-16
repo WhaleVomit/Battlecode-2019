@@ -64,6 +64,7 @@ public class Castle extends Building {
         else message = 0;
         // Z.log("WILL SEND MESSAGE "+message);
         Z.castleTalk(message);
+        Z.signaled = true;
     }
 
     boolean ourSide(int pos) {
