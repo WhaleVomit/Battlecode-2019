@@ -591,12 +591,12 @@ public class MyRobot extends BCAbstractRobot {
     }
     public Action2 tryBuildChurch() {
 		if(!canBuild(CHURCH)) return null;
-		int bestDx = MOD, bestDy = MOD, bestCnt = 0; // try to build adjacent to as many as possible
+		int bestDx = MOD, bestDy = MOD, bestCnt = -MOD; // try to build adjacent to as many as possible
 		for(int dx = -1; dx <= 1; dx++) {
 			for(int dy = -1; dy <= 1; dy++) {
 				int x = CUR.x+dx; int y = CUR.y+dy;
 				if(passable(x,y) && !karboniteMap[y][x] && !fuelMap[y][x]) {
-					int cnt = -MOD;
+					int cnt = 0;
 					for(int dx2 = -1; dx2 <= 1; dx2++) {
 						for(int dy2 = -1; dy2 <= 1; dy2++) {
 							if(!(dx2 == 0 && dy2 == 0)) {
