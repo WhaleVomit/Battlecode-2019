@@ -178,6 +178,7 @@ public class Castle extends Building {
 
     // find current assignments
     for (Robot2 R: Z.robots) if (R.team == Z.CUR.team && !Z.myCastleID.contains(R.id) && R.castle_talk % 7 == 2) {
+	  if (R.castle_talk == 30) shouldBuild = false;
       if (Z.pilToKarb[R.id] != -1) isOccupiedKarb[Z.pilToKarb[R.id]] = true;
       if (Z.pilToFuel[R.id] != -1) isOccupiedFuel[Z.pilToFuel[R.id]] = true;
     }
@@ -185,7 +186,6 @@ public class Castle extends Building {
     for (int i = 0; i < Z.karbcount; i++) if (isOccupiedKarb[i]) numKarb ++;
     for (int i = 0; i < Z.fuelcount; i++) if (isOccupiedFuel[i]) numFuel ++;
 
-    // if(R.castle_talk == 30) shouldBuild = false; ??
     if (Z.CUR.unit == CASTLE && Z.myCastle.get(0) == 64 * Z.CUR.x + Z.CUR.y && Z.CUR.turn % 10 == 0)
       dumpRound();
   }
