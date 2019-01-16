@@ -10,8 +10,11 @@ public class pi {
 	pi(int _f, int _s) {
 		f = _f; s = _s;
 	}
+	int norm() {
+		return f*f+s*s;
+	}
 	int euclidDist(pi b) {
-		if (b == null) return MOD;
+		if (b == null || f == -1 || b.f == -1) return MOD;
 		return (f-b.f)*(f-b.f)+(s-b.s)*(s-b.s);
 	}
 	public boolean equals(pi x) {
