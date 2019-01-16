@@ -7,25 +7,24 @@ import static bc19.Consts.*;
 
 public class unitCounter {
   MyRobot Z;
-  int[] totUnits, closeUnits, closeEnemyUnits;
+  int[] totUnits, closeUnits, closeEnemy;
 
   public unitCounter(MyRobot Z) {
     this.Z = Z;
     if (Z.CUR.unit == CASTLE) {
-      totUnits = new int[6]; closeUnits = new int[6];
+      totUnits = new int[6];
       for (Robot2 R: Z.robots) if (R.team == Z.CUR.team)
           if (Z.myCastleID.contains(R.id)) {
               totUnits[0] ++;
-              if (Z.euclidDist(Z.CUR,R) <= 100) closeUnits[0] ++;
           } else {
               int t = R.castle_talk % 7; if (t == 6) t = 2;
               totUnits[t] ++;
-              if (Z.euclidDist(R) <= 100) closeUnits[t] ++;
           }
-    } else {
-      closeUnits = new int[6];
-      for (Robot2 R: Z.robots) if (Z.euclidDist(R) <= VISION_R[Z.CUR.unit])
-        closeUnits[R.unit] ++;
+    }
+    closeUnits = new int[6]; closeEnemy = new int[6];
+    for (Robot2 R: Z.robots)  if (Z.euclidDist(R) <= VISION_R[Z.CUR.unit]) {
+      if (R.team == Z.CUR.team) closeUnits[R.unit] ++;
+      else closeEnemy[R.unit] ++;
     }
   }
 
@@ -36,6 +35,10 @@ public class unitCounter {
   int totMovable() { return totAttackers()+totUnits[2]; }
   int closeAttackers() {
       int res = 0; for (int i = 3; i < 6; ++i) res += closeUnits[i];
+      return res;
+  }
+  int closeEnemyAttackers() {
+      int res = 0; for (int i = 3; i < 6; ++i) res += closeEnemy[i];
       return res;
   }
   int needAttackers() {

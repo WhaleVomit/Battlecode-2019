@@ -21,9 +21,9 @@ public class Pilgrim extends Movable {
 
   boolean shouldBuildChurch() { // has to be on resource square with no resource next to it
     if (!Z.containsResource(Z.CUR.x,Z.CUR.y)) return false;
-    if (Z.bfs.distHome() >= churchThreshold) {
+    if (Z.bfs.distHome() >= churchThreshold && Z.canBuild(CHURCH)) {
       Z.castle_talk = 30;
-      if (Z.canBuild(CHURCH)) return true;
+      return true;
     }
     return false;
   }
@@ -33,17 +33,16 @@ public class Pilgrim extends Movable {
     for (int x = 0; x < Z.w; x++) for (int y = 0; y < Z.h; y++)
       if (((karb && Z.karboniteMap[y][x]) || (fuel && Z.fuelMap[y][x])) && Z.robotMapID[y][x] <= 0)
         b[y][x] = true;
-    return Z.safe.closestUnused(b);
+    return Z.bfs.closestUnused(b);
   }
 
   Action2 greedy() {
     int x = closeFreeResource(Z.CUR.karbonite != 20, Z.CUR.fuel != 100);
-    if (Z.bfs.dist(x) <= 2) return Z.bfs.move(x);
-    return null;
+    return Z.bfs.move(x);
   }
 
   int getResource(pi p) {
-    if (p.f == -1) return (Z.id+Z.CUR.turn) % 2;
+    if (p == null) return (Z.id+Z.CUR.turn) % 2;
     if (Z.karboniteMap[p.s][p.f]) return 0;
     return 1;
   }
@@ -54,8 +53,10 @@ public class Pilgrim extends Movable {
       if (r.team == Z.CUR.team && r.unit == CASTLE && s >= 2000 && s < 7000) {
         int a = s - 2000;
         Z.resourceLoc = new pi(Z.fdiv(a,64),a%64);
+        Z.log("ASSIGNED TO "+Z.resourceLoc.f+" "+Z.resourceLoc.s);
       }
     }
+    if (Z.resourceLoc == null) Z.log("NOT ASSIGNED?");
     Z.resource = getResource(Z.resourceLoc);
   }
 
@@ -82,20 +83,18 @@ public class Pilgrim extends Movable {
     int distKarb = Z.safe.dist(bestKarb), distFuel = Z.safe.dist(bestFuel);
 
     if (Z.CUR.karbonite < 5 && Z.CUR.fuel < 25) Z.goHome = false;
-    if (Z.resource == 0 && Z.CUR.karbonite > 16) Z.goHome = true;
-    if (Z.resource == 1 && Z.CUR.fuel > 80) Z.goHome = true;
-
+    // if (Z.resource == 0 && Z.CUR.karbonite > 16) Z.goHome = true;
+    // if (Z.resource == 1 && Z.CUR.fuel > 80) Z.goHome = true;
     if (Z.CUR.karbonite > 16 || Z.CUR.fuel > 80) Z.goHome = true;
-    /*if (Math.min(distKarb,distFuel) == MOD) {
-    if (Z.CUR.karbonite > 16 || Z.CUR.fuel > 80) Z.goHome = true;
-    else return greedy();
-  }*/
-
     if (Z.bfs.distHome() >= churchThreshold) Z.goHome = false;
     if (Z.goHome) return goHome();
-    if (Z.resourceLoc.f != -1 && (Z.passable(Z.resourceLoc.f,Z.resourceLoc.s) || Z.CUR.x == Z.resourceLoc.f && Z.CUR.y == Z.resourceLoc.s)) {
-      if(Z.safe.dist[Z.resourceLoc.s][Z.resourceLoc.f] != MOD) return Z.safe.move(Z.resourceLoc.f, Z.resourceLoc.s);
-    }
+
+    if (Z.resourceLoc != null && (Z.passable(Z.resourceLoc.f,Z.resourceLoc.s)
+              || Z.CUR.x == Z.resourceLoc.f && Z.CUR.y == Z.resourceLoc.s))
+      if (Z.safe.dist[Z.resourceLoc.s][Z.resourceLoc.f] != MOD)
+        return Z.safe.move(Z.resourceLoc.f, Z.resourceLoc.s);
+
+    if (Math.min(distKarb,distFuel) == MOD) return greedy();
     if (Math.min(distKarb,distFuel) <= 2) {
       if (distKarb <= distFuel) return Z.safe.move(bestKarb);
       return Z.safe.move(bestFuel);

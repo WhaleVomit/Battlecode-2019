@@ -21,10 +21,21 @@ public abstract class moveMap {
 
   abstract boolean ok(int x, int y);
 
+  void dumpVars() {
+    if (Z.CUR.unit == CASTLE && Z.CUR.turn == 1 && Z.CUR.y != 31) {
+      Z.log(Z.CUR.x+" "+Z.CUR.y);
+      for (int y = Z.CUR.y-3; y <= Z.CUR.y+3; ++y) {
+        String T = "";
+        for (int x = Z.CUR.x-3; x <= Z.CUR.x+3; ++x)
+          T += dist[y][x]+" "+Z.coordinates(close[y][x])+" "+Z.coordinates(next[y][x])+" | ";
+        Z.log(T);
+      }
+    }
+  }
+
   void upd() {
-    for (int y = 0; y < Z.h; ++y)
-      for (int x = 0; x < Z.w; ++x)
-        dist[y][x] = next[y][x] = close[y][x] = MOD;
+    for (int y = 0; y < Z.h; ++y) for (int x = 0; x < Z.w; ++x)
+      dist[y][x] = next[y][x] = close[y][x] = MOD;
 
     LinkedList<Integer> Q = new LinkedList<>(), Q2 = new LinkedList<>();
     dist[Z.CUR.y][Z.CUR.x] = 0; Q.push(64*Z.CUR.x+Z.CUR.y);
@@ -95,7 +106,7 @@ public abstract class moveMap {
       if (distClose(bestCastle) < distClose(bestChurch)) return bestCastle;
       return bestChurch;
   }
-  int distHome() { return dist(closestStruct(true)); }
+  int distHome() { return distClose(closestStruct(true)); }
 
   Action2 move(int x, int y) {
     int t = next(close(x,y)); if (t == MOD) return null;

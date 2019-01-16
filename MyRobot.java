@@ -49,14 +49,12 @@ public class MyRobot extends BCAbstractRobot {
   int[] sortedKarb, sortedFuel, pilToKarb, pilToFuel, karbPos, fuelPos;
   Map<Integer,Integer> castleX = new HashMap<>();
   Map<Integer,Integer> castleY = new HashMap<>();
-  pi assignedPilgrimPos = new pi(-1,-1);
+  pi assignedPilgrimPos;
 
   // PILGRIM
-  boolean[][] dangerous;
-  int[][] distAlly, distEnemy;
-  safeMap safe;
+  int[][] danger; safeMap safe;
   int resource = -1; // karbonite or fuel
-  pi resourceLoc = new pi(-1,-1);
+  pi resourceLoc;
 
   void sortClose(ArrayList<pi> dirs) {
       Collections.sort(dirs, new Comparator<pi>() {
@@ -117,8 +115,7 @@ public class MyRobot extends BCAbstractRobot {
 
     lastTurn = new int[h][w];
     if (me.unit == PILGRIM) {
-      dangerous = new boolean[h][w];
-      distAlly = new int[h][w]; distEnemy = new int[h][w];
+      danger = new int[h][w];
       safe = new safeMap(this,4);
     } else {
       enemyDist = new int[h][w][2];
@@ -129,8 +126,9 @@ public class MyRobot extends BCAbstractRobot {
   int fdiv(int a, int b) { return (a-(a%b))/b; }
   int sq(int x) { return x*x; }
   String coordinates(int t) {
-      int y = t%64, x = fdiv(t,64);
-      return "("+x+", "+y+")";
+    if (t == MOD) return "(??)";
+    int y = t%64, x = fdiv(t,64);
+    return "("+x+", "+y+")";
   }
 
   // ACTION
@@ -355,35 +353,30 @@ public class MyRobot extends BCAbstractRobot {
   }
 
   // BFS DIST
-  void genDangerous() {
-      if (distAlly == null) {
-          distAlly = new int[h][w]; distEnemy = new int[h][w];
-          dangerous = new boolean[h][w];
-      }
-      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
-          distAlly[i][j] = MOD; distEnemy[i][j] = MOD;
-          dangerous[i][j] = false;
-      }
-      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (lastTurn[i][j] >= CUR.turn-60) {
-          if (yourAttacker(j,i)) {
-              int d = dangerRadius(robotMap[i][j]);
-              for (int I = -10; I <= 10; ++I) for (int J = -10; J <= 10; ++J) {
-                  int D = I*I+J*J;
-                  if (D <= d && inMap(j+J,i+I)) distAlly[i+I][j+J] = Math.min(distAlly[i+I][j+J],D);
-              }
+  void genDanger() {
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (lastTurn[i][j] >= CUR.turn-60)
+        if (enemyAttacker(j,i)) {
+          Robot2 R = robotMap[i][j];
+          int d = dangerRadius(R);
+          for (int I = -10; I <= 10; ++I) for (int J = -10; J <= 10; ++J) {
+            int D = I*I+J*J;
+            if (D <= d && inMap(j+J,i+I)) {
+              if (D <= MAX_ATTACK_R[R.unit]) danger[i+I][j+J] = 2;
+              else danger[i+I][j+J] = 1;
+            }
           }
-          if (enemyAttacker(j,i)) {
-              int d = dangerRadius(robotMap[i][j]);
-              for (int I = -10; I <= 10; ++I) for (int J = -10; J <= 10; ++J) {
-                  int D = I*I+J*J;
-                  if (D <= d && inMap(j+J,i+I)) distEnemy[i+I][j+J] = Math.min(distEnemy[i+I][j+J],D);
-              }
-          }
-      }
+        }
 
-      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
-          if (distEnemy[i][j] != MOD && Math.sqrt(distEnemy[i][j])-2 <= Math.sqrt(distAlly[i][j]))
-              dangerous[i][j] = true;
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (lastTurn[i][j] >= CUR.turn-60)
+        if (yourAttacker(j,i)) {
+          for (int I = -4; I <= 4; ++I) for (int J = -4; J <= 4; ++J) {
+            int D = I*I+J*J;
+            if (D <= 16 && inMap(j+J,i+I) && danger[i+I][j+J] == 1)
+              danger[i+I][j+J] = 0;
+          }
+        }
+
+      safe.upd();
   }
   void genEnemyDist() {
       if (enemyDist == null) {
@@ -534,6 +527,7 @@ public class MyRobot extends BCAbstractRobot {
       int a = sig%64; if (t != a) fill8by8(a);
       a = fdiv(sig,64); if (t != a) fill8by8(a);
   }
+
   // BUILD
   public boolean canBuild(int t) {
       if (!(fuel >= CONSTRUCTION_F[t] && karbonite >= CONSTRUCTION_K[t])) return false;
@@ -588,7 +582,6 @@ public class MyRobot extends BCAbstractRobot {
       return null;
   }
 
-
   int getSignal(Robot2 R) {
       return 625*(R.unit-3)+25*(R.x-CUR.x+12)+(R.y-CUR.y+12)+1;
   }
@@ -631,24 +624,12 @@ public class MyRobot extends BCAbstractRobot {
         return false;
     }
 
-  int numAttackersSeen() { // number of enemies in vision range
-		int res = 0;
-		for(int dx = -10; dx <= 10; dx++) {
-			for(int dy = -10; dy <= 10; dy++) {
-				if(dx*dx + dy*dy <= VISION_R[CUR.unit]) {
-					if(enemyAttacker(CUR.x+dx, CUR.y+dy)) res++;
-				}
-			}
-		}
-		return res;
-	}
-
   // COMMUNICATION
 
   void warnOthers() { // CUR.x, CUR.y are new pos, not necessarily equal to me.x, me.y;
     if (fuel < 100 || superseded(CUR.x,CUR.y)) return;
     Robot2 R = closestAttacker(ORI,1-CUR.team); if (euclidDist(ORI,R) > VISION_R[CUR.unit]) return;
-    int numEnemies = numAttackersSeen();
+    int numEnemies = U.closeEnemyAttackers();
     // try to activate around 2*numEnemies allies
     // count number allies already activated
     int cnt = 0;
@@ -757,7 +738,7 @@ public class MyRobot extends BCAbstractRobot {
       bfs.upd(); if (CUR.unit == CRUSADER) bfsShort.upd();
       castle_talk = -1; nextSignal = null;
       U = new unitCounter(this);
-      if (CUR.unit == PILGRIM) genDangerous();
+      if (CUR.unit == PILGRIM) genDanger();
       else genEnemyDist();
       updateAttackMode();
   }
@@ -817,12 +798,13 @@ public class MyRobot extends BCAbstractRobot {
       if (CUR.unit == CASTLE) {
         castle_talk = Math.min(U.closeAttackers(),254);
       } else {
-        int res = CUR.unit;
-        if (CUR.unit == PILGRIM && CUR.turn == 1) res = 6;
-        if (seeEnemy()) res += 7;
-        if (attackMode) res += 14;
+        castle_talk = CUR.unit;
+        if (CUR.unit == PILGRIM && CUR.turn == 1) castle_talk = 6;
+        if (seeEnemy()) castle_talk += 7;
+        if (attackMode) castle_talk += 14;
       }
     }
+    log("CASTLE TALK "+castle_talk);
     castleTalk(castle_talk);
     if (nextSignal != null) signal(nextSignal.f,nextSignal.s);
   }
@@ -830,7 +812,8 @@ public class MyRobot extends BCAbstractRobot {
   public Action turn() {
     if (me.turn == 1) initVars();
     updateVars();
-    
+    if (me.turn == 1) log("UNIT: "+CUR.unit);
+
     Action2 A = chooseAction();
     warnOthers();
     startAttack(); finish();

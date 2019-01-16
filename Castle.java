@@ -193,14 +193,14 @@ public class Castle extends Building {
   int getMessage(int x) { return x+2000; }
 
   void assignKarb(int i) {
-    Z.log("assigned smth to karbonite at " + Z.coordinates(Z.karbPos[Z.sortedKarb[i]]));
-    Z.nextSignal = new pi(Z.karbPos[Z.sortedKarb[i]], 2);
+    Z.log("assigned smth to karbonite at " + Z.coordinates(Z.karbPos[i]));
+    Z.nextSignal = new pi(getMessage(Z.karbPos[i]), 2);
     Z.assignedPilgrimPos = new pi(0,i);
   }
 
   void assignFuel(int i) {
-    Z.log("assigned smth to fuel at " + Z.coordinates(Z.fuelPos[Z.sortedFuel[i]]));
-    Z.nextSignal = new pi(Z.fuelPos[Z.sortedFuel[i]], 2);
+    Z.log("assigned smth to fuel at " + Z.coordinates(Z.fuelPos[i]));
+    Z.nextSignal = new pi(getMessage(Z.fuelPos[i]), 2);
     Z.assignedPilgrimPos = new pi(1,i);
   }
 
@@ -213,18 +213,17 @@ public class Castle extends Building {
 
   boolean tryAssignKarb() {
     for (int i = 0; i < Z.karbcount; i++)
-    if (!isOccupiedKarb[i]) {
-      // Z.log("HA "+i);
-      assignKarb(i); return true;
-    }
+      if (!isOccupiedKarb[Z.sortedKarb[i]]) {
+        assignKarb(Z.sortedKarb[i]); return true;
+      }
     return false;
   }
 
   boolean tryAssignFuel() {
     for (int i = 0; i < Z.fuelcount; i++)
-    if (!isOccupiedFuel[i]) {
-      assignFuel(i); return true;
-    }
+      if (!isOccupiedFuel[Z.sortedFuel[i]]) {
+        assignFuel(Z.sortedFuel[i]); return true;
+      }
     return false;
   }
 
@@ -288,7 +287,7 @@ public class Castle extends Building {
   }
 
   void updatePilgrimID() {
-    if (Z.assignedPilgrimPos.f == -1) return;
+    if (Z.assignedPilgrimPos == null) return;
     Robot2 R = newPilgrim();
     if (R == null) {
       Z.log("NO PILGRIM?");
@@ -301,7 +300,8 @@ public class Castle extends Building {
       Z.pilToFuel[R.id] = Z.assignedPilgrimPos.s;
       Z.log(R.id+" IS FUEL PILGRIM "+Z.pilToFuel[R.id]);
     }
-    Z.assignedPilgrimPos = new pi(-1,-1);
+
+    Z.assignedPilgrimPos = null;
   }
 
   boolean shouldPilgrim() {
