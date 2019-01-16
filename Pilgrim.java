@@ -93,9 +93,11 @@ public class Pilgrim extends Movable {
 	}
 
 	Action2 react() {
-        if (Z.dangerous[Z.CUR.y][Z.CUR.x]) {
-			Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
-			Z.goHome = true; return moveAway(R);
+		Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
+		if (Z.euclidDist(R) <= 100) {
+      		Z.goHome = true;
+      		Action2 A = tryGive(); if (A != null) return A;
+			return moveAway(R);
 		}
 		// Z.log("TRI "+Z.bfsDist.length+" "+Z.nextMoveSafe.length+" "+Z.dangerous.length);
         if (shouldBuildChurch()) return Z.tryBuildChurch();
