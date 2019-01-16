@@ -595,13 +595,13 @@ public class MyRobot extends BCAbstractRobot {
 		for(int dx = -1; dx <= 1; dx++) {
 			for(int dy = -1; dy <= 1; dy++) {
 				int x = CUR.x+dx; int y = CUR.y+dy;
-				if (passable(x,y) && !karboniteMap[y][x] && !fuelMap[y][x]) {
-					int cnt = 0;
+				if(passable(x,y) && !karboniteMap[y][x] && !fuelMap[y][x]) {
+					int cnt = -MOD;
 					for(int dx2 = -1; dx2 <= 1; dx2++) {
 						for(int dy2 = -1; dy2 <= 1; dy2++) {
 							if(!(dx2 == 0 && dy2 == 0)) {
 								int x2 = x+dx2; int y2 = y+dy2;
-								if(passable(x2,y2) && (karboniteMap[y2][x2] || fuelMap[y2][x2])) cnt++;
+								if(valid(x2,y2) && (karboniteMap[y2][x2] || fuelMap[y2][x2])) cnt++;
 							}
 						}
 					}

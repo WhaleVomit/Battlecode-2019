@@ -402,7 +402,7 @@ public class Castle extends Building {
         if (Z.CUR.turn > 1) { // first turn reserved to determine location of other castles
 			Action2 A = panicBuild(); if (A != null) return A;
             if (Z.isRushing()) return rushBuild();
-            if (shouldBuild) return build();
+            if (shouldBuild || Z.karbonite >= 80) return build();
         }
             // return testRanger();
         return null;
