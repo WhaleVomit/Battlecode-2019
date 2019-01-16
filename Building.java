@@ -7,7 +7,6 @@ public class Building {
 	public Building(MyRobot z) { Z = z; }
     int decideUnit() {
     	if (Z.CUR.team == 1) return MOD;
-    	if (Z.karbonite < 25) return CRUSADER;
 
 		int[] cnt = new int[6];
 		for(int dx = -10; dx <= 10; dx++) {
@@ -26,6 +25,7 @@ public class Building {
 		int preach = cnt[CASTLE]+cnt[CHURCH] + cnt[PILGRIM] + 2*cnt[CRUSADER]; if(!Z.canBuild(PREACHER)) preach = 0;
 		
 		if (crus + proph + preach == 0) return MOD;
+    	if (Z.karbonite < 25) return CRUSADER;
 		if (cnt[CRUSADER]+cnt[PROPHET]+cnt[PREACHER] == 0 && Z.euclidDist(Z.closestAttacker(Z.CUR,Z.CUR.team)) <= 2) return MOD;
 		if (crus >= proph && crus >= preach) return CRUSADER;
 		if (proph >= crus && proph >= preach) return PROPHET;
