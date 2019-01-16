@@ -11,7 +11,7 @@ public class MyRobot extends BCAbstractRobot {
 
     // MAP (arrays are by y and then x)
     int DESIRED = 150; // ratio of fuel to attack troops
-    int w, h; // width, height
+    int w, h, lastSignalAttack, lastAttack; // width, height
     boolean hsim, wsim;
     Robot2[] robots;
     Robot2[][] robotMap; // stores last robot seen in pos
@@ -595,7 +595,7 @@ public class MyRobot extends BCAbstractRobot {
 		for(int dx = -1; dx <= 1; dx++) {
 			for(int dy = -1; dy <= 1; dy++) {
 				int x = CUR.x+dx; int y = CUR.y+dy;
-				if(passable(x,y) && !karboniteMap[y][x] && !fuelMap[y][x]) {
+				if (passable(x,y) && !karboniteMap[y][x] && !fuelMap[y][x]) {
 					int cnt = 0;
 					for(int dx2 = -1; dx2 <= 1; dx2++) {
 						for(int dy2 = -1; dy2 <= 1; dy2++) {
@@ -907,10 +907,7 @@ public class MyRobot extends BCAbstractRobot {
 
     boolean shouldBeginAttack() {
         if (enemyDist[CUR.y][CUR.x][0] < 10) return false;
-        // log("HUH "+needAttackers());
-        for (Robot2 R: robots)
-            if (R.team == CUR.team && R.unit == CASTLE && R.castle_talk == 255)
-                if (closeAttackers() >= 0.75*needAttackers()) return true;
+        if (lastAttack >= CUR.turn-5 && closeAttackers() >= 0.75*needAttackers()) return true;
         return CUR.turn > 800 || (closeAttackers() >= needAttackers() && fuel >= 0.9*DESIRED*allAttackers());
     }
 
@@ -925,13 +922,18 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     void startAttack() {
-        if (CUR.unit != CASTLE || signaled) return;
+        if (CUR.unit != CASTLE) return;
+        for (Robot2 R: robots)
+            if (R.team == CUR.team && R.unit == CASTLE && R.castle_talk == 255)
+                lastAttack = CUR.turn;
+        if (signaled || lastSignalAttack >= CUR.turn-10) return;
         if (shouldBeginAttack()) { // (CUR.team == 0 && attackMode))
             int r = farthestDefenderRadius();
             if (r > 0 && fuel >= r) {
+                lastSignalAttack = CUR.turn;
                 log("SIGNAL ATTACK "+CUR.x+" "+CUR.y+" "+r+" "+fuel+" "+closeAttackers());
                 signal(20000,r);
-                castleTalk(255);
+                castleTalk(255); signaled = true;
             }
         }
     }
@@ -1005,6 +1007,7 @@ public class MyRobot extends BCAbstractRobot {
         if (CUR.unit != CASTLE) warnOthers();
         startAttack();
         lastHealth = CUR.health;
+        if (!signaled && CUR.unit == CASTLE) castleTalk(0); 
         return conv(A);
     }
 }
