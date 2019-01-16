@@ -354,6 +354,7 @@ public class Castle extends Building {
         return 2*Z.closeUnits[PILGRIM] <= Z.closeUnits[3]+Z.closeUnits[4]+Z.closeUnits[5];
     }
     boolean shouldRush() { return Z.CUR.turn <= 20; }
+    boolean tooMany() { return Z.closeAttackers() >= Z.needAttackers() && Z.numUnits[2] >= 10 && Z.fuel < Z.DESIRED*Z.allAttackers(); }
     Action2 rushBuild() {
         if (shouldPilgrim() && Z.numUnits[PILGRIM] < 2) return makePilgrim();
 
