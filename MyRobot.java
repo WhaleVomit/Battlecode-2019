@@ -644,6 +644,7 @@ public class MyRobot extends BCAbstractRobot {
 	}
 
   // COMMUNICATION
+
   void warnOthers() { // CUR.x, CUR.y are new pos, not necessarily equal to me.x, me.y;
     if (fuel < 100 || superseded(CUR.x,CUR.y)) return;
     Robot2 R = closestAttacker(ORI,1-CUR.team); if (euclidDist(ORI,R) > VISION_R[CUR.unit]) return;
@@ -828,12 +829,10 @@ public class MyRobot extends BCAbstractRobot {
 
   public Action turn() {
     if (me.turn == 1) initVars();
-    log("OK");
     updateVars();
-    // if (CUR.turn == 1) log("TYPE: "+CUR.unit);
-    if (CUR.unit == CASTLE) warnOthers();
+    
     Action2 A = chooseAction();
-    if (CUR.unit != CASTLE) warnOthers();
+    warnOthers();
     startAttack(); finish();
     return conv(A);
   }

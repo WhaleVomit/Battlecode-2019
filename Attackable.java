@@ -107,7 +107,7 @@ public class Attackable extends Movable {
     }
 
     public Action2 position() {
-		  Robot2 R = Z.closestEnemy(Z.CUR);
+		  Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
 		  if (Z.euclidDist(R) > 196 || (Z.euclidDist(R) > 100 && Z.bfs.distHome() > 9)) return null;
       if (Z.euclidDist(R) < MIN_ATTACK_R[Z.CUR.unit]) {
           Action2 A = moveAway(R);
@@ -182,7 +182,7 @@ public class Attackable extends Movable {
     }
 
     Action2 aggressive() {
-        Robot2 R = Z.closestEnemy(Z.CUR);
+        Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
         if (Z.CUR.unit == CRUSADER && Z.CUR.health == Z.lastHealth) {
             int b = shortestNotCrusaderDist(R);
             if (b != MOD && Z.euclidDist(R) <= b) {
