@@ -46,18 +46,24 @@ public class Castle extends Building {
                 Z.myCastleID.add(R.id);
             }
         }
+        for (Robot2 R: Z.robots) if (Z.myCastleID.contains(R.id) && R.castle_talk > 0) {
+            int z = R.castle_talk;
+            if (Z.me.turn <= 2 && z <= 64) Z.canRush = false;
+            if (z > 64) z -= 128;
+            z --;
 
-        for (Robot2 R: Z.robots) if (Z.myCastleID.contains(R.id)) {
-            if (R.castle_talk > 0 && R.castle_talk <= 64) Z.castleX.put(R.id,R.castle_talk-1);
-            if (R.castle_talk > 64 && R.castle_talk <= 128) {
-                Z.castleY.put(R.id,R.castle_talk-65);
+            if (!Z.castleX.containsKey(R.id)) Z.castleX.put(R.id,z);
+            else if (!Z.castleY.containsKey(R.id)) {
+                Z.castleY.put(R.id,z);
                 Z.addStruct(Z.makeRobot(R.id,0,Z.CUR.team,Z.castleX.get(R.id),Z.castleY.get(R.id)));
             }
         }
-
-        if (Z.CUR.turn == 1) Z.castleTalk(Z.CUR.x+1);
-        else if (Z.CUR.turn == 2) Z.castleTalk(64+Z.CUR.y+1);
-        else if (Z.CUR.turn == 3) Z.castleTalk(0);
+        int message = 128 * (Z.canRush ? 1 : 0);  message ++;
+        if (Z.CUR.turn == 1) message += Z.CUR.x;
+        else if (Z.CUR.turn == 2) message += Z.CUR.y;
+        else message = 0;
+        // Z.log("WILL SEND MESSAGE "+message);
+        Z.castleTalk(message);
     }
 
     boolean ourSide(int pos) {
@@ -281,22 +287,28 @@ public class Castle extends Building {
     }
     boolean shouldRush() { return Z.CUR.turn <= 20; }
     boolean tooMany() { return Z.movableUnits() >= 30 && Z.numUnits[2] >= 10 && Z.fuel < Z.DESIRED*Z.allAttackers(); }
+    Action2 rushBuild() {
+        if (shouldPilgrim() && Z.numUnits[PILGRIM] < 2) return makePilgrim();
+
+        Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
+        if (Z.CUR.id != Z.getMin(Z.myCastleID)) return null;
+        // if (Z.euclidDist(R) > VISION_R[Z.CUR.unit] && Z.karbonite < 50) return null;
+        return Z.tryBuild(PROPHET);
+
+            // 
+        // if (noPreacher()) return Z.tryBuild(PREACHER);
+    }
     Action2 build() {
         if (tooMany()) return null;
         if (shouldPilgrim()) return makePilgrim();
+
         int mn = MOD;
         Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team); 
         if (Z.CUR.turn > 4 && Z.euclidDist(R) > VISION_R[Z.CUR.unit]) {
             for (Robot2 C: Z.robots) if (Z.myCastleID.contains(C.id)) 
                 mn = Math.min(mn,C.castle_talk);
-            // Z.log("HUH "+Z.CUR.x+" "+Z.CUR.y+" "+Z.closeAttackers()+" "+mn);
-            if (Z.closeAttackers() > mn+2) return null; 
+            if (Z.enemyDist[Z.CUR.y][Z.CUR.x][0] > 25 && Z.closeAttackers() > mn+2) return null; 
         }
-
-        if (shouldRush()) {
-            Action2 A = Z.tryBuild(PREACHER); if (A != null) return A;
-            return Z.tryBuild(CRUSADER);
-        } 
 
         double a = Z.closeUnits[3], b = Z.closeUnits[4]/2.0, c = Z.closeUnits[5];
         if (b <= Math.min(a,c)) return Z.tryBuild(PROPHET);
@@ -319,8 +331,9 @@ public class Castle extends Building {
         updatePilgrimID();
         updateVars();
         if (Z.CUR.turn > 3) Z.castleTalk(Z.closeAttackers()%256);
-        if (Z.me.turn > 1) { // first turn reserved to determine location of other castles
-			Action2 A = panicBuild(); if(A != null) return A;
+        if (Z.CUR.turn > 1) { // first turn reserved to determine location of other castles
+			Action2 A = panicBuild(); if (A != null) return A;
+            if (Z.isRushing()) return rushBuild();
             return build();
             //if (Z.me.team == 0) return testCrusader();
             //else return testPreacher();

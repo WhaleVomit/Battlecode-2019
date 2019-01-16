@@ -6,15 +6,15 @@ import java.awt.*;
 
 public class Pilgrim extends Movable {
     ArrayList<Integer> sites;
-    
-    public Pilgrim (MyRobot z) { 
-    	super(z); 
+
+    public Pilgrim (MyRobot z) {
+    	super(z);
 	    sites = new ArrayList<>();
 	}
 
 	/*int getkarboscore(int x, int y) { // checks if this 5x5 square is a good spot to mine
 		int numr = 0, nump = 0; // number of resource squares, number of pilgrims
-		for (int dx = -2; dx <= 2; dx++) for (int dy = -2; dy <= 2; dy++) 
+		for (int dx = -2; dx <= 2; dx++) for (int dy = -2; dy <= 2; dy++)
 			if (Z.valid(x+dx,y+dy)) {
 				if (Z.karboniteMap[y+dy][x+dx]) numr ++;
 				int id = Z.robotMapID[y+dy][x+dx];
@@ -28,7 +28,7 @@ public class Pilgrim extends Movable {
 
 	double getfuelscore(int x, int y) { // checks if this 5x5 square is a good spot to mine
 		double numr = 0, nump = 0; // number of resource squares, number of pilgrims
-		for (int dx = -2; dx <= 2; dx++) for(int dy = -2; dy <= 2; dy++) 
+		for (int dx = -2; dx <= 2; dx++) for(int dy = -2; dy <= 2; dy++)
 			if (Z.valid(x+dx,y+dy)) {
 				if (Z.fuelMap[y+dy][x+dx]) numr++;
 				int id = Z.robotMapID[y+dy][x+dx];
@@ -58,8 +58,8 @@ public class Pilgrim extends Movable {
 
 	int closeFreeResource(boolean karb, boolean fuel) {
 		boolean[][] b = new boolean[Z.h][Z.w];
-		for (int x = 0; x < Z.w; x++) for (int y = 0; y < Z.h; y++) 
-			if (((karb && Z.karboniteMap[y][x]) || (fuel && Z.fuelMap[y][x])) && Z.robotMapID[y][x] <= 0) 
+		for (int x = 0; x < Z.w; x++) for (int y = 0; y < Z.h; y++)
+			if (((karb && Z.karboniteMap[y][x]) || (fuel && Z.fuelMap[y][x])) && Z.robotMapID[y][x] <= 0)
 				b[y][x] = true;
 		return Z.closestUnused(b);
 	}
@@ -87,14 +87,16 @@ public class Pilgrim extends Movable {
             if (Z.resourceLoc.f == -1) Z.log("DID NOT GET ASSIGNMENT??");
             else Z.log(Z.CUR.id + " received instructions to go to (" + Z.resourceLoc.f + "," + Z.resourceLoc.s+")");
 			Z.sendToCastle(6);
-	        Z.resource = getResource(Z.resourceLoc); 
+	        Z.resource = getResource(Z.resourceLoc);
         } else Z.sendToCastle();
 	}
 
 	Action2 react() {
-        if (Z.dangerous[Z.CUR.y][Z.CUR.x]) {
-			Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team); 
-			Z.goHome = true; return moveAway(R);
+		Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
+		if (Z.euclidDist(R) <= 100) {
+      		Z.goHome = true;
+      		Action2 A = tryGive(); if (A != null) return A;
+			return moveAway(R);
 		}
 		// Z.log("TRI "+Z.bfsDist.length+" "+Z.nextMoveSafe.length+" "+Z.dangerous.length);
         if (shouldBuildChurch()) return Z.tryBuildChurch();
@@ -138,7 +140,7 @@ public class Pilgrim extends Movable {
 	}
 
     Action2 run() {
-    	init(); Action2 A = react(); if (A != null) return A;
-        return moveTowardResource();
+      init(); Action2 A = react(); if (A != null) return A;
+      return moveTowardResource();
     }
 }

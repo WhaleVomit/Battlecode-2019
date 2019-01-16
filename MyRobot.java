@@ -20,6 +20,7 @@ public class MyRobot extends BCAbstractRobot {
     int[][] bfsDist, nextMove;
     int[][] bfsDistShort, nextMoveShort;
     boolean updEnemy = false;
+    boolean canRush = true;
     ArrayList<Integer> myCastle = new ArrayList<>(), otherCastle = new ArrayList<>();
     ArrayList<Integer> myChurch = new ArrayList<>(), otherChurch = new ArrayList<>();
     ArrayList<Integer> myStructID = new ArrayList<>(), myCastleID = new ArrayList<>();
@@ -102,6 +103,10 @@ public class MyRobot extends BCAbstractRobot {
         A.clear();
         for (Integer i : B) A.add(i);
     }*/
+    int getMin(ArrayList<Integer> A) {
+        int res = MOD; for (int i: A) res = Math.min(res,i);
+        return res;
+    }
 
     // EUCLID DIST
     int euclidDist(int x1, int y1, int x2, int y2) { 
@@ -139,7 +144,7 @@ public class MyRobot extends BCAbstractRobot {
     String toString(ArrayList<Integer> A) {
         String res = "{";
         for (int i = 0; i < A.size(); ++i) {
-            res += coordinates(i);
+            res += coordinates(A.get(i));
             if (i != A.size()-1) res += ", ";
         }
         res += "}";
@@ -437,6 +442,14 @@ public class MyRobot extends BCAbstractRobot {
             }
         return bestPos;
     }
+    int closestUnseenSafe() {
+        int bestDist = MOD, bestPos = MOD;
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
+            if (passable(j, i) && bfsDistSafe[i][j] < bestDist && robotMapID[i][j] == -1) {
+                bestDist = bfsDistSafe[i][j]; bestPos = 64*j+i;
+            }
+        return bestPos;
+    }
     int closestUnused(boolean[][] B) {
         int bestDist = MOD, bestPos = MOD; if (B == null) return bestPos;
         for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
@@ -630,6 +643,7 @@ public class MyRobot extends BCAbstractRobot {
     public void addYour(ArrayList<Integer> A, Robot2 R) {
         int p = 64*R.x+R.y;
         if (!yesStruct(R.x,R.y)) return;
+        // log("WHAT "+R.x+" "+R.y+" "+p);
         if (R.id != MOD && !myStructID.contains(R.id)) myStructID.add(R.id);
         if (R.unit == CASTLE && R.id != MOD && !myCastleID.contains(R.id)) myCastleID.add(R.id);
         if (A.contains(p)) return;
@@ -661,6 +675,7 @@ public class MyRobot extends BCAbstractRobot {
     }
     public void addStruct(Robot2 R) {
         if (!yesStruct(R.x,R.y)) return;
+        //log("OOPS "+R.getInfo());
         if (R.unit == CHURCH) {
             if (R.team == CUR.team) addYour(myChurch,R);
             else if (R.team != CUR.team) addOther(otherChurch,R);
@@ -745,6 +760,7 @@ public class MyRobot extends BCAbstractRobot {
                 robotMapID[y][x] = MOD; robotMap[y][x] = makeRobot(type,1-CUR.team,x,y);
                 lastTurn[y][x] = CUR.turn;
             } else if (R.team == CUR.team && R.unit == CASTLE && R.signal >= 7000 && R.signal < 11100 && adjacent(CUR,R)) {
+                if (CUR.unit == CASTLE) continue;
                 decodeCastleLocations(R);
             }
 		}
@@ -852,7 +868,6 @@ public class MyRobot extends BCAbstractRobot {
                 }
             }
         }
-
         rem(myCastle); rem(otherCastle);
         rem(myChurch); rem(otherChurch);
     }
@@ -892,7 +907,7 @@ public class MyRobot extends BCAbstractRobot {
 
     boolean shouldBeginAttack() {
         if (enemyDist[CUR.y][CUR.x][0] < 10) return false;
-        log("HUH "+needAttackers());
+        // log("HUH "+needAttackers());
         for (Robot2 R: robots) 
             if (R.team == CUR.team && R.unit == CASTLE && R.castle_talk == 255) 
                 if (closeAttackers() >= 0.75*needAttackers()) return true;
@@ -965,12 +980,26 @@ public class MyRobot extends BCAbstractRobot {
         return A;
     }
 
+    public boolean isRushing() {
+        return canRush && CUR.unit != PILGRIM && CUR.turn <= 30 && enemyDist[CUR.y][CUR.x][0] <= 25;
+    }
+
     public Action turn() {
         getVars(); updateData();
         genBfsDist(CUR.unit == CRUSADER ? 9 : 4);
         if (CUR.unit == CRUSADER) genBfsDistShort(4);
-        if (CUR.unit == 2) genDistSafe();
+        if (CUR.unit == PILGRIM) genDistSafe();
         else genEnemyDist();
+        if (CUR.unit == CASTLE && enemyDist[CUR.y][CUR.x][0] > 25) canRush = false;
+        if (CUR.unit != CASTLE) {
+            for (int i = 0; i < 6; ++i) closeUnits[i] = 0;
+            for (Robot2 R: robots) if (R.team == CUR.team && R.unit != -1) 
+                closeUnits[R.unit] ++;
+        }
+        if (isRushing() && closeAttackers() >= 3) attackMode = true;
+
+        // log(CUR.getInfo()+toString(myCastle)+" "+toString(otherCastle));
+
         if (CUR.turn == 1) log("TYPE: "+CUR.unit);
         if (CUR.unit == CASTLE) warnOthers();
         Action2 A = chooseAction();
