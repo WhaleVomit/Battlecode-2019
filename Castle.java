@@ -121,6 +121,40 @@ public class Castle extends Building {
             }
         }
     }
+    
+    boolean betterAgg(int pos1, int pos2) {
+		boolean b1 = ourSide(pos1), b2 = ourSide(pos2);
+        if (b1 != b2)
+		if (b1 && !b2) return false;
+		else if(!b1 && b2) return true;
+		return Z.bfsDist(pos1) < Z.bfsDist(pos2);
+	}
+    
+    void sortKarbAgg() {
+		for (int i = 0; i < Z.karbcount-1; i++) {
+            for (int j = 0; j < Z.karbcount - i - 1; j++) {
+                if (!betterAgg(Z.karbPos[Z.sortedKarb[j]],Z.karbPos[Z.sortedKarb[j+1]])) {
+                    // swap arr[j+1] and arr[i]
+                    int temp = Z.sortedKarb[j];
+                    Z.sortedKarb[j] = Z.sortedKarb[j + 1];
+                    Z.sortedKarb[j + 1] = temp;
+                }
+            }
+        }
+	}
+	
+	void sortFuelAgg(){
+        for (int i = 0; i < Z.fuelcount-1; i++) {
+            for (int j = 0; j < Z.fuelcount - i - 1; j++) {
+                if (!betterAgg(Z.fuelPos[Z.sortedFuel[j]],Z.fuelPos[Z.sortedFuel[j+1]])) {
+                    // swap arr[j+1] and arr[i]
+                    int temp = Z.sortedFuel[j];
+                    Z.sortedFuel[j] = Z.sortedFuel[j + 1];
+                    Z.sortedFuel[j + 1] = temp;
+                }
+            }
+        }
+    }
 
     void initVars() {
         for (int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++){
@@ -154,8 +188,11 @@ public class Castle extends Building {
             Z.log("AA "+Z.karbPos[Z.sortedKarb[i]]+" "+Z.coordinates(p)+" "+ourSide(p)+" "+Z.bfsDist(p));
         }*/
     }
+    
+    boolean shouldBuild = true;
 
     void updateVars() {
+		shouldBuild = true;
         for (int i = 0; i < Z.karbcount; i++) Z.isOccupiedKarb[i] = false;
         for (int i = 0; i < Z.fuelcount; i++) Z.isOccupiedFuel[i] = false;
 
@@ -178,6 +215,7 @@ public class Castle extends Building {
                 Z.numUnits[0] ++;
                 if (Z.euclidDist(Z.CUR,R) <= 100) Z.closeUnits[0] ++;
             } else {
+				if(R.castle_talk == 34) shouldBuild = false;
                 int t = R.castle_talk % 7; if (t == 6) t = 2;
                 Z.numUnits[t] ++; 
                 if (Z.euclidDist(R) <= 100) Z.closeUnits[t] ++;
@@ -234,6 +272,33 @@ public class Castle extends Building {
             }
         return false;
     }
+    
+    boolean tryAssignAggressive() {
+		int tot = Z.karbcount+Z.fuelcount;
+        int x = (int)(Math.random()*tot);
+        if(x < Z.karbcount) {
+			sortKarbAgg();
+			for(int i = 0; i < Z.karbcount; i++) {
+				if (!Z.isOccupiedKarb[i]) {
+					sortKarb();
+					assignKarb(i);
+					return true;
+				}
+            }
+            sortKarb();
+		} else {
+			sortFuelAgg();
+			for (int i = 0; i < Z.fuelcount; i++) {
+				if (!Z.isOccupiedFuel[i]) {
+					assignFuel(i);
+					sortFuel();
+					return true;
+				}
+			}
+			sortFuel();
+		}
+		return false;
+	}
 
     Action2 makePilgrim() {
         double a = Z.karbonite, b = (Z.fuel-Z.DESIRED*Z.allAttackers())/5.0; 
@@ -242,6 +307,9 @@ public class Castle extends Building {
         else if (2*Z.numFuel <= Z.numKarb) assigned = tryAssignFuel();
         else if (a < b) assigned = tryAssignKarb();
         else assigned = tryAssignFuel();
+        if (Z.numUnits[PILGRIM]%6 == 3) {
+			assigned = tryAssignAggressive();
+		}
         if (!assigned) assignRand();
         return Z.tryBuild(PILGRIM);
     }
@@ -334,9 +402,7 @@ public class Castle extends Building {
         if (Z.CUR.turn > 1) { // first turn reserved to determine location of other castles
 			Action2 A = panicBuild(); if (A != null) return A;
             if (Z.isRushing()) return rushBuild();
-            return build();
-            //if (Z.me.team == 0) return testCrusader();
-            //else return testPreacher();
+            if (shouldBuild) return build();
         }
             // return testRanger();
         return null;

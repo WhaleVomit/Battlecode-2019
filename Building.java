@@ -20,7 +20,7 @@ public class Building {
 				}
 			}
 		}
-
+		
 		int crus = 0; // if(!Z.canBuild(CRUSADER) || cnt[PREACHER] >= 3) crus = 0; cnt[PREACHER] + cnt[CASTLE]
 		int proph = 2*cnt[PREACHER] + 2*cnt[CRUSADER] + 2*cnt[PROPHET]; if(!Z.canBuild(PROPHET)) proph = 0;
 		int preach = cnt[CASTLE]+cnt[CHURCH] + cnt[PILGRIM] + 2*cnt[CRUSADER]; if(!Z.canBuild(PREACHER)) preach = 0;
