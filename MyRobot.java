@@ -601,7 +601,7 @@ public class MyRobot extends BCAbstractRobot {
 						for(int dy2 = -1; dy2 <= 1; dy2++) {
 							if(!(dx2 == 0 && dy2 == 0)) {
 								int x2 = x+dx2; int y2 = y+dy2;
-								if(passable(x2,y2) && (karboniteMap[y2][x2] || fuelMap[y2][x2])) cnt++;
+								if(valid(x2,y2) && (karboniteMap[y2][x2] || fuelMap[y2][x2])) cnt++;
 							}
 						}
 					}
