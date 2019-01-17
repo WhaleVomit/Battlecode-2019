@@ -422,11 +422,13 @@ public class Castle extends Building {
     determineCastleLoc();
     updatePilgrimID();
     updateVars();
+    Action2 A = null;
     if (Z.CUR.turn > 1) { // first turn reserved to determine location of other castles
-      Action2 A = panicBuild(); if (A != null) return A;
-      if (Z.isRushing()) return rushBuild();
-      if (shouldBuild || Z.karbonite >= 80) return build();
+      A = panicBuild();
+      if (A == null && Z.isRushing()) A = rushBuild();
+      if (A == null && (shouldBuild || Z.karbonite >= 80)) A = build();
     }
+    if(A != null) return A;
     return tryAttack();
   }
 }
