@@ -145,6 +145,7 @@ public class Attackable extends Movable {
         return position();
     }
     public int patrolVal(int X, int Y, int x, int y) {
+		if (Z.euclidDist(X,Y,x,y) < 4) return MOD; // avoid congestion
         //if (Z.numOpen(64*x+y) <= 2) Z.avoidCastle = true;
         if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {
             if (Z.sq(X-x)+Z.sq(Y-y) <= 2 && Z.avoidCastle) return MOD;
