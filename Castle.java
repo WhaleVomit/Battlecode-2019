@@ -334,7 +334,7 @@ public class Castle extends Building {
   }
 
   Action2 build() {
-  // if (Z.euclidDist(R) > VISION_R[Z.CUR.unit] && Z.karbonite < 50) return null;
+      // if (Z.euclidDist(R) > VISION_R[Z.CUR.unit] && Z.karbonite < 50) return null;
     if (Z.U.tooMany()) return null;
     if (shouldPilgrim()) return makePilgrim();
 
@@ -347,6 +347,66 @@ public class Castle extends Building {
     }
 
     return Z.tryBuild(Z.U.decideUnit());
+  }
+
+  public int attackPriority(Robot2 R) {
+      if (R.unit == PREACHER) return 10;
+      if (R.unit == PROPHET) return 7;
+      if (R.unit == CRUSADER) return 6;
+      if (R.unit == PILGRIM) return 5;
+      return 4;
+  }
+  public boolean inAttackRange(Robot2 R, int x, int y) { // can R attack (x,y)? assuming there is a robot at (x,y)
+      int d = Z.euclidDist(R,x,y);
+      int mn = MIN_ATTACK_R[R.unit]; if (R.unit == PREACHER) mn = 3;
+      return d >= mn && d <= MAX_ATTACK_R[R.unit];
+  }
+
+  public int preacherVal(Robot2 P, int x, int y) {
+      if (!Z.valid(x,y)) return 0;
+      int t = 0;
+      for (int i = x-1; i <= x+1; ++i) for (int j = y-1; j <= y+1; ++j)
+          if (Z.valid(i,j) && Z.robotMapID[j][i] > 0) {
+              Robot2 R = Z.robotMap[j][i];
+              int val = attackPriority(R);
+              val *= (R.team == P.team) ? -4 : 1;
+              if (R.isStructure()) val *= 2;
+              if (R.unit == CASTLE && R.team != Z.CUR.team && R.id == MOD) continue;
+              t += val;
+          }
+      return t;
+  }
+  public boolean containsConfident(int x, int y) {
+      for (int i = x-1; i <= x+1; ++i) for (int j = y-1; j <= y+1; ++j)
+          if (Z.enemyRobot(i,j) && Z.lastTurn[j][i] >= Z.CUR.turn-1) return true;
+      return false;
+  }
+
+  public double canAttack(int dx, int dy) {
+      if (ATTACK_F_COST[Z.CUR.unit] > Z.fuel) return -MOD;
+      int x = Z.CUR.x + dx, y = Z.CUR.y + dy;
+      if (!inAttackRange(Z.CUR,x,y)) return -MOD;
+      if (Z.CUR.unit == CRUSADER || Z.CUR.unit == PROPHET) {
+          if (!Z.enemyRobot(x,y)) return -MOD;
+          return attackPriority(Z.robotMap[y][x]);
+      } else {
+          if (!containsConfident(x,y)) return -MOD;
+          return preacherVal(Z.CUR,x,y);
+      }
+  }
+
+  public Action2 tryAttack() {
+      double besPri = 0;
+      int DX = MOD, DY = MOD;
+      for (int dx = -8; dx <= 8; ++dx)
+          for (int dy = -8; dy <= 8; ++dy) {
+              double t = canAttack(dx, dy);
+              if (t > besPri) {
+                  besPri = t; DX = dx; DY = dy;
+              }
+          }
+      if (besPri == 0) return null;
+      return Z.attackAction(DX,DY);
   }
 
   void dumpTroopInfo() {
@@ -367,6 +427,6 @@ public class Castle extends Building {
       if (Z.isRushing()) return rushBuild();
       if (shouldBuild || Z.karbonite >= 80) return build();
     }
-    return null;
+    return tryAttack();
   }
 }

@@ -138,6 +138,7 @@ public class Attackable extends Movable {
         if (besPri == 0) return null;
         return Z.attackAction(DX,DY);
     }
+
     public Action2 react() {
         Action2 A = dealWithPreacher();  if (A != null) return A;
         A = tryAttack(); if (A != null) return A;
