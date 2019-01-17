@@ -29,7 +29,6 @@ public class Building {
 	int toto = 0;
 	for(int i: cnto) toto += i;
     if (toto == 0) return MOD;
-    if (Z.karbonite < 25) return CRUSADER;
     if (cnto[CRUSADER]+cnto[PROPHET]+cnto[PREACHER] == 0 && Z.euclidDist(Z.closestAttacker(Z.CUR,Z.CUR.team)) <= 2) return MOD;
     if (crus >= proph && crus >= preach && crus > 0) return CRUSADER;
     if (proph >= crus && proph >= preach && proph > 0) return PROPHET;
