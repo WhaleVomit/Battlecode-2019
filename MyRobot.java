@@ -295,6 +295,14 @@ public class MyRobot extends BCAbstractRobot {
               bes = robotMap[i][j];
       return bes;
   }
+  int closestEuclid(ArrayList<Integer> A) {
+	  int bestDist = MOD, bestPos = MOD; if (A == null) return bestPos;
+	  for (int x : A) {
+      int d = euclidDist(x);
+      if (d < bestDist) { bestDist = d; bestPos = x; }
+    }
+    return bestPos;
+  }
 
   public boolean yesStruct(int x, int y) {
      if (!valid(x,y) || robotMapID[y][x] == 0) return false;

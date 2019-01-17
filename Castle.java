@@ -60,9 +60,8 @@ public class Castle extends Building {
 
   boolean better(int pos1, int pos2) {
     boolean b1 = ourSide(pos1), b2 = ourSide(pos2);
-    if (b1 != b2)
     if (b1 && !b2) return true;
-    else if (!b1 && b2) return false;
+	else if (!b1 && b2) return false;
     return Z.bfs.dist(pos1) < Z.bfs.dist(pos2);
   }
 
@@ -93,11 +92,20 @@ public class Castle extends Building {
   }
 
   boolean betterAgg(int pos1, int pos2) {
-    boolean b1 = ourSide(pos1), b2 = ourSide(pos2);
-    if (b1 != b2)
-    if (b1 && !b2) return false;
-    else if(!b1 && b2) return true;
-    return Z.bfs.dist(pos1) < Z.bfs.dist(pos2);
+    int val1 = Z.bfs.dist(pos1);
+    int val2 = Z.bfs.dist(pos2);
+    if(Z.wsim) {
+		int x1 = Z.fdiv(pos1, 64);
+		int x2 = Z.fdiv(pos2, 64);
+		val1 *= Math.abs(x1 - Z.fdiv(Z.w,2));
+		val2 *= Math.abs(x2 - Z.fdiv(Z.w,2));
+	} else {
+		int y1 = pos1%64;
+		int y2 = pos2%64;
+		val1 *= Math.abs(y1 - Z.fdiv(Z.h,2));
+		val2 *= Math.abs(y2 - Z.fdiv(Z.h,2));
+	}
+    return val1 < val2;
   }
 
   void sortKarbAgg() {
@@ -234,8 +242,8 @@ public class Castle extends Building {
       sortKarbAgg();
       for(int i = 0; i < Z.karbcount; i++) {
         if (!isOccupiedKarb[i]) {
+          assignKarb(Z.sortedKarb[i]);
           sortKarb();
-          assignKarb(i);
           return true;
         }
       }
@@ -244,7 +252,7 @@ public class Castle extends Building {
       sortFuelAgg();
       for (int i = 0; i < Z.fuelcount; i++) {
         if (!isOccupiedFuel[i]) {
-          assignFuel(i);
+          assignFuel(Z.sortedFuel[i]);
           sortFuel();
           return true;
         }

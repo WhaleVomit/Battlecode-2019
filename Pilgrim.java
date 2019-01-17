@@ -21,11 +21,9 @@ public class Pilgrim extends Movable {
 
   boolean shouldBuildChurch() { // has to be on resource square with no resource next to it
     if (!Z.containsResource(Z.CUR.x,Z.CUR.y)) return false;
-    if (Z.bfs.distHome() >= churchThreshold) {
-      Z.castle_talk = 30;
-      if (Z.canBuild(CHURCH)) return true;
-    }
-    return false;
+    if (Z.bfs.distHome() < churchThreshold) return false;
+    Z.castle_talk = 30;
+    return Z.canBuild(CHURCH);
   }
 
   int closeFreeResource(boolean karb, boolean fuel) {

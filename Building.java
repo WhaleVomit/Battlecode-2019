@@ -8,28 +8,33 @@ public class Building {
   int decideUnit() {
     // if (Z.CUR.team == 1) return MOD;
 
-    int[] cnt = new int[6];
+    int[] cnto = new int[6];
+    int[] cntc = new int[6];
     for(int dx = -10; dx <= 10; dx++) {
       for(int dy = -10; dy <= 10; dy++) if(dx*dx + dy*dy <= VISION_R[Z.CUR.unit]) {
         int x = Z.CUR.x + dx; int y = Z.CUR.y + dy;
         if(!Z.valid(x,y)) continue;
         if(Z.robotMapID[y][x] > 0) {
           Robot2 R = Z.robotMap[y][x];
-          if (R.team != Z.CUR.team) cnt[R.unit]++;
+          if (R.team != Z.CUR.team) cnto[R.unit]++;
+          else cntc[R.unit]++;
         }
       }
     }
 
-    int crus = 0; // if(!Z.canBuild(CRUSADER) || cnt[PREACHER] >= 3) crus = 0; cnt[PREACHER] + cnt[CASTLE]
-    int proph = 2*cnt[PREACHER] + 2*cnt[CRUSADER] + 2*cnt[PROPHET]; if(!Z.canBuild(PROPHET)) proph = 0;
-    int preach = cnt[CASTLE]+cnt[CHURCH] + cnt[PILGRIM] + 2*cnt[CRUSADER]; if(!Z.canBuild(PREACHER)) preach = 0;
+    int crus = 2*cnto[CRUSADER] - cntc[CRUSADER]; // if(!Z.canBuild(CRUSADER) || cnt[PREACHER] >= 3) crus = 0; cnt[PREACHER] + cnt[CASTLE]
+    int proph = 2*cnto[PREACHER] + 2*cnto[CRUSADER] + 2*cnto[PROPHET]; if(!Z.canBuild(PROPHET)) proph = 0;
+    int preach = cnto[CASTLE]+cnto[CHURCH] + cnto[PILGRIM] + 2*cnto[CRUSADER] - cntc[PREACHER]; if(!Z.canBuild(PREACHER)) preach = 0;
 
-    if (crus + proph + preach == 0) return MOD;
+	int toto = 0;
+	for(int i: cnto) toto += i;
+    if (toto == 0) return MOD;
     if (Z.karbonite < 25) return CRUSADER;
-    if (cnt[CRUSADER]+cnt[PROPHET]+cnt[PREACHER] == 0 && Z.euclidDist(Z.closestAttacker(Z.CUR,Z.CUR.team)) <= 2) return MOD;
-    if (crus >= proph && crus >= preach) return CRUSADER;
-    if (proph >= crus && proph >= preach) return PROPHET;
-    return PREACHER;
+    if (cnto[CRUSADER]+cnto[PROPHET]+cnto[PREACHER] == 0 && Z.euclidDist(Z.closestAttacker(Z.CUR,Z.CUR.team)) <= 2) return MOD;
+    if (crus >= proph && crus >= preach && crus > 0) return CRUSADER;
+    if (proph >= crus && proph >= preach && proph > 0) return PROPHET;
+    if (preach > 0) return PREACHER;
+    return MOD;
   }
 
   Action2 panicBuild() {
