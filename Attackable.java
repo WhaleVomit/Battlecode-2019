@@ -145,7 +145,7 @@ public class Attackable extends Movable {
     }
     public int patrolVal(int X, int Y, int x, int y) {
         //if (Z.numOpen(64*x+y) <= 2) Z.avoidCastle = true;
-        if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0 && X % 2 == 0) {
+        if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {
             if (Z.sq(X-x)+Z.sq(Y-y) <= 2 && Z.avoidCastle) return MOD;
             int val = Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
             if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += 10;
