@@ -97,7 +97,7 @@ public class MyRobot extends BCAbstractRobot {
   }
 
   void initVars() {
-    if (me.unit == CASTLE) canRush = true;
+    // if (me.unit == CASTLE) canRush = true;
     dirs = new ArrayList<>();
     for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy)
       if (dx*dx + dy*dy <= 9) dirs.add(new pi(dx,dy));
