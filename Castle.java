@@ -424,7 +424,7 @@ public class Castle extends Building {
     updateVars();
     Action2 A = null;
     if (Z.CUR.turn > 1) { // first turn reserved to determine location of other castles
-      A = panicBuild();
+      A = panicBuild(); if(Z.CUR.turn <= 30) A = null;
       if (A == null && Z.isRushing()) A = rushBuild();
       if (A == null && (shouldBuild || Z.karbonite >= 80)) A = build();
     }
