@@ -55,8 +55,8 @@ public abstract class moveMap {
     while (Q2.size() > 0) {
       int t = Q2.poll();
       int x = Z.fdiv(t,64), y = t % 64;
-      for (pi p: dirs) {
-        int X = x+p.f; int Y = y+p.s;
+      for (int i = 0; i < 8; i++) {
+        int X = x+DX[i]; int Y = y+DY[i];
         if (Z.inMap(X,Y) && close[Y][X] == MOD) {
           close[Y][X] = close[y][x];
           Q2.push(64*X+Y);

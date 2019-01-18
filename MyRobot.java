@@ -412,7 +412,7 @@ public class MyRobot extends BCAbstractRobot {
           int k = t % 2; t = fdiv(t,2);
           int x = fdiv(t,64), y = t % 64;
           for (int z = 0; z < 4; ++z) {
-              int X = x+xd[z], Y = y+yd[z];
+              int X = x+DX_EDGE_ONLY[z], Y = y+DY_EDGE_ONLY[z];
               if (inMap(X,Y)) {
                   int K = k+1; if (map[Y][X]) K = 0;
                   if (K == 2 || enemyDist[Y][X][K] != MOD) continue;
