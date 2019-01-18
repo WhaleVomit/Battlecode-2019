@@ -194,7 +194,7 @@ public class Castle extends Building {
     for (int i = 0; i < Z.karbcount; i++) if (isOccupiedKarb[i]) numKarb ++;
     for (int i = 0; i < Z.fuelcount; i++) if (isOccupiedFuel[i]) numFuel ++;
 
-    if (Z.CUR.unit == CASTLE && Z.myCastle.get(0) == 64 * Z.CUR.x + Z.CUR.y && Z.CUR.turn % 10 == 0)
+    if (Z.CUR.unit == CASTLE && Z.myCastle.get(0) == 64 * Z.CUR.x + Z.CUR.y)
       dumpRound();
   }
 
@@ -241,7 +241,7 @@ public class Castle extends Building {
     if(x < Z.karbcount) {
       sortKarbAgg();
       for(int i = 0; i < Z.karbcount; i++) {
-        if (!isOccupiedKarb[i]) {
+        if (!isOccupiedKarb[Z.sortedKarb[i]]) {
           assignKarb(Z.sortedKarb[i]);
           sortKarb();
           return true;
@@ -251,7 +251,7 @@ public class Castle extends Building {
     } else {
       sortFuelAgg();
       for (int i = 0; i < Z.fuelcount; i++) {
-        if (!isOccupiedFuel[i]) {
+        if (!isOccupiedFuel[Z.sortedFuel[i]]) {
           assignFuel(Z.sortedFuel[i]);
           sortFuel();
           return true;
@@ -319,10 +319,11 @@ public class Castle extends Building {
   }
 
   boolean shouldPilgrim() {
-    if (Z.nextSignal != null || !Z.canBuild(PILGRIM)) return false;
+	  return true;
+    /*if (Z.nextSignal != null || !Z.canBuild(PILGRIM)) return false;
     if (Z.U.totUnits[PILGRIM] > 0.5*(Z.karbcount+Z.fuelcount+5)) return false;
     if (Z.euclidDist(Z.CUR,Z.closestAttacker(Z.CUR,1-Z.CUR.team)) <= 64) return false;
-    return 2*myPilgrim() <= Z.U.closeAttackers(); // FIX
+    return 2*myPilgrim() <= Z.U.closeAttackers(); // FIX*/
   }
   boolean shouldRush() { return Z.CUR.turn <= 20; }
 
