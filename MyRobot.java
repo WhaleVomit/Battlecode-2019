@@ -38,7 +38,7 @@ public class MyRobot extends BCAbstractRobot {
   int[][][] enemyDist;
 
   // ATTACKERS
-  boolean avoidCastle, attackMode; // avoidCastle = if castle is too crowded don't patrol next to it
+  boolean waited, avoidCastle, attackMode; // avoidCastle = if castle is too crowded don't patrol next to it
 
   // CASTLE
   boolean canRush = false;
