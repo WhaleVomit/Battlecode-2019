@@ -185,9 +185,11 @@ public class Castle extends Building {
     isOccupiedFuel = new boolean[Z.fuelcount];
 
     // find current assignments
-    for (Robot2 R: Z.robots) if (R.team == Z.CUR.team && !Z.myCastleID.contains(R.id) && R.castle_talk % 7 == 2) {
+    for (Robot2 R: Z.robots) if (R.team == Z.CUR.team && !Z.myCastleID.contains(R.id) && (R.castle_talk % 7 == 2 || R.castle_talk % 7 == 6)) {
 	  if (R.castle_talk == 30) shouldBuild = false;
-      if (Z.pilToKarb[R.id] != -1) isOccupiedKarb[Z.pilToKarb[R.id]] = true;
+      if (Z.pilToKarb[R.id] != -1) {
+		  isOccupiedKarb[Z.pilToKarb[R.id]] = true;
+	  }
       if (Z.pilToFuel[R.id] != -1) isOccupiedFuel[Z.pilToFuel[R.id]] = true;
     }
 
@@ -319,11 +321,10 @@ public class Castle extends Building {
   }
 
   boolean shouldPilgrim() {
-	  return true;
-    /*if (Z.nextSignal != null || !Z.canBuild(PILGRIM)) return false;
+    if (Z.nextSignal != null || !Z.canBuild(PILGRIM)) return false;
     if (Z.U.totUnits[PILGRIM] > 0.5*(Z.karbcount+Z.fuelcount+5)) return false;
     if (Z.euclidDist(Z.CUR,Z.closestAttacker(Z.CUR,1-Z.CUR.team)) <= 64) return false;
-    return 2*myPilgrim() <= Z.U.closeAttackers(); // FIX*/
+    return 2*myPilgrim() <= Z.U.closeAttackers(); // FIX
   }
   boolean shouldRush() { return Z.CUR.turn <= 20; }
 

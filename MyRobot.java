@@ -801,8 +801,10 @@ public class MyRobot extends BCAbstractRobot {
   boolean seeEnemy() {
     boolean b = false;
     for (int i = -14; i <= 14; ++i) for (int j = -14; j <= 14; ++j)
-        if (i*i+j*j <= 196 && enemyRobot(CUR.x+i,CUR.y+j)) b = true;
-    return true;
+        if (i*i+j*j <= 196 && enemyRobot(CUR.x+i,CUR.y+j)) {
+					b = true;
+				}
+    return b;
   }
   void finish() {
     lastHealth = CUR.health;
