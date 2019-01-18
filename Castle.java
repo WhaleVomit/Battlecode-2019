@@ -186,7 +186,7 @@ public class Castle extends Building {
 
     // find current assignments
     for (Robot2 R: Z.robots)
-      if (R.team == Z.CUR.team && Z.type[R.unit] == 2) {
+      if (R.team == Z.CUR.team && Z.type[R.id] == 2) {
     	  if (R.castle_talk == 30) shouldBuild = false;
         if (Z.pilToKarb[R.id] != -1) isOccupiedKarb[Z.pilToKarb[R.id]] = true;
         if (Z.pilToFuel[R.id] != -1) isOccupiedFuel[Z.pilToFuel[R.id]] = true;
