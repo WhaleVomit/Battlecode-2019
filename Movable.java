@@ -38,18 +38,6 @@ public class Movable {
             if (Z.enemyRobot(i,j) && Z.lastTurn[j][i] >= Z.CUR.turn-1) return true;
         return false;
     }
-    public double canAttack(int dx, int dy) {
-        if (ATTACK_F_COST[Z.CUR.unit] > Z.fuel) return -MOD;
-        int x = Z.CUR.x + dx, y = Z.CUR.y + dy;
-        if (!inAttackRange(Z.CUR,x,y)) return -MOD;
-        if (Z.CUR.unit == CRUSADER || Z.CUR.unit == PROPHET) {
-            if (!Z.enemyRobot(x,y)) return -MOD;
-            return attackPriority(Z.robotMap[y][x]);
-        } else {
-            if (!containsConfident(x,y)) return -MOD;
-            return preacherVal(Z.CUR,x,y);
-        }
-    }
 
     // PREACHER EVASION
     public int maxPreacherVal(Robot2 P, int x, int y) { // P is the preacher

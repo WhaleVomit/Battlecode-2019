@@ -4,6 +4,19 @@ import static bc19.Consts.*;
 
 public class Attackable extends Movable {
     public Attackable(MyRobot z) { super(z); }
+    
+    public double canAttack(int dx, int dy) {
+        if (ATTACK_F_COST[Z.CUR.unit] > Z.fuel) return -MOD;
+        int x = Z.CUR.x + dx, y = Z.CUR.y + dy;
+        if (!inAttackRange(Z.CUR,x,y)) return -MOD;
+        if (Z.CUR.unit == CRUSADER || Z.CUR.unit == PROPHET || Z.CUR.unit == CASTLE) {
+            if (!Z.enemyRobot(x,y)) return -MOD;
+            return attackPriority(Z.robotMap[y][x]);
+        } else {
+            if (!containsConfident(x,y)) return -MOD;
+            return preacherVal(Z.CUR,x,y);
+        }
+    }
 
     public Action2 dealWithPreacher() {
         if (totPreacherDamage(Z.CUR.x,Z.CUR.y) == 0) return null;
