@@ -4,7 +4,7 @@ import static bc19.Consts.*;
 
 public class Attackable extends Movable {
     public Attackable(MyRobot z) { super(z); }
-    
+
     public double canAttack(int dx, int dy) {
         if (ATTACK_F_COST[Z.CUR.unit] > Z.fuel) return -MOD;
         int x = Z.CUR.x + dx, y = Z.CUR.y + dy;
@@ -158,10 +158,8 @@ public class Attackable extends Movable {
         return position();
     }
     public int patrolVal(int X, int Y, int x, int y) {
-		if (Z.euclidDist(X,Y,x,y) < 4) return MOD; // avoid congestion
-        //if (Z.numOpen(64*x+y) <= 2) Z.avoidCastle = true;
+		    if (Z.euclidDist(X,Y,x,y) < 4) return MOD; // avoid congestion
         if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {
-            if (Z.sq(X-x)+Z.sq(Y-y) <= 2 && Z.avoidCastle) return MOD;
             int val = Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
             if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += 10;
             if (X == Z.CUR.x && Y == Z.CUR.y) val -= 5;

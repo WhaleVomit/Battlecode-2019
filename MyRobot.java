@@ -43,7 +43,8 @@ public class MyRobot extends BCAbstractRobot {
   // CASTLE
   boolean canRush = false;
   int FUEL_RATIO = 150;
-  int lastSignalAttack, lastAttack;
+  int[] type = new int[4097];
+  int lastSignalAttack, lastAttack, numAttacks;
 
   int karbcount, fuelcount;
   int[] sortedKarb, sortedFuel, pilToKarb, pilToFuel, karbPos, fuelPos;
@@ -501,12 +502,14 @@ public class MyRobot extends BCAbstractRobot {
   }
 
   // CASTLE LOCATIONS / ATTACK
+  boolean isAttacking(int c) { return c == 8 || c == 9; }
+  boolean seesEnemy(int c) { return c == 7 || c == 9; }
   int farthestDefenderRadius() {
       int t = 0;
       for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j)
           if (i*i+j*j <= 100 && yourAttacker(CUR.x+i,CUR.y+j)) {
               Robot2 R = robotMap[CUR.y+j][CUR.x+i];
-              if (fdiv(R.castle_talk,14) % 2 == 0) t = Math.max(t,i*i+j*j);
+              if (!isAttacking(R.castle_talk)) t = Math.max(t,i*i+j*j);
           }
       return t;
   }
@@ -521,6 +524,7 @@ public class MyRobot extends BCAbstractRobot {
         if (r > 0 && fuel >= r) {
             lastSignalAttack = CUR.turn;
             log("SIGNAL ATTACK "+CUR.x+" "+CUR.y+" "+r+" "+fuel+" "+U.closeAttackers());
+            numAttacks ++;
             nextSignal = new pi(20000,r); castle_talk = 255;
         }
     }
@@ -636,12 +640,11 @@ public class MyRobot extends BCAbstractRobot {
   }
 
   boolean clearVision(Robot2 R) {
-      if (CUR.unit == CASTLE && fdiv(R.castle_talk,7) % 2 == 1) return false;
-      for (int i = -10; i <= 10; ++i)
-          for (int j = -10; j <= 10; ++j) {
-              if (i*i+j*j > VISION_R[R.unit]) continue;
-              if (enemyRobot(R.x+i,R.y+j)) return false;
-          }
+      if (CUR.unit == CASTLE && !seesEnemy(R.castle_talk)) return false;
+      for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
+          if (i*i+j*j > VISION_R[R.unit]) continue;
+          if (enemyRobot(R.x+i,R.y+j)) return false;
+      }
       for (Robot2 A: robots) if (A.team == CUR.team && 0 < A.signal && A.signal < 2000)
           if (euclidDist(R,A) <= A.signal_radius) return false;
       return true;
@@ -806,19 +809,20 @@ public class MyRobot extends BCAbstractRobot {
 				}
     return b;
   }
-  void finish() {
+  void finish() { // 0 to 5: unit,
     lastHealth = CUR.health;
     if (castle_talk == -1) {
       if (CUR.unit == CASTLE) {
         castle_talk = Math.min(U.closeAttackers(),254);
       } else {
-        castle_talk = CUR.unit;
-        if (CUR.unit == PILGRIM && CUR.turn == 1) castle_talk = 6;
-        if (seeEnemy()) castle_talk += 7;
-        if (attackMode) castle_talk += 14;
+        if (CUR.turn == 1) castle_talk = CUR.unit;
+        else {
+          castle_talk = 6;
+          if (seeEnemy()) castle_talk += 1;
+          if (attackMode) castle_talk += 2;
+        }
       }
     }
-    // log("CASTLE TALK "+castle_talk);
     castleTalk(castle_talk);
     if (nextSignal != null) signal(nextSignal.f,nextSignal.s);
   }
