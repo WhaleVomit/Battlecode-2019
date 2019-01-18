@@ -21,6 +21,8 @@ public class Building {
         }
       }
     }
+    
+    if(cntc[CRUSADER]+cntc[PREACHER]+cntc[PROPHET] <= 3) return PROPHET;
 
     int crus = 2*cnto[CRUSADER] - cntc[CRUSADER]; // if(!Z.canBuild(CRUSADER) || cnt[PREACHER] >= 3) crus = 0; cnt[PREACHER] + cnt[CASTLE]
     int proph = 2*cnto[PREACHER] + 2*cnto[CRUSADER] + 2*cnto[PROPHET]; if(!Z.canBuild(PROPHET)) proph = 0;
