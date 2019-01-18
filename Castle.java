@@ -185,13 +185,12 @@ public class Castle extends Building {
     isOccupiedFuel = new boolean[Z.fuelcount];
 
     // find current assignments
-    for (Robot2 R: Z.robots) if (R.team == Z.CUR.team && !Z.myCastleID.contains(R.id) && (R.castle_talk % 7 == 2 || R.castle_talk % 7 == 6)) {
-	  if (R.castle_talk == 30) shouldBuild = false;
-      if (Z.pilToKarb[R.id] != -1) {
-		  isOccupiedKarb[Z.pilToKarb[R.id]] = true;
-	  }
-      if (Z.pilToFuel[R.id] != -1) isOccupiedFuel[Z.pilToFuel[R.id]] = true;
-    }
+    for (Robot2 R: Z.robots)
+      if (R.team == Z.CUR.team && Z.type[R.unit] == 2) {
+    	  if (R.castle_talk == 30) shouldBuild = false;
+        if (Z.pilToKarb[R.id] != -1) isOccupiedKarb[Z.pilToKarb[R.id]] = true;
+        if (Z.pilToFuel[R.id] != -1) isOccupiedFuel[Z.pilToFuel[R.id]] = true;
+      }
 
     for (int i = 0; i < Z.karbcount; i++) if (isOccupiedKarb[i]) numKarb ++;
     for (int i = 0; i < Z.fuelcount; i++) if (isOccupiedFuel[i]) numFuel ++;
@@ -280,14 +279,14 @@ public class Castle extends Building {
     return Z.tryBuild(PILGRIM);
   }
 
-  Robot2 newPilgrim() { // closest pilgrim with signal % 7 == 6, within distance 3
+  Robot2 newPilgrim() { // closest pilgrim with signal PILGRIM, within distance 3
     int bestDist = MOD; Robot2 P = null;
     for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy) {
       int d = dx*dx+dy*dy; if (d > bestDist) continue;
       int x = Z.me.x+dx, y = Z.me.y+dy;
       if (Z.yourRobot(x,y)) {
         Robot2 R = Z.robotMap[y][x];
-        if (R.unit == PILGRIM && R.castle_talk % 7 == 6) {
+        if (R.unit == PILGRIM && R.castle_talk == PILGRIM) {
           bestDist = d;
           P = R;
         }

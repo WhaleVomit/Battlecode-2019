@@ -1,10 +1,11 @@
 package bc19;
 
+import java.util.*;
 import static bc19.Consts.*;
 
 public class Attackable extends Movable {
     public Attackable(MyRobot z) { super(z); }
-    
+
     public double canAttack(int dx, int dy) {
         if (ATTACK_F_COST[Z.CUR.unit] > Z.fuel) return -MOD;
         int x = Z.CUR.x + dx, y = Z.CUR.y + dy;
@@ -158,10 +159,8 @@ public class Attackable extends Movable {
         return position();
     }
     public int patrolVal(int X, int Y, int x, int y) {
-		if (Z.euclidDist(X,Y,x,y) < 4) return MOD; // avoid congestion
-        //if (Z.numOpen(64*x+y) <= 2) Z.avoidCastle = true;
+		    if (Z.euclidDist(X,Y,x,y) < 4) return MOD; // avoid congestion
         if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {
-            if (Z.sq(X-x)+Z.sq(Y-y) <= 2 && Z.avoidCastle) return MOD;
             int val = Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
             if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += 10;
             if (X == Z.CUR.x && Y == Z.CUR.y) val -= 5;
@@ -196,15 +195,27 @@ public class Attackable extends Movable {
         return ret;
     }
 
+    boolean shouldWait() {
+      if (Z.CUR.health != Z.lastHealth) return false;
+
+      ArrayList<Integer> dists = new ArrayList<>();
+      for (int i = -6; i <= 6; ++i) for (int j = -6; j <= 6; ++j) if (i*i+j*j <= Math.min(VISION_R[Z.CUR.unit],36)) {
+          int x = Z.CUR.x+i, y = Z.CUR.y+j;
+          if (Z.yourAttacker(x,y)) dists.add(Z.enemyDist[y][x][0]);
+      }
+
+      Collections.sort(dists); Collections.reverse(dists);
+      if (dists.size() > 1 && Z.enemyDist[Z.CUR.y][Z.CUR.x][0]+3 < dists.get(1) && !Z.waited) {
+        Z.waited = true;
+        Z.log("WAITED");
+        return true;
+      }
+      Z.waited = false;
+      return false;
+    }
+
     Action2 aggressive() {
-        Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
-        if (Z.CUR.unit == CRUSADER && Z.CUR.health == Z.lastHealth) {
-            int b = shortestNotCrusaderDist(R);
-            if (b != MOD && Z.euclidDist(R) <= b) {
-                Z.log("MOVE MORE SLOWLY");
-                return Z.bfsShort.move(Z.bfs.closestStruct(false));
-            }
-        }
+        if (shouldWait()) return null;
         Action2 A = Z.bfs.moveEnemyStruct(); if (A != null) return A;
         return Z.bfs.moveUnseen();
     }

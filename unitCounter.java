@@ -14,12 +14,13 @@ public class unitCounter {
     if (Z.CUR.unit == CASTLE) {
       totUnits = new int[6];
       for (Robot2 R: Z.robots) if (R.team == Z.CUR.team)
-          if (Z.myCastleID.contains(R.id)) {
-              totUnits[0] ++;
-          } else {
-              int t = R.castle_talk % 7; if (t == 6) t = 2;
-              totUnits[t] ++;
-          }
+        if (Z.myCastleID.contains(R.id)) {
+          totUnits[0] ++;
+        } else {
+          if (0 < R.castle_talk && R.castle_talk < 6) Z.type[R.id] = R.castle_talk;
+          if (R.unit != -1) Z.type[R.id] = R.unit;
+          if (Z.type[R.id] != 0) totUnits[Z.type[R.id]] ++;
+        }
     }
     closeUnits = new int[6]; closeEnemy = new int[6];
     for (Robot2 R: Z.robots)  if (Z.euclidDist(R) <= VISION_R[Z.CUR.unit]) {
@@ -42,7 +43,9 @@ public class unitCounter {
       return res;
   }
   int needAttackers() {
-    return (int)Math.floor(2*Z.enemyDist[Z.CUR.y][Z.CUR.x][0]/3)-5;
+      int t = (int)Math.floor(2*Z.enemyDist[Z.CUR.y][Z.CUR.x][0]/3)-3;
+      for (int i = 0; i < Z.numAttacks; ++i) t *= 2;
+      return t;
   }
 
   boolean tooMany() {
