@@ -335,28 +335,13 @@ public class Castle extends Building {
     return myPilgrim() <= Z.U.closeAttackers();
   }
 
-  Action2 safeBuild() {
-    if (!shouldBuild && Z.karbonite < 80) return null;
-      // if (Z.euclidDist(R) > VISION_R[Z.CUR.unit] && Z.karbonite < 50) return null;
-    if (Z.U.tooMany()) return null;
-    if (shouldPilgrim()) return makePilgrim();
-
-    int mn = MOD;
-    if (Z.CUR.turn > 4) {
-      for (Robot2 C: Z.robots) if (Z.myCastleID.contains(C.id))
-      mn = Math.min(mn,C.castle_talk);
-      if (mn < 10 && Z.U.closeAttackers() > mn+2) return null;
-    }
-
-    return Z.tryBuild(Z.U.decideUnit());
-  }
-
   Action2 castleBuild() {
     if (Z.CUR.turn == 1) return null;
-    Action2 A = null;
-    if (Z.CUR.turn >= 30) A = panicBuild();
-    if (A == null) A = safeBuild();
-    return A;
+    Action2 A = null; if (Z.CUR.turn >= 30) A = panicBuild();
+    if (A != null) return A;
+    if (!shouldBuild && Z.karbonite < 80) return null;
+    if (shouldPilgrim()) return makePilgrim();
+    return safeBuild();
   }
 
   Action2 run() {

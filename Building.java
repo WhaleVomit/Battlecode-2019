@@ -23,6 +23,20 @@ public class Building extends Attackable {
     return MOD;*/
   }
 
+
+  Action2 safeBuild() {
+    if (Z.CUR.unit == CASTLE && Z.U.tooMany()) return null;
+
+    int mn = MOD;
+    if (Z.CUR.turn > 4 && Z.CUR.unit == CASTLE) {
+      for (Robot2 C: Z.robots) if (Z.myCastleID.contains(C.id))
+      mn = Math.min(mn,C.castle_talk);
+      if (mn < 10 && Z.U.closeAttackers() > mn+2) return null;
+    }
+
+    return Z.tryBuild(Z.U.decideUnit());
+  }
+
   Action2 panicBuild() {
     int w = decideUnit();
     if (w == MOD) return null;
