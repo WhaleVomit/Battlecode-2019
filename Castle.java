@@ -185,7 +185,7 @@ public class Castle extends Building {
     // find current assignments
     for (Robot2 R: Z.robots)
       if (R.team == Z.CUR.team && Z.type[R.id] == 2) {
-    	  if (R.castle_talk == 30) shouldBuild = false;
+    	if (R.castle_talk == 30) shouldBuild = false;
         if (Z.pilToKarb[R.id] != -1) isOccupiedKarb[Z.pilToKarb[R.id]] = true;
         if (Z.pilToFuel[R.id] != -1) isOccupiedFuel[Z.pilToFuel[R.id]] = true;
       }
@@ -330,7 +330,7 @@ public class Castle extends Building {
     if (Z.nextSignal != null || !Z.canBuild(PILGRIM)) return false;
     int totResource = Z.fuelcount+Z.karbcount;
     if (Z.U.totUnits[PILGRIM] >= totResource/2+3) return false;
-    if (Z.CUR.turn <= 20 && Z.U.totUnits[PILGRIM] < Math.min(totResource/2,8)) return true;
+    if (Z.CUR.turn <= 20 && Z.U.totUnits[PILGRIM] < Math.min(Z.fdiv(totResource,2),8)) return true;
     if (Z.euclidDist(Z.CUR,Z.closestAttacker(Z.CUR,1-Z.CUR.team)) <= 64) return false;
     return myPilgrim() <= Z.U.closeAttackers();
   }
@@ -339,7 +339,7 @@ public class Castle extends Building {
     if (Z.CUR.turn == 1) return null;
     Action2 A = null; if (Z.CUR.turn >= 30) A = panicBuild();
     if (A != null) return A;
-    if (!shouldBuild && Z.karbonite < 80) return null;
+    if (!shouldBuild && (Z.karbonite < 80 || Z.fuel < 250)) return null;
     if (shouldPilgrim()) return makePilgrim();
     return safeBuild();
   }
