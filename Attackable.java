@@ -123,6 +123,7 @@ public class Attackable extends Movable {
     public Action2 position() {
 		  Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
 		  if (Z.euclidDist(R) > 196 || (Z.euclidDist(R) > 100 && Z.bfs.distHome() > 9)) return null;
+      if (Z.U.closeUnits[PROPHET] > 15 && !Z.attackMode) return null;
       if (Z.euclidDist(R) < MIN_ATTACK_R[Z.CUR.unit]) {
           Action2 A = moveAway(R);
           // Z.log("OOPS "+Z.CUR.unit+" "+Z.CUR.x+" "+Z.CUR.y+A.dx+" "+A.dy);
@@ -163,25 +164,39 @@ public class Attackable extends Movable {
         if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {
             int val = Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
             if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += 10;
-            if (X == Z.CUR.x && Y == Z.CUR.y) val -= 5;
             return val;
         }
         return MOD;
     }
-    public Action2 patrol() {
-        int t = Z.bfs.closestStruct(true);
-        int x = Z.fdiv(t,64), y = t % 64;
 
-        int bestVal = MOD, bestDist = MOD, pos = MOD;
-        for (int X = 0; X < Z.w; ++X) for (int Y = 0; Y < Z.h; ++Y) if (Z.valid(X,Y)) {
+    public Action2 patrol() {
+      if (Z.lastPatrol != Z.CUR.turn-1) Z.endPos = MOD;
+      Z.lastPatrol = Z.CUR.turn;
+      if (Z.endPos != MOD && Z.bfs.dist(Z.endPos) == MOD) Z.endPos = MOD;
+
+      if (Z.endPos == MOD) {
+        int t = Z.bfs.closestStruct(true), bestVal = MOD;
+        int x = Z.fdiv(t,64), y = t%64;
+        for (int X = 0; X < Z.w; ++X) for (int Y = 0; Y < Z.h; ++Y) {
             int val = patrolVal(X,Y,x,y);
-            if (val < bestVal || (val == bestVal && Z.bfs.dist[Y][X] < bestDist)) {
-                bestVal = val; bestDist = Z.bfs.dist[Y][X]; pos = 64*X+Y;
+            if (Z.bfs.dist(X,Y) != MOD) bestVal = Math.min(bestVal,val);
+        }
+        int bestDist = MOD;
+        for (int X = 0; X < Z.w; ++X) for (int Y = 0; Y < Z.h; ++Y) {
+            int val = patrolVal(X,Y,x,y);
+            if (val <= bestVal+5) {
+              int dist = Z.bfs.dist(X,Y);
+              if (dist < bestDist) {
+                bestDist = dist;
+                Z.endPos = 64*X+Y;
+              }
             }
         }
-        // Z.log(Z.coordinates(pos)+" "+Z.coordinates(t)+" "+bestVal);
+        Z.log("PATROL "+Z.CUR.x+" "+Z.CUR.y+" "+Z.coordinates(Z.endPos)+" "+bestDist+" "+bestVal);
+      }
 
-        return Z.bfs.move(pos);
+      if (Z.endPos == 64*Z.CUR.x+Z.CUR.y) return Z.moveAction(0,0);
+      return Z.bfs.move(Z.endPos);
     }
 
     int shortestNotCrusaderDist(Robot2 R) {

@@ -85,8 +85,8 @@ public class Pilgrim extends Movable {
     // if (Z.resource == 1 && Z.CUR.fuel > 80) Z.goHome = true;
     if (Z.CUR.karbonite > 16 || Z.CUR.fuel > 80) Z.goHome = true;
     if (Z.bfs.distHome() >= 15) {
-		Z.goHome = Z.CUR.karbonite == 20 && Z.CUR.fuel == 100;
-	}
+  		Z.goHome = Z.CUR.karbonite == 20 && Z.CUR.fuel == 100;
+  	}
     if (Z.goHome) return goHome();
 
 	if (!((Z.CUR.karbonite == 20 && Z.karboniteMap[Z.resourceLoc.s][Z.resourceLoc.f]) ||

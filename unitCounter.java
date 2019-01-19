@@ -55,20 +55,23 @@ public class unitCounter {
 
   boolean shouldBeginAttack() {
     if (Z.enemyDist[Z.CUR.y][Z.CUR.x][0] < 10) return false;
-    if (Z.CUR.turn > 800) return true;
+    if (Z.CUR.turn > 900) return true;
+    return false;
+    /*
     if (Z.lastAttack >= Z.CUR.turn-5 && closeAttackers() >= 0.75*needAttackers())
       return true;
-    return closeAttackers() >= needAttackers() && Z.fuel >= 0.9*Z.FUEL_RATIO*totAttackers();
+    return closeAttackers() >= needAttackers() && Z.fuel >= 0.9*Z.FUEL_RATIO*totAttackers();*/
   }
 
   int decideUnit() {
-    if (Z.numAttacks > 0) return PROPHET;
+    return PROPHET;
+    /*if (Z.numAttacks > 0) return PROPHET;
     double a = closeUnits[3], b = closeUnits[4]/2.0, c = closeUnits[5];
     if (closeUnits[3]+closeUnits[4]+closeUnits[5] < 15) {
       if (b <= Math.min(a,c)) return PROPHET;
       if (a <= Math.min(b,c)) return CRUSADER;
       return PREACHER;
     }
-    return PROPHET;
+    return PROPHET;*/
   }
 }

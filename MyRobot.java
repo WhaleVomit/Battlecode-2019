@@ -26,7 +26,7 @@ public class MyRobot extends BCAbstractRobot {
   bfsMap bfs; // bfsShort;
 
   // ALL UNITS
-  int lastHealth, castle_talk;
+  int lastHealth, castle_talk, lastPatrol, endPos = MOD;
   pi nextSignal;
   unitCounter U;
 
@@ -637,7 +637,7 @@ public class MyRobot extends BCAbstractRobot {
   }
 
   int getSignal(Robot2 R) {
-      return 625*(R.unit-3)+25*(R.x-CUR.x+12)+(R.y-CUR.y+12)+1;
+      return 625*R.unit+25*(R.x-CUR.x+12)+(R.y-CUR.y+12)+30000;
   }
 
   boolean clearVision(Robot2 R) {
@@ -646,16 +646,16 @@ public class MyRobot extends BCAbstractRobot {
           if (i*i+j*j > VISION_R[R.unit]) continue;
           if (enemyRobot(R.x+i,R.y+j)) return false;
       }
-      for (Robot2 A: robots) if (A.team == CUR.team && 0 < A.signal && A.signal < 2000)
+      for (Robot2 A: robots) if (A.team == CUR.team && 30000 <= A.signal && A.signal < 40000)
           if (euclidDist(R,A) <= A.signal_radius) return false;
       return true;
   }
 
   void checkSignal() {
     for (Robot2 R: robots)
-      if (R.team == CUR.team && 0 < R.signal && R.signal < 2000) {
-          int tmp = R.signal-1;
-          int type = fdiv(tmp,625)+3; tmp %= 625;
+      if (R.team == CUR.team && 30000 <= R.signal && R.signal < 40000) {
+          int tmp = R.signal-30000;
+          int type = fdiv(tmp,625); tmp %= 625;
           int x = fdiv(tmp,25)-12; x += R.x;
           int y = (tmp%25)-12; y += R.y;
           // log("ADDED "+CUR.coordinates()+" "+R.coordinates()+" "+x+" "+y);
@@ -681,8 +681,10 @@ public class MyRobot extends BCAbstractRobot {
 
   void warnOthers() { // CUR.x, CUR.y are new pos, not necessarily equal to me.x, me.y;
     if (fuel < 100 || superseded(CUR.x,CUR.y) || nextSignal != null) return;
-    Robot2 R = closestAttacker(ORI,1-CUR.team); if (euclidDist(ORI,R) > VISION_R[CUR.unit]) return;
-    int numEnemies = U.closeEnemyAttackers();
+    Robot2 R = closestAttacker(ORI,1-CUR.team);
+    if (euclidDist(ORI,R) > VISION_R[CUR.unit]) R = closestRobot(ORI,1-CUR.team);
+    if (euclidDist(ORI,R) > VISION_R[CUR.unit]) return;
+    int numEnemies = Math.max(U.closeEnemyAttackers(),1);
     // try to activate around 2*numEnemies allies
     // count number allies already activated
     int cnt = 0;

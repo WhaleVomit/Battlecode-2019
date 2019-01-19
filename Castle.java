@@ -312,7 +312,6 @@ public class Castle extends Building {
     Z.assignedPilgrimPos = null;
   }
 
-
   void dumpTroopInfo() {
     String T = "";
     T += Z.CUR.turn+" "+Z.toString(Z.myCastle);
@@ -337,7 +336,7 @@ public class Castle extends Building {
   }
 
   Action2 safeBuild() {
-    if (!shouldBuild || Z.karbonite < 80) return null;
+    if (!shouldBuild && Z.karbonite < 80) return null;
       // if (Z.euclidDist(R) > VISION_R[Z.CUR.unit] && Z.karbonite < 50) return null;
     if (Z.U.tooMany()) return null;
     if (shouldPilgrim()) return makePilgrim();
