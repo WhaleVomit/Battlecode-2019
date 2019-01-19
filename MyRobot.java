@@ -39,10 +39,13 @@ public class MyRobot extends BCAbstractRobot {
 
   // ATTACKERS
   boolean waited, avoidCastle, attackMode; // avoidCastle = if castle is too crowded don't patrol next to it
+  int atFront = 0; // set to 100 when see an ally die nearby, decrement every turn until reach 0 
+  ArrayList<Integer> nearbyAllies = new ArrayList<>(); // keeps track of allies in 5x5 square to determine when they die
+  int posLastTurn = MOD;
 
   // CASTLE
   boolean canRush = false;
-  int FUEL_RATIO = 150;
+  int FUEL_RATIO = 100;
   int[] type = new int[4097];
   int lastSignalAttack, lastAttack, numAttacks;
 
@@ -721,6 +724,27 @@ public class MyRobot extends BCAbstractRobot {
 			log(s);
 		}
 	}
+	
+	boolean seenAllyDie() { // inaccurate if current robot is moving
+		if(posLastTurn != 64*CUR.x + CUR.y) return false;
+		for(int id: nearbyAllies) {
+			boolean see = false;
+			for(Robot2 R: robots) if(R.id == id) see = true;
+			if(!see) return true;
+		}
+		return false;
+	}
+	
+	void remNearbyAllies() {
+		nearbyAllies.clear();
+		for(int dx = -2; dx <= 2; dx++) {
+			for(int dy = -2; dy <= 2; dy++) {
+				if(yourRobot(CUR.x+dx, CUR.y+dy)) {
+					nearbyAllies.add(robotMapID[CUR.y+dy][CUR.x+dx]);
+				}
+			}
+		}
+	}
 
   // TURN
   void updateVars() {
@@ -760,6 +784,8 @@ public class MyRobot extends BCAbstractRobot {
       if (CUR.unit == PILGRIM) genDanger();
       else genEnemyDist();
       updateAttackMode();
+      atFront--; atFront = Math.max(atFront, 0);
+      if(seenAllyDie()) atFront = 100;
   }
 
   public Action2 chooseAction() {
@@ -813,6 +839,8 @@ public class MyRobot extends BCAbstractRobot {
     return b;
   }
   void finish() { // 0 to 5: unit,
+		posLastTurn = 64*CUR.x + CUR.y;
+		remNearbyAllies();
     lastHealth = CUR.health;
     if (castle_talk == -1) {
       if (CUR.unit == CASTLE) {
