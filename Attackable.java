@@ -157,12 +157,15 @@ public class Attackable extends Movable {
     public Action2 react() {
         Action2 A = dealWithPreacher();  if (A != null) return A;
         A = tryAttack(); if (A != null) return A;
-        return position();
+        if(Z.attackMode) return position();
     }
     public int patrolVal(int X, int Y, int x, int y) {
-		    if (Z.euclidDist(X,Y,x,y) < 4) return MOD; // avoid congestion
+		int big = 123456;
+		int val = 0;
+		if (Z.euclidDist(X,Y,x,y) < 4) return val += big; // avoid congestion
+		if (Z.enemyDist[Y][X][0] <= 14) return val += 2*big;
         if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {
-            int val = Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
+            val += Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
             if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += 10;
             return val;
         }
@@ -172,10 +175,15 @@ public class Attackable extends Movable {
     public Action2 patrol() {
       if (Z.lastPatrol != Z.CUR.turn-1) Z.endPos = MOD;
       Z.lastPatrol = Z.CUR.turn;
-      if (Z.endPos != MOD && Z.bfs.dist(Z.endPos) == MOD) Z.endPos = MOD;
+      if (Z.endPos != MOD) {
+		if(Z.bfs.dist(Z.endPos) == MOD) Z.endPos = MOD;
+		int ex = Z.fdiv(Z.endPos,64); int ey = Z.endPos%64;
+		if(Z.enemyDist[ey][ex][0] <= 14) Z.endPos = MOD;
+	  }
 
       if (Z.endPos == MOD) {
         int t = Z.bfs.closestStruct(true), bestVal = MOD;
+        if(t == MOD) return null;
         int x = Z.fdiv(t,64), y = t%64;
         for (int X = 0; X < Z.w; ++X) for (int Y = 0; Y < Z.h; ++Y) {
             int val = patrolVal(X,Y,x,y);

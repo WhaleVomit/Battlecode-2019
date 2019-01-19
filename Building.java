@@ -25,6 +25,7 @@ public class Building extends Attackable {
 
 
   Action2 safeBuild() {
+	if (Z.CUR.unit == CHURCH && (Z.karbonite < 80 || Z.fuel < 250)) return null; // always reserve room for new church
     if (Z.CUR.unit == CASTLE && Z.U.tooMany()) return null;
 
     int mn = MOD;

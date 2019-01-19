@@ -121,6 +121,7 @@ public class MyRobot extends BCAbstractRobot {
       safe = new safeMap(this,4);
     } else {
       enemyDist = new int[h][w][2];
+      for(int i = 0; i < h; i++) for(int j = 0; j < w; j++) for(int k = 0; k < 2; k++) enemyDist[i][j][k] = MOD;
     }
   }
 
@@ -400,7 +401,6 @@ public class MyRobot extends BCAbstractRobot {
       LinkedList<Integer> Q = new LinkedList<Integer>();
       for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
           for (int k = 0; k < 2; ++k) enemyDist[i][j][k] = MOD;
-
       for (int i: otherCastle) {
           Q.add(2*i);
           enemyDist[i%64][fdiv(i,64)][0] = 0;
