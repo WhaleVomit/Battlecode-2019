@@ -167,8 +167,6 @@ public class Castle extends Building {
     }*/
   }
 
-  boolean shouldBuild = true;
-
   void dumpRound() {
       Z.log("================ ROUND " + Z.CUR.turn + " ================ ");
       if (Z.CUR.turn == 3) Z.log("H: "+Z.h+" W: "+Z.w);
@@ -300,6 +298,7 @@ public class Castle extends Building {
     Robot2 R = newPilgrim();
     if (R == null) {
       Z.log("NO PILGRIM?");
+      Z.assignedPilgrimPos = null;
       return;
     }
     if (Z.assignedPilgrimPos.f == 0) {
@@ -313,43 +312,6 @@ public class Castle extends Building {
     Z.assignedPilgrimPos = null;
   }
 
-  int myPilgrim() {
-    int res = 0;
-    for (Robot2 R: Z.robots) if (Z.pilToKarb[R.id] != -1 || Z.pilToFuel[R.id] != -1) res ++;
-    return res;
-  }
-
-  boolean shouldPilgrim() {
-    if (Z.nextSignal != null || !Z.canBuild(PILGRIM)) return false;
-    int totResource = Z.fuelcount+Z.karbcount;
-    if (Z.U.totUnits[PILGRIM] > totResource/2+3) return false;
-    if (Z.CUR.turn <= 20 && Z.U.totUnits[PILGRIM] < Math.min(totResource/2,8)) return true;
-    if (Z.euclidDist(Z.CUR,Z.closestAttacker(Z.CUR,1-Z.CUR.team)) <= 64) return false;
-    return 2*myPilgrim() <= Z.U.closeAttackers(); // FIX
-  }
-  boolean shouldRush() { return Z.CUR.turn <= 20; }
-
-  Action2 rushBuild() {
-    if (shouldPilgrim() && Z.U.totUnits[PILGRIM] < 2) return makePilgrim();
-    Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
-    if (Z.CUR.id != Z.min(Z.myCastleID)) return null;
-    return Z.tryBuild(PROPHET);
-  }
-
-  Action2 build() {
-      // if (Z.euclidDist(R) > VISION_R[Z.CUR.unit] && Z.karbonite < 50) return null;
-    if (Z.U.tooMany()) return null;
-    if (shouldPilgrim()) return makePilgrim();
-
-    int mn = MOD;
-    Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
-    if (Z.CUR.turn > 4 && Z.euclidDist(R) > VISION_R[Z.CUR.unit]) {
-      for (Robot2 C: Z.robots) if (Z.myCastleID.contains(C.id))
-      mn = Math.min(mn,C.castle_talk);
-      if (Z.U.closeAttackers() > mn+2) return null;
-    }
-    return Z.tryBuild(Z.U.decideUnit());
-  }
 
   void dumpTroopInfo() {
     String T = "";
@@ -359,18 +321,51 @@ public class Castle extends Building {
     Z.log(T);
   }
 
+  int myPilgrim() {
+    int res = 0;
+    for (Robot2 R: Z.robots) if (Z.pilToKarb[R.id] != -1 || Z.pilToFuel[R.id] != -1) res ++;
+    return res;
+  }
+
+  boolean shouldPilgrim() {
+    if (Z.nextSignal != null || !Z.canBuild(PILGRIM)) return false;
+    int totResource = Z.fuelcount+Z.karbcount;
+    if (Z.U.totUnits[PILGRIM] >= totResource/2+3) return false;
+    if (Z.CUR.turn <= 20 && Z.U.totUnits[PILGRIM] < Math.min(totResource/2,8)) return true;
+    if (Z.euclidDist(Z.CUR,Z.closestAttacker(Z.CUR,1-Z.CUR.team)) <= 64) return false;
+    return myPilgrim() <= Z.U.closeAttackers();
+  }
+
+  Action2 safeBuild() {
+    if (!shouldBuild || Z.karbonite < 80) return null;
+      // if (Z.euclidDist(R) > VISION_R[Z.CUR.unit] && Z.karbonite < 50) return null;
+    if (Z.U.tooMany()) return null;
+    if (shouldPilgrim()) return makePilgrim();
+
+    int mn = MOD;
+    if (Z.CUR.turn > 4) {
+      for (Robot2 C: Z.robots) if (Z.myCastleID.contains(C.id))
+      mn = Math.min(mn,C.castle_talk);
+      if (mn < 10 && Z.U.closeAttackers() > mn+2) return null;
+    }
+
+    return Z.tryBuild(Z.U.decideUnit());
+  }
+
+  Action2 castleBuild() {
+    if (Z.CUR.turn == 1) return null;
+    Action2 A = null;
+    if (Z.CUR.turn >= 30) A = panicBuild();
+    if (A == null) A = safeBuild();
+    return A;
+  }
+
   Action2 run() {
     if (Z.me.turn == 1) initVars();
     determineCastleLoc();
     updatePilgrimID();
     updateVars();
-    Action2 A = null;
-    if (Z.CUR.turn > 1) { // first turn reserved to determine location of other castles
-      if(Z.CUR.turn >= 30) A = panicBuild();
-      if (A == null && Z.isRushing()) A = rushBuild();
-      if (A == null && (shouldBuild || Z.karbonite >= 80)) A = build();
-    }
-    if(A != null) return A;
+    Action2 A = castleBuild(); if (A != null) return A;
     return tryAttack();
   }
 }

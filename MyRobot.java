@@ -23,7 +23,7 @@ public class MyRobot extends BCAbstractRobot {
   ArrayList<pi> dirs;
   int w, h; // width, height
   boolean wsim, hsim;
-  bfsMap bfs, bfsShort;
+  bfsMap bfs; // bfsShort;
 
   // ALL UNITS
   int lastHealth, castle_talk;
@@ -107,7 +107,7 @@ public class MyRobot extends BCAbstractRobot {
 
     if (me.unit == CRUSADER) {
       bfs = new bfsMap(this,9);
-      bfsShort = new bfsMap(this,4);
+      // bfsShort = new bfsMap(this,4);
     } else bfs = new bfsMap(this,4);
 
     robotMap = new Robot2[h][w];
@@ -161,6 +161,7 @@ public class MyRobot extends BCAbstractRobot {
   }
   Action conv(Action2 A) {
     if (A == null || A.type < 0) return null;
+    if (A.type == 0 && A.dx == 0 && A.dy == 0) return null;
     if (A.type == 0) return move(A.dx,A.dy);
     if (A.type == 1) return mine();
     if (A.type == 2) return give(A.dx,A.dy,A.karb,A.fuel);
@@ -292,7 +293,7 @@ public class MyRobot extends BCAbstractRobot {
   Robot2 closestAttacker(Robot2 R, int t) {
       Robot2 bes = null;
       for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
-          if (teamAttacker(j,i,t) && euclidDist(R,j,i) < euclidDist(R,bes))
+          if (teamAttacker(j,i,t) && euclidDist(R,j,i) < euclidDist(R,bes) && lastTurn[i][j] >= CUR.turn-5)
               bes = robotMap[i][j];
       return bes;
   }
@@ -496,7 +497,7 @@ public class MyRobot extends BCAbstractRobot {
 
   boolean canMove(Robot2 R, int dx, int dy) {
       if (R == null || R.unit == -1) return false;
-      if (dx == 0 && dy == 0) return false;
+      // if (dx == 0 && dy == 0) return false;
       int u = R.unit, d = dx*dx+dy*dy;
       return passable(R.x+dx,R.y+dy) && d <= MOVE_SPEED[u] && d*MOVE_F_COST[u] <= fuel;
   }
@@ -751,7 +752,7 @@ public class MyRobot extends BCAbstractRobot {
       }
       rem(myCastle); rem(otherCastle); rem(myChurch); rem(otherChurch);
 
-      bfs.upd(); if (CUR.unit == CRUSADER) bfsShort.upd();
+      bfs.upd(); // if (CUR.unit == CRUSADER) bfsShort.upd();
       castle_talk = -1; nextSignal = null;
       U = new unitCounter(this);
       if (CUR.unit == PILGRIM) genDanger();
@@ -804,7 +805,7 @@ public class MyRobot extends BCAbstractRobot {
   boolean seeEnemy() {
     boolean b = false;
     for (int i = -14; i <= 14; ++i) for (int j = -14; j <= 14; ++j)
-        if (i*i+j*j <= 196 && enemyRobot(CUR.x+i,CUR.y+j)) {
+        if (i*i+j*j <= 196 && enemyRobot(CUR.x+i,CUR.y+j) && lastTurn[CUR.y+j][CUR.x+i] >= CUR.turn-30) {
 					b = true;
 				}
     return b;

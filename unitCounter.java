@@ -43,15 +43,14 @@ public class unitCounter {
       return res;
   }
   int needAttackers() {
+      if (Z.numAttacks > 0) return MOD;
       int t = (int)Math.floor(2*Z.enemyDist[Z.CUR.y][Z.CUR.x][0]/3)-3;
-      for (int i = 0; i < Z.numAttacks; ++i) t *= 2;
+      // for (int i = 0; i < Z.numAttacks; ++i) t *= 2;
       return t;
   }
 
   boolean tooMany() {
-    return closeAttackers() >= needAttackers()
-    && totUnits[2] >= 10
-    && Z.fuel < Z.FUEL_RATIO*totAttackers();
+    return totUnits[2] >= 10 && totAttackers() >= 20 && Z.fuel < Z.FUEL_RATIO*totAttackers();
   }
 
   boolean shouldBeginAttack() {
@@ -63,9 +62,13 @@ public class unitCounter {
   }
 
   int decideUnit() {
+    if (Z.numAttacks > 0) return PROPHET;
     double a = closeUnits[3], b = closeUnits[4]/2.0, c = closeUnits[5];
-    if (b <= Math.min(a,c)) return PROPHET;
-    if (a <= Math.min(b,c)) return CRUSADER;
-    return PREACHER;
+    if (closeUnits[3]+closeUnits[4]+closeUnits[5] < 15) {
+      if (b <= Math.min(a,c)) return PROPHET;
+      if (a <= Math.min(b,c)) return CRUSADER;
+      return PREACHER;
+    }
+    return PROPHET;
   }
 }

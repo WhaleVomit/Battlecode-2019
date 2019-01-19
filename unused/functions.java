@@ -18,6 +18,16 @@ boolean inDanger() {
     return false;
 }
 
+
+boolean shouldRush() { return Z.CUR.turn <= 20; }
+
+Action2 rushBuild() {
+  if (shouldPilgrim() && Z.U.totUnits[PILGRIM] < 2) return makePilgrim();
+  Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
+  if (Z.CUR.id != Z.min(Z.myCastleID)) return null;
+  return Z.tryBuild(PROPHET);
+}
+
 	/*int getkarboscore(int x, int y) { // checks if this 5x5 square is a good spot to mine
 		int numr = 0, nump = 0; // number of resource squares, number of pilgrims
 		for (int dx = -2; dx <= 2; dx++) for (int dy = -2; dy <= 2; dy++)
