@@ -690,7 +690,7 @@ public class MyRobot extends BCAbstractRobot {
     int cnt = 0;
     for (int dx = -10; dx <= 10; dx++) for(int dy = -10; dy <= 10; dy++) {
   		int x = CUR.x+dx; int y = CUR.y+dy;
-  		if(yourAttacker(x, y) && !clearVision(robotMap[y][x])) cnt++;
+  		if (yourAttacker(x, y) && !clearVision(robotMap[y][x])) cnt++;
   	}
 		int necessary = Math.max(2*numEnemies - cnt, 0);
 		// activate as much as necessary
@@ -703,8 +703,8 @@ public class MyRobot extends BCAbstractRobot {
 		}
 		sortClose(allies);
 
-		int ind = Math.min(necessary-1, dirs.size()-1); if(ind == -1) return;
-		int dx = dirs.get(ind).f; int dy = dirs.get(ind).s;
+		int ind = Math.min(necessary-1, allies.size()-1); if(ind == -1) return;
+		int dx = allies.get(ind).f; int dy = allies.get(ind).s;
     int needDist = dx*dx + dy*dy;
     if (needDist > 0) {
         // log("SIGNAL ENEMY: OPOS "+ORI.coordinates()+", CPOS "+CUR.coordinates()+", EPOS "+R.coordinates()+" "+getSignal(R));
