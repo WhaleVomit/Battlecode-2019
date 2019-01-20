@@ -784,8 +784,8 @@ public class MyRobot extends BCAbstractRobot {
       if (CUR.unit == PILGRIM) genDanger();
       else genEnemyDist();
       updateAttackMode();
-      atFront--; atFront = Math.max(atFront, 0);
-      if(seenAllyDie()) atFront = 100;
+      //atFront--; atFront = Math.max(atFront, 0);
+      //if(seenAllyDie()) atFront = 100;
   }
 
   public Action2 chooseAction() {
@@ -840,7 +840,7 @@ public class MyRobot extends BCAbstractRobot {
   }
   void finish() { // 0 to 5: unit,
 		posLastTurn = 64*CUR.x + CUR.y;
-		remNearbyAllies();
+		//remNearbyAllies();
     lastHealth = CUR.health;
     if (castle_talk == -1) {
       if (CUR.unit == CASTLE) {

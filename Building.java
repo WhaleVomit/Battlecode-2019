@@ -8,7 +8,8 @@ public class Building extends Attackable {
   public Building(MyRobot z) { super(z); }
 
   int decideUnit() {
-    if (Z.U.closeUnits[CRUSADER]+Z.U.closeUnits[PREACHER]+Z.U.closeUnits[PROPHET] < 3) return PROPHET;
+	if (Z.U.closeEnemy[CRUSADER] - Z.U.closeUnits[PREACHER] > 0) return PREACHER;
+    if (Z.U.closeUnits[CRUSADER]+Z.U.closeUnits[PREACHER]+Z.U.closeUnits[PROPHET] < 2) return PROPHET;
     int numEnemy = Z.U.closeEnemy[CRUSADER]+Z.U.closeEnemy[PROPHET]+Z.U.closeEnemy[PREACHER];
     if (numEnemy == 0) return MOD;
     return PROPHET;
@@ -25,7 +26,8 @@ public class Building extends Attackable {
 
 
   Action2 safeBuild() {
-	if (Z.CUR.unit == CHURCH && (Z.karbonite < 80 || Z.fuel < 250)) return null; // always reserve room for new church
+	int numDefenders = Z.U.closeUnits[CRUSADER]+Z.U.closeUnits[PREACHER]+Z.U.closeUnits[PROPHET];
+	if (numDefenders >= 2 && (Z.karbonite < 80 || Z.fuel < 250)) return null; // always reserve room for new church
     if (Z.CUR.unit == CASTLE && Z.U.tooMany()) return null;
 
     int mn = MOD;
