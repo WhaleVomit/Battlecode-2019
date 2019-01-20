@@ -193,7 +193,7 @@ public class Castle extends Building {
     for (int i = 0; i < Z.karbcount; i++) if (isOccupiedKarb[i]) numKarb ++;
     for (int i = 0; i < Z.fuelcount; i++) if (isOccupiedFuel[i]) numFuel ++;
 
-    if (Z.CUR.unit == CASTLE && Z.myCastle.get(0) == 64 * Z.CUR.x + Z.CUR.y)
+    if (Z.CUR.unit == CASTLE && Z.myCastle.get(0) == 64 * Z.CUR.x + Z.CUR.y && Z.CUR.turn%10 == 0)
       dumpRound();
   }
 
@@ -341,6 +341,7 @@ public class Castle extends Building {
     if (A != null) return A;
     if (!shouldBuild && (Z.karbonite < 80 || Z.fuel < 250)) return null;
     if (shouldPilgrim()) return makePilgrim();
+    if (Z.me.turn >= 900) return spamBuild();
     return safeBuild();
   }
 

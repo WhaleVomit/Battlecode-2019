@@ -221,7 +221,7 @@ public class Attackable extends Movable {
               }
             }
         }
-        Z.log("PATROL "+Z.CUR.x+" "+Z.CUR.y+" "+Z.coordinates(Z.endPos)+" "+bestDist+" "+bestVal);
+        //Z.log("PATROL "+Z.CUR.x+" "+Z.CUR.y+" "+Z.coordinates(Z.endPos)+" "+bestDist+" "+bestVal);
       }
       /*if(Z.atFront > 0) {
 		  int distNeeded = 0;

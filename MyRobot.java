@@ -29,6 +29,7 @@ public class MyRobot extends BCAbstractRobot {
   int lastHealth, castle_talk, lastPatrol, endPos = MOD;
   pi nextSignal;
   unitCounter U;
+  int initCastle;
 
   // MOVABLE
   boolean goHome;
@@ -784,6 +785,7 @@ public class MyRobot extends BCAbstractRobot {
       if (CUR.unit == PILGRIM) genDanger();
       else genEnemyDist();
       updateAttackMode();
+      if(CUR.unit == CASTLE) initCastle = U.totUnits[CASTLE];
       //atFront--; atFront = Math.max(atFront, 0);
       //if(seenAllyDie()) atFront = 100;
   }
