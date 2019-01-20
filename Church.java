@@ -24,6 +24,7 @@ public class Church extends Building {
       if (A == null && openResources() > closePilgrim())
         A = Z.tryBuildNoSignal(PILGRIM);
       if (A == null && Z.U.closeUnits[PROPHET] < 15 && Z.fuel > 1000) return safeBuild();
+      if (Z.me.turn >= 900 && A == null) A = spamBuild();
       return A;
     }
 }
