@@ -8,7 +8,7 @@ public class Building extends Attackable {
   public Building(MyRobot z) { super(z); }
 
   int decideUnit() {
-	if (Z.U.closeEnemy[CRUSADER] - Z.U.closeUnits[PREACHER] > 0) return PREACHER;
+	if (Z.U.closeEnemy[CRUSADER] + Z.U.closeEnemy[PREACHER] - (Z.U.closeUnits[PREACHER]) > 0) return PREACHER;
     if (Z.U.closeUnits[CRUSADER]+Z.U.closeUnits[PREACHER]+Z.U.closeUnits[PROPHET] < 2) return PROPHET;
     int numEnemy = Z.U.closeEnemy[CRUSADER]+Z.U.closeEnemy[PROPHET]+Z.U.closeEnemy[PREACHER];
     if (numEnemy == 0) return MOD;
