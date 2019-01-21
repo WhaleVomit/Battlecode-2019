@@ -785,7 +785,7 @@ public class MyRobot extends BCAbstractRobot {
       if (CUR.unit == PILGRIM) genDanger();
       else genEnemyDist();
       updateAttackMode();
-      if(me.turn == 1 && CUR.unit == CASTLE) initCastle = U.totUnits[CASTLE];
+      if(me.turn == 5 && CUR.unit == CASTLE) initCastle = U.totUnits[CASTLE];
       //atFront--; atFront = Math.max(atFront, 0);
       //if(seenAllyDie()) atFront = 100;
   }
