@@ -86,3 +86,44 @@ Action2 rushBuild() {
         if (shouldPilgrim()) return makePilgrim();
         return Z.tryBuild(PREACHER);
     }*/
+
+PATROL:
+
+// don't patrol next to robots at the front
+/*for(int dx = -3; dx <= 3; dx++) {
+  for(int dy = -3; dy <= 3; dy++) {
+    int newx = X + dx; int newy = Y + dy;
+    if(Z.yourAttacker(newx, newy)) {
+      if(Z.robotMap[newy][newx].signal == 42424) return MOD;
+    }
+  }
+}
+if(Z.inVisionRange(X,Y)) {
+  int cnt = 0;
+  for(int dx = -1; dx <= 1; dx++) {
+    for(int dy = -1; dy <= 1; dy++) {
+      int newx = Z.CUR.x + dx; int newy = Z.CUR.y + dy;
+      if(!((newx+newy)%2 == 0)) continue;
+      if(Z.yourAttacker(newx, newy) && !(Z.robotMapID[newy][newx] == Z.CUR.id)) cnt++;
+    }
+  }
+  if(cnt == 0) return MOD;
+}*/
+/*if(Z.atFront > 0) {
+int distNeeded = 0;
+for(int dx = -4; dx <= 4; dx++) {
+  for(int dy = -4; dy <= 4; dy++) {
+    int X = Z.CUR.x + dx; int Y = Z.CUR.y + dy;
+    if(Z.yourAttacker(X,Y) && (X+Y)%2 == 1) {
+      distNeeded = Math.max(distNeeded, dx*dx + dy*dy);
+    }
+  }
+}
+if(distNeeded > 0) {
+  if(Z.nextSignal == null) {
+    Z.nextSignal = new pi(42424, distNeeded);
+  }
+}
+}
+
+if (Z.endPos == 64*Z.CUR.x+Z.CUR.y) return Z.moveAction(0,0);*/

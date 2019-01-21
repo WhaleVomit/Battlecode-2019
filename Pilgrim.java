@@ -46,6 +46,7 @@ public class Pilgrim extends Movable {
   }
 
   void init() {  // Z.CUR.turn == 1
+    boolean closeToChurch = false;
     for (Robot2 r : Z.robots) {
       int s = r.signal; // Z.log("signal recieved: "+s);
       if (r.team == Z.CUR.team && r.unit == CASTLE && s >= 2000 && s < 7000) {
@@ -53,8 +54,12 @@ public class Pilgrim extends Movable {
         Z.resourceLoc = new pi(Z.fdiv(a,64),a%64);
         Z.log("ASSIGNED TO "+Z.resourceLoc.f+" "+Z.resourceLoc.s);
       }
+      if (Z.euclidDist(r) <= 2) closeToChurch = true;
     }
-    if (Z.resourceLoc == null) Z.log("NOT ASSIGNED?");
+    if (Z.resourceLoc == null) {
+      if (closeToChurch) Z.log("SERVE CHURCH");
+      else Z.log("NOT ASSIGNED?");
+    }
     Z.resource = getResource(Z.resourceLoc);
   }
 
@@ -66,6 +71,15 @@ public class Pilgrim extends Movable {
       return moveAway(R);
     }
     if (shouldBuildChurch()) return Z.tryBuildChurch();
+  }
+
+  Action2 considerResourceLoc() {
+    if (Z.resourceLoc == null) return null;
+    if (Z.CUR.karbonite == 20 && Z.karboniteMap[Z.resourceLoc.s][Z.resourceLoc.f]) return null;
+    if (Z.CUR.fuel == 100 && Z.fuelMap[Z.resourceLoc.s][Z.resourceLoc.f]) return null;
+    if (Z.CUR.x == Z.resourceLoc.f && Z.CUR.y == Z.resourceLoc.s) return mine();
+    if (Z.safe.dist[Z.resourceLoc.s][Z.resourceLoc.f] == MOD) return null;
+    return Z.safe.move(Z.resourceLoc.f, Z.resourceLoc.s);
   }
 
   Action2 moveTowardResource() {
@@ -89,13 +103,7 @@ public class Pilgrim extends Movable {
   	}
     if (Z.goHome) return goHome();
 
-	if (!((Z.CUR.karbonite == 20 && Z.karboniteMap[Z.resourceLoc.s][Z.resourceLoc.f]) ||
-		  (Z.CUR.fuel == 100 && Z.fuelMap[Z.resourceLoc.s][Z.resourceLoc.f]))) {
-		if (Z.resourceLoc != null && (Z.passable(Z.resourceLoc.f,Z.resourceLoc.s)
-				  || Z.CUR.x == Z.resourceLoc.f && Z.CUR.y == Z.resourceLoc.s))
-		  if (Z.safe.dist[Z.resourceLoc.s][Z.resourceLoc.f] != MOD)
-			return Z.safe.move(Z.resourceLoc.f, Z.resourceLoc.s);
-	}
+    Action2 A = considerResourceLoc(); if (A != null) return A;
 
     if (Math.min(distKarb,distFuel) == MOD) return greedy();
     if (Math.min(distKarb,distFuel) <= 2) {
@@ -109,7 +117,7 @@ public class Pilgrim extends Movable {
   Action2 run() {
     if (Z.CUR.turn == 1) init();
     Action2 A = react(); if (A != null) return A;
-    A = moveTowardResource(); if(A != null) return A;
+    A = moveTowardResource(); if (A != null) return A;
     return mine();
   }
 }

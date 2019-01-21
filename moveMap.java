@@ -109,6 +109,7 @@ public abstract class moveMap {
   int distHome() { return distClose(closestStruct(true)); }
 
   Action2 move(int x, int y) {
+    if (x == Z.CUR.x && y == Z.CUR.y) return null;
     int t = next(close(x,y)); if (t == MOD) return null;
     int dx = Z.fdiv(t,64)-Z.CUR.x, dy = (t%64)-Z.CUR.y;
     if (!Z.canMove(Z.CUR,dx,dy)) return null;

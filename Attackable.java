@@ -160,50 +160,33 @@ public class Attackable extends Movable {
         if(Z.attackMode) return position();
     }
     public int patrolVal(int X, int Y, int x, int y) {
-		// don't patrol next to robots at the front
-		/*for(int dx = -3; dx <= 3; dx++) {
-			for(int dy = -3; dy <= 3; dy++) {
-				int newx = X + dx; int newy = Y + dy;
-				if(Z.yourAttacker(newx, newy)) {
-					if(Z.robotMap[newy][newx].signal == 42424) return MOD;
-				}
-			}
-		}
-		if(Z.inVisionRange(X,Y)) {
-			int cnt = 0;
-			for(int dx = -1; dx <= 1; dx++) {
-				for(int dy = -1; dy <= 1; dy++) {
-					int newx = Z.CUR.x + dx; int newy = Z.CUR.y + dy;
-					if(!((newx+newy)%2 == 0)) continue;
-					if(Z.yourAttacker(newx, newy) && !(Z.robotMapID[newy][newx] == Z.CUR.id)) cnt++;
-				}
-			}
-			if(cnt == 0) return MOD;
-		}*/
-		int big = 123456;
-		int val = 0;
-		if (Z.euclidDist(X,Y,x,y) < 4) return val += big; // avoid congestion
-		if (Z.enemyDist[Y][X][0] <= 14) return val += 2*big;
-        if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {
-            val += Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
-            if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += big;
-            return val;
-        }
-        return MOD;
+  		int big = 123456, val = 0;
+  		if (Z.euclidDist(X,Y,x,y) < 4) return val += big; // avoid congestion
+  		if (Z.enemyDist[Y][X][0] <= 14) return val += 2*big;
+      if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {
+          val += Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
+          if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += big;
+          return val;
+      }
+      return MOD;
     }
 
     public Action2 patrol() {
-	  int t = Z.bfs.closestStruct(true); if(t == MOD) return null;
-	  int x = Z.fdiv(t,64), y = t%64;
+  	  int t = Z.bfs.closestStruct(true); if (t == MOD) return null;
+  	  int x = Z.fdiv(t,64), y = t%64;
+
+      // Z.log("TRY PATROL");
       if (Z.lastPatrol != Z.CUR.turn-1) Z.endPos = MOD;
       Z.lastPatrol = Z.CUR.turn;
+      if (Z.bfs.dist(Z.endPos) == MOD) Z.endPos = MOD;
       if (Z.endPos != MOD) {
-		if(Z.bfs.dist(Z.endPos) == MOD) Z.endPos = MOD;
-		int ex = Z.fdiv(Z.endPos,64); int ey = Z.endPos%64;
-		if(Z.enemyDist[ey][ex][0] <= 14) Z.endPos = MOD;
-		//if(patrolVal(ex,ey,x,y) == MOD && !(Z.CUR.x == ex && Z.CUR.y == ey)) Z.endPos = MOD;
-	  }
+    		int ex = Z.fdiv(Z.endPos,64); int ey = Z.endPos%64;
+        // Z.log("PREV POS "+ex+" "+ey+" "+Z.w+" "+Z.h);
+    		if (Z.enemyDist[ey][ex][0] <= 14) Z.endPos = MOD;
+    		//if(patrolVal(ex,ey,x,y) == MOD && !(Z.CUR.x == ex && Z.CUR.y == ey)) Z.endPos = MOD;
+      }
 
+      // Z.log("DETERMINE POS");
       if (Z.endPos == MOD) {
         int bestVal = MOD;
         for (int X = 0; X < Z.w; ++X) for (int Y = 0; Y < Z.h; ++Y) {
@@ -223,24 +206,8 @@ public class Attackable extends Movable {
         }
         //Z.log("PATROL "+Z.CUR.x+" "+Z.CUR.y+" "+Z.coordinates(Z.endPos)+" "+bestDist+" "+bestVal);
       }
-      /*if(Z.atFront > 0) {
-		  int distNeeded = 0;
-		  for(int dx = -4; dx <= 4; dx++) {
-			  for(int dy = -4; dy <= 4; dy++) {
-				  int X = Z.CUR.x + dx; int Y = Z.CUR.y + dy;
-				  if(Z.yourAttacker(X,Y) && (X+Y)%2 == 1) {
-					  distNeeded = Math.max(distNeeded, dx*dx + dy*dy);
-				  }
-			  }
-		  }
-		  if(distNeeded > 0) {
-			  if(Z.nextSignal == null) {
-				  Z.nextSignal = new pi(42424, distNeeded);
-			  }
-		  }
-	  }
+      // Z.log("FINISH");
 
-      if (Z.endPos == 64*Z.CUR.x+Z.CUR.y) return Z.moveAction(0,0);*/
       return Z.bfs.move(Z.endPos);
     }
 
