@@ -341,7 +341,7 @@ public class Castle extends Building {
     if (A != null) return A;
     if (!shouldBuild && (Z.karbonite < 80 || Z.fuel < 250)) return null;
     if (shouldPilgrim()) return makePilgrim();
-    if (Z.me.turn >= 900 && !Z.shouldBeginAttack()) return spamBuild();
+    if (Z.me.turn >= 900 && !Z.U.shouldBeginAttack()) return spamBuild();
     return safeBuild();
   }
 
