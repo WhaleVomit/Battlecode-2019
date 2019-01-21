@@ -65,7 +65,7 @@ public class unitCounter {
   }
 
   int decideUnit() {
-	if(Z.me.turn <= 20) return PREACHER;
+	if(Z.CUR.unit == CASTLE && Z.me.turn <= 20) return PREACHER;
     return PROPHET;
     /*if (Z.numAttacks > 0) return PROPHET;
     double a = closeUnits[3], b = closeUnits[4]/2.0, c = closeUnits[5];
