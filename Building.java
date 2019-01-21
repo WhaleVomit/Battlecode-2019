@@ -41,7 +41,7 @@ public class Building extends Attackable {
   }
   
   Action2 spamBuild() {
-	  return Z.tryBuild(Z.U.decideUnit());
+	  return Z.tryBuild(CRUSADER);
   }
 
   Action2 panicBuild() {
