@@ -18,13 +18,12 @@ public class Building extends Attackable {
   }
 
   int decideUnit() {
-    if (!enoughFuel()) return MOD;
 	  if (Z.U.closeEnemy[CRUSADER]+Z.U.closeEnemy[PREACHER]-Z.U.closeUnits[PREACHER] > 0) return PREACHER;
     if (Z.U.closeEnemyAttackers() == 0) {
       if (Z.U.closeUnits[CRUSADER]+Z.U.closeUnits[PREACHER]+Z.U.closeUnits[PROPHET] < 2) return PROPHET;
       return MOD;
     }
-    if (Z.karbonite < 25 || Z.fuel < 100) return CRUSADER;
+    if ((Z.karbonite < 25 || Z.fuel < 100) && Z.U.closeEnemy[PREACHER]+Z.U.closeEnemy[CASTLE]+Z.U.closeEnemy[CHURCH] == 0) return CRUSADER;
     if (Z.U.closeEnemy[CHURCH] > 0 && Z.U.closeEnemy[PROPHET] == 0) return PREACHER;
     return PROPHET;
 
@@ -38,9 +37,7 @@ public class Building extends Attackable {
     return MOD;*/
   }
 
-
   Action2 safeBuild() {
-    if (!enoughFuel()) return null;
 	  int numDefenders = Z.U.closeUnits[CRUSADER]+Z.U.closeUnits[PREACHER]+Z.U.closeUnits[PROPHET];
 	  if (numDefenders >= 2 && (Z.karbonite < 80 || Z.fuel < 250)) return null; // always reserve room for new church
     if (Z.CUR.unit == CASTLE && Z.U.tooMany()) return null;
@@ -61,6 +58,11 @@ public class Building extends Attackable {
   }
 
   Action2 panicBuild() {
+    if (Z.CUR.unit == CASTLE && Z.CUR.turn < 30) {
+      if (Z.U.closeEnemyAttackers() == 0) return null;
+      if (Z.U.totUnits[PILGRIM] == 0) return null;
+    }
+    if (!enoughFuel()) return new Action2();
     int w = decideUnit(); if (w == MOD) return null;
     Action2 A = null;
     if (Z.CUR.unit == CASTLE) A = Z.tryBuild(w);

@@ -683,7 +683,7 @@ public class MyRobot extends BCAbstractRobot {
           int type = fdiv(tmp,625); tmp %= 625;
           int x = fdiv(tmp,25)-12; x += R.x;
           int y = (tmp%25)-12; y += R.y;
-          // log("ADDED "+CUR.coordinates()+" "+R.coordinates()+" "+x+" "+y);
+          log("ADDED "+CUR.coordinates()+" "+R.coordinates()+" "+x+" "+y);
           robotMapID[y][x] = MOD; robotMap[y][x] = makeRobot(type,1-CUR.team,x,y);
           lastTurn[y][x] = CUR.turn;
       } else if (R.team == CUR.team && R.unit == CASTLE && R.signal >= 7000 && R.signal < 20000 && adjacent(CUR,R)) {
@@ -704,6 +704,10 @@ public class MyRobot extends BCAbstractRobot {
 
   // COMMUNICATION
 
+  boolean canSee(Robot2 R) {
+    return VISION_R[R.unit] <= euclidDist(R);
+  }
+
   int needRadius(Robot2 R) {
     int numEnemies = Math.max(U.closeEnemyAttackers(),1);
     // try to activate around 2*numEnemies allies
@@ -717,9 +721,9 @@ public class MyRobot extends BCAbstractRobot {
 		// activate as much as necessary
 
     ArrayList<pi> allies = new ArrayList<>();
-    for(int dx = -4; dx <= 4; dx++) for(int dy = -4; dy <= 4; dy++) {
+    for(int dx = -8; dx <= 8; dx++) for(int dy = -8; dy <= 8; dy++) {
 			int x = CUR.x+dx, y = CUR.y+dy;
-			if (dx*dx + dy*dy <= 16 && yourAttacker(x,y) && clearVision(robotMap[y][x]))
+      if (yourAttacker(x,y) && canSee(robotMap[y][x]) && clearVision(robotMap[y][x]))
         allies.add(new pi(dx,dy));
 		}
 		sortClose(allies);
@@ -729,7 +733,7 @@ public class MyRobot extends BCAbstractRobot {
     return dx*dx+dy*dy;
   }
 
-  int needRadiusStruct(Robot2 R) {
+  int needRadiusStruct(Robot2 R, Action2 A) {
     int numEnemies = Math.max(U.closeEnemyAttackers(),1);
     // try to activate around 2*numEnemies allies
     // count number allies already activated
@@ -738,26 +742,30 @@ public class MyRobot extends BCAbstractRobot {
     // activate as much as necessary
 
     ArrayList<pi> allies = new ArrayList<>();
-    for(int dx = -4; dx <= 4; dx++) for(int dy = -4; dy <= 4; dy++) {
+    for(int dx = -8; dx <= 8; dx++) for(int dy = -8; dy <= 8; dy++) {
       int x = CUR.x+dx, y = CUR.y+dy;
-      if (dx*dx + dy*dy <= 16 && yourAttacker(x,y) && clearVisionStruct(robotMap[y][x]))
+      if (yourAttacker(x,y) && canSee(robotMap[y][x]) && clearVisionStruct(robotMap[y][x]))
         allies.add(new pi(dx,dy));
     }
     sortClose(allies);
 
-    int ind = Math.min(necessary-1, allies.size()-1); if (ind == -1) return 0;
+    int ind = Math.min(necessary-1, allies.size()-1);
+    if (ind == -1) {
+      if (A != null && A.type == 4) return 2;
+      return 0;
+    }
     int dx = allies.get(ind).f; int dy = allies.get(ind).s;
     return dx*dx+dy*dy;
   }
 
-  void warnOthers() { // CUR.x, CUR.y are new pos, not necessarily equal to me.x, me.y;
+  void warnOthers(Action2 A) { // CUR.x, CUR.y are new pos, not necessarily equal to me.x, me.y;
     if (fuel < 100 || superseded(CUR.x,CUR.y) || nextSignal != null) return;
-    Robot2 R = closestAttacker(ORI,1-CUR.team);
+    Robot2 R = closestNotPilgrim(ORI,1-CUR.team);
     if (euclidDist(ORI,R) > VISION_R[CUR.unit]) R = closestRobot(ORI,1-CUR.team);
     if (euclidDist(ORI,R) > VISION_R[CUR.unit]) return;
 
     int r = 0;
-    if (CUR.isStructure()) r = needRadiusStruct(R);
+    if (CUR.isStructure()) r = needRadiusStruct(R,A);
     else r = needRadius(R);
     if (r > 0) {
         log("SIGNAL ENEMY: OPOS "+ORI.coordinates()+", CPOS "+CUR.coordinates()+", EPOS "+R.coordinates()+" "+getSignal(R));
@@ -915,7 +923,7 @@ public class MyRobot extends BCAbstractRobot {
     if (me.turn == 1) log("UNIT: "+CUR.unit);
 
     Action2 A = chooseAction();
-    warnOthers();
+    warnOthers(A);
     startAttack(); finish();
     return conv(A);
   }

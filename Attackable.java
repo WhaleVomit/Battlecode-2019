@@ -126,7 +126,7 @@ public class Attackable extends Movable {
     }
 
     public Action2 position() {
-		  Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
+		  Robot2 R = Z.closestNotPilgrim(Z.CUR,1-Z.CUR.team);
       if (!Z.attackMode && Z.euclidDist(R) > 64 && !closeToStruct(R)) return null;
 		  if (Z.euclidDist(R) > 196 || (Z.euclidDist(R) > 100 && Z.bfs.distHome() > 9)) return null;
       if (Z.U.closeUnits[PROPHET] > 15 && !Z.attackMode) return null;
@@ -165,6 +165,7 @@ public class Attackable extends Movable {
         A = tryAttack(); if (A != null) return A;
         return position();
     }
+
     public int patrolVal(int X, int Y, int x, int y) {
   		int big = 123456, val = 0;
   		if (Z.euclidDist(X,Y,x,y) < 4) return val += big; // avoid congestion
@@ -254,11 +255,21 @@ public class Attackable extends Movable {
     }
 
     Action2 runDefault() {
-        Action2 A = react(); if (A != null) return A;
-        if (!Z.attackMode) {
-            if (enoughResources()) return goHome();
-            return patrol();
-        }
-        return aggressive();
+      if (Z.CUR.team == 0 && Z.CUR.unit == CRUSADER) Z.log("WHAT");
+      Action2 A = react();
+      if (Z.CUR.team == 0 && Z.CUR.unit == CRUSADER) {
+        Z.log("HUH ");
+        if (A != null) Z.log(""+A.type);
+  		  Robot2 R = Z.closestNotPilgrim(Z.CUR,1-Z.CUR.team);
+        if (R != null) Z.log("ZZ "+R.x+" "+R.y);
+      }
+      if (A != null) {
+        return A;
+      }
+      if (!Z.attackMode) {
+          if (enoughResources()) return goHome();
+          return patrol();
+      }
+      return aggressive();
     }
 }

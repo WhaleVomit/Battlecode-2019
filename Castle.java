@@ -339,8 +339,7 @@ public class Castle extends Building {
     // if (Z.CUR.team == 1) return Z.tryBuild(CRUSADER);
 
     if (Z.CUR.turn == 1) return null;
-    Action2 A = null; if (Z.CUR.turn >= 30 || (Z.U.closeEnemyAttackers() > 0 && Z.U.totUnits[PILGRIM] > 0)) A = panicBuild();
-    if (A != null) return A;
+    Action2 A = panicBuild(); if (A != null) return A;
     if (!shouldBuild && (Z.karbonite < 80 || Z.fuel < 250)) return null;
     if (shouldPilgrim()) return makePilgrim();
     if (Z.me.turn >= 900 && !Z.U.shouldBeginAttack()) return spamBuild();
