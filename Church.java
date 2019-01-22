@@ -23,6 +23,7 @@ public class Church extends Building {
       if(Z.CUR.turn == 1) {
         initPatrol();
       } else {
+		updatePatrolVars();
         Action2 A = panicBuild(); if (A != null) return A;
         if (openResources() > closePilgrim()) A = Z.tryBuildNoSignal(PILGRIM);
         if (A == null && Z.U.closeAttackers() < 20 && Z.fuel > 2000) return safeBuild();
