@@ -165,6 +165,8 @@ public class Castle extends Building {
       int p = Z.karbPos[Z.sortedKarb[i]];
       Z.log("AA "+Z.karbPos[Z.sortedKarb[i]]+" "+Z.coordinates(p)+" "+ourSide(p)+" "+Z.bfs.dist(p));
     }*/
+    
+    initPatrol();
   }
 
   void dumpRound() {
@@ -192,6 +194,8 @@ public class Castle extends Building {
 
     for (int i = 0; i < Z.karbcount; i++) if (isOccupiedKarb[i]) numKarb ++;
     for (int i = 0; i < Z.fuelcount; i++) if (isOccupiedFuel[i]) numFuel ++;
+    
+    updatePatrolVars();
 
     if (Z.CUR.unit == CASTLE && Z.myCastle.get(0) == 64 * Z.CUR.x + Z.CUR.y && Z.CUR.turn%10 == 0)
       dumpRound();
@@ -350,6 +354,7 @@ public class Castle extends Building {
     if (Z.me.turn == 1) initVars();
     determineCastleLoc();
     updatePilgrimID();
+    updateAttackerID();
     updateVars();
     Action2 A = castleBuild(); if (A != null && A.type != -1) return A;
     return tryAttack();
