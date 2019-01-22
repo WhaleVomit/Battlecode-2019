@@ -332,7 +332,7 @@ public class Castle extends Building {
     if (Z.U.totUnits[PILGRIM] >= totResource/2+3) return false;
     if (Z.CUR.turn <= 20 && Z.U.totUnits[PILGRIM] < Math.min(Z.fdiv(totResource,2),4)) return true;
     if (Z.euclidDist(Z.CUR,Z.closestAttacker(Z.CUR,1-Z.CUR.team)) <= 64) return false;
-    return myPilgrim() <= Z.U.closeAttackers();
+    return myPilgrim() <= Z.U.closeAttackers() && 20*Z.U.totUnits[PILGRIM] <= Z.fuel;
   }
 
   Action2 castleBuild() {

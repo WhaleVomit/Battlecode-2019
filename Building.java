@@ -7,13 +7,24 @@ public class Building extends Attackable {
 
   public Building(MyRobot z) { super(z); }
 
+  int needAttackFuel() {
+    return 10*Z.U.closeUnits[CRUSADER]+25*Z.U.closeUnits[PROPHET]+15*Z.U.closeUnits[PREACHER];
+  }
+
+  boolean enoughFuel() {
+    if (Z.fuel < 2*needAttackFuel()+75) return false;
+    if (Z.fuel < 200 && Z.CUR.unit == CASTLE) return false;
+    return true;
+  }
+
   int decideUnit() {
+    if (!enoughFuel()) return MOD;
 	  if (Z.U.closeEnemy[CRUSADER]+Z.U.closeEnemy[PREACHER]-Z.U.closeUnits[PREACHER] > 0) return PREACHER;
     if (Z.U.closeEnemyAttackers() == 0) {
       if (Z.U.closeUnits[CRUSADER]+Z.U.closeUnits[PREACHER]+Z.U.closeUnits[PROPHET] < 2) return PROPHET;
       return MOD;
     }
-    if (Z.karbonite < 25) return CRUSADER;
+    if (Z.karbonite < 25 || Z.fuel < 100) return CRUSADER;
     if (Z.U.closeEnemy[CHURCH] > 0 && Z.U.closeEnemy[PROPHET] == 0) return PREACHER;
     return PROPHET;
 
@@ -29,6 +40,7 @@ public class Building extends Attackable {
 
 
   Action2 safeBuild() {
+    if (!enoughFuel()) return null;
 	  int numDefenders = Z.U.closeUnits[CRUSADER]+Z.U.closeUnits[PREACHER]+Z.U.closeUnits[PROPHET];
 	  if (numDefenders >= 2 && (Z.karbonite < 80 || Z.fuel < 250)) return null; // always reserve room for new church
     if (Z.CUR.unit == CASTLE && Z.U.tooMany()) return null;

@@ -302,6 +302,13 @@ public class MyRobot extends BCAbstractRobot {
               bes = robotMap[i][j];
       return bes;
   }
+  Robot2 closestNotPilgrim(Robot2 R, int t) {
+      Robot2 bes = null;
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
+          if (teamRobot(j,i,t) && euclidDist(R,j,i) < euclidDist(R,bes) && lastTurn[i][j] >= CUR.turn-5 && robotMap[i][j].unit != PILGRIM)
+              bes = robotMap[i][j];
+      return bes;
+  }
   int closestEuclid(ArrayList<Integer> A) {
 	  int bestDist = MOD, bestPos = MOD; if (A == null) return bestPos;
 	  for (int x : A) {

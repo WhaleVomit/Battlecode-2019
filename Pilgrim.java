@@ -64,7 +64,7 @@ public class Pilgrim extends Movable {
   }
 
   Action2 react() {
-    Robot2 R = Z.closestRobot(Z.CUR,1-Z.CUR.team);
+    Robot2 R = Z.closestNotPilgrim(Z.CUR,1-Z.CUR.team);
     if (Z.danger[Z.CUR.y][Z.CUR.x] > 0) {
       Z.goHome = true;
       Action2 A = tryGive(); if (A != null) return A;

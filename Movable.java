@@ -99,8 +99,10 @@ public class Movable {
         return null;
     }
     boolean enoughResources() {
+      if (Z.CUR.unit != PILGRIM || Z.danger[Z.CUR.y][Z.CUR.x] == 0)
         return Z.CUR.fuel > 25 || (Z.CUR.fuel > 0 && !Z.fuelMap[Z.CUR.y][Z.CUR.x])
         	|| Z.CUR.karbonite > 5 || (Z.CUR.karbonite > 0 && !Z.karboniteMap[Z.CUR.y][Z.CUR.x]);
+      return Z.CUR.fuel > 25 || Z.CUR.karbonite > 5;
     }
 
     Action2 moveClose(int x, int y) {
