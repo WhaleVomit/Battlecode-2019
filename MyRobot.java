@@ -40,7 +40,7 @@ public class MyRobot extends BCAbstractRobot {
 
   // ATTACKERS
   boolean waited, avoidCastle, attackMode; // avoidCastle = if castle is too crowded don't patrol next to it
-  int atFront = 0; // set to 100 when see an ally die nearby, decrement every turn until reach 0 
+  int atFront = 0; // set to 100 when see an ally die nearby, decrement every turn until reach 0
   ArrayList<Integer> nearbyAllies = new ArrayList<>(); // keeps track of allies in 5x5 square to determine when they die
   int posLastTurn = MOD;
 
@@ -335,16 +335,9 @@ public class MyRobot extends BCAbstractRobot {
   void rem(ArrayList<Integer> A) {
       ArrayList<Integer> B = new ArrayList<>();
       for (int i : A) {
-          int x = fdiv(i,64), y = i%64;
-          if (!inMap(x,y)) {
-              String res = "CCC "+x+" "+y+" "+i+ " | ";
-              for (int j: A) res += j+" ";
-              res += " | ";
-              for (Integer j: A) res += j+" ";
-              log(res);
-              return;
-          }
-          if (yesStruct(x,y)) B.add(i);
+        int x = fdiv(i,64), y = i%64;
+        if (yesStruct(x,y)) B.add(i);
+        else if (A == otherCastle || A == otherChurch) updEnemy = true;
       }
       A.clear();
       for (int i : B) A.add(i);
@@ -370,7 +363,11 @@ public class MyRobot extends BCAbstractRobot {
 
   // BFS DIST
   void genDanger() {
-      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (lastTurn[i][j] >= CUR.turn-60)
+      // round 20: 5
+      // round 1000: 60
+      // 5+round/20
+      int dangerRound = CUR.turn-(5+CUR.turn/20);
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (lastTurn[i][j] >= dangerRound) {
         if (enemyAttacker(j,i)) {
           Robot2 R = robotMap[i][j];
           int d = dangerRadius(R);
@@ -381,9 +378,15 @@ public class MyRobot extends BCAbstractRobot {
               else danger[i+I][j+J] = 1;
             }
           }
+        } else if (teamRobot(j,i,1-CUR.team) && robotMap[i][j].isStructure()) {
+          for (int I = -1; I <= 1; ++I) for (int J = -1; J <= 1; ++J) if (inMap(j+J,i+I)) {
+            // log("STRUCT "+(j+J)+" "+(i+I));
+            danger[i+I][j+J] = 2;
+          }
         }
+      }
 
-      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (lastTurn[i][j] >= CUR.turn-60)
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (lastTurn[i][j] >= dangerRound)
         if (yourAttacker(j,i)) {
           for (int I = -4; I <= 4; ++I) for (int J = -4; J <= 4; ++J) {
             int D = I*I+J*J;
@@ -725,7 +728,7 @@ public class MyRobot extends BCAbstractRobot {
 			log(s);
 		}
 	}
-	
+
 	boolean seenAllyDie() { // inaccurate if current robot is moving
 		if(posLastTurn != 64*CUR.x + CUR.y) return false;
 		for(int id: nearbyAllies) {
@@ -735,7 +738,7 @@ public class MyRobot extends BCAbstractRobot {
 		}
 		return false;
 	}
-	
+
 	void remNearbyAllies() {
 		nearbyAllies.clear();
 		for(int dx = -2; dx <= 2; dx++) {

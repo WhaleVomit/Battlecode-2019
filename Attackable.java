@@ -162,7 +162,7 @@ public class Attackable extends Movable {
     public int patrolVal(int X, int Y, int x, int y) {
   		int big = 123456, val = 0;
   		if (Z.euclidDist(X,Y,x,y) < 4) return val += big; // avoid congestion
-  		if (Z.enemyDist[Y][X][0] <= 14) return val += 2*big;
+  		if (Z.enemyDist[Y][X][0] <= Math.min(14,Z.enemyDist[y][x][0])) return val += 2*big;
       if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {
           val += Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
           if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += big;
@@ -204,7 +204,7 @@ public class Attackable extends Movable {
               }
             }
         }
-        //Z.log("PATROL "+Z.CUR.x+" "+Z.CUR.y+" "+Z.coordinates(Z.endPos)+" "+bestDist+" "+bestVal);
+        if (Z.CUR.unit == PREACHER) Z.log("PATROL "+Z.CUR.x+" "+Z.CUR.y+" "+Z.coordinates(Z.endPos)+" "+bestDist+" "+bestVal);
       }
       // Z.log("FINISH");
 
