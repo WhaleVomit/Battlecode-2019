@@ -15,11 +15,11 @@ public class Pilgrim extends Movable {
   Action2 mine() {
     if (Z.fuel == 0) return null;
     if (Z.CUR.karbonite <= 18 && Z.karboniteMap[Z.CUR.y][Z.CUR.x]) {
-      Z.lastAction = Z.CUR.turn;
+      Z.lastAction = Z.CUR.turn; Z.giveup = false;
       return Z.mineAction();
     }
     if (Z.CUR.fuel <= 90 && Z.fuelMap[Z.CUR.y][Z.CUR.x]) {
-      Z.lastAction = Z.CUR.turn;
+      Z.lastAction = Z.CUR.turn; Z.giveup = false;
       return Z.mineAction();
     }
     return null;
@@ -77,7 +77,7 @@ public class Pilgrim extends Movable {
       return moveAway(R);
     }
     if (shouldBuildChurch()) {
-      Z.lastAction = Z.CUR.turn;
+      Z.lastAction = Z.CUR.turn; Z.giveup = false;
       return Z.tryBuildChurch();
     }
   }
@@ -109,7 +109,7 @@ public class Pilgrim extends Movable {
   	}
     if (Z.goHome) return goHome();
 
-    if (Z.lastAction >= Z.CUR.turn-100) {
+    if (!Z.giveup) {
       Action2 A = considerResourceLoc(); if (A != null) return A;
 
       if (Math.min(distKarb,distFuel) == MOD) return greedy();
@@ -129,9 +129,24 @@ public class Pilgrim extends Movable {
     }
   }
 
+  boolean isolated() {
+      int minx = MOD, maxx = -MOD, miny = MOD, maxy = -MOD;
+      for (int i = Z.CUR.turn-20; i <= Z.CUR.turn; ++i) if (Z.posRecord[i] != null) {
+        minx = Math.min(minx,Z.posRecord[i].f);
+        maxx = Math.max(maxx,Z.posRecord[i].f);
+        miny = Math.min(miny,Z.posRecord[i].s);
+        maxy = Math.max(maxy,Z.posRecord[i].s);
+      }
+      return minx+6 >= maxx && miny+6 >= maxy;
+  }
+
   Action2 run() {
     if (Z.CUR.turn == 1) init();
     Action2 A = react(); if (A != null) return A;
+    if (!Z.giveup) {
+      if (Z.lastAction <= Z.CUR.turn-100) Z.giveup = true;
+      if (Z.lastAction <= Z.CUR.turn-25 && isolated()) Z.giveup = true;
+    }
     A = moveTowardResource(); if (A != null) return A;
     return mine();
   }

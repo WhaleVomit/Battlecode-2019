@@ -114,7 +114,7 @@ public class Attackable extends Movable {
     public Action2 prophetPosition(Robot2 R) {
       if (Z.euclidDist(R) > 100) return moveTowardEnemy(R);
       if (R.unit == PROPHET && !attacking(R)) {
-          Z.log("WAIT FOR IT");
+          // Z.log("WAIT FOR IT");
           return waitOutOfRange(R);
       }
       return minimizeDamage(R);

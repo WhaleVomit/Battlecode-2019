@@ -28,6 +28,7 @@ public class MyRobot extends BCAbstractRobot {
   // ALL UNITS
   int lastHealth, castle_talk, lastPatrol, endPos = MOD, lastAction;
   pi nextSignal;
+  pi[] posRecord = new pi[1001];
   unitCounter U;
   int initCastle;
 
@@ -60,6 +61,7 @@ public class MyRobot extends BCAbstractRobot {
   int[][] danger; safeMap safe;
   int resource = -1; // karbonite or fuel
   pi resourceLoc;
+  boolean giveup = false;
 
   void sortClose(ArrayList<pi> dirs) {
       Collections.sort(dirs, new Comparator<pi>() {
@@ -810,6 +812,7 @@ public class MyRobot extends BCAbstractRobot {
       robots = new Robot2[getVisibleRobots().length];
       for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
 
+      posRecord[me.turn] = new pi(me.x,me.y);
       for (int i = 1; i <= 4096; ++i) lastPos[i] = null;
       for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
         if (robotMapID[i][j] > 0 && robotMapID[i][j] < MOD)
