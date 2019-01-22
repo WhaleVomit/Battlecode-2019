@@ -539,6 +539,7 @@ public class MyRobot extends BCAbstractRobot {
     }
   }
   public boolean isRushing() {
+    // return false;
     return CUR.team == 1;
     // int x = bfs.closestStruct(true);
     // return canRush && CUR.unit != PILGRIM && CUR.turn <= 30 && enemyDist[x%64][fdiv(x,64)][0] <= 25;
@@ -546,7 +547,7 @@ public class MyRobot extends BCAbstractRobot {
 
   void updateAttackMode() {
       if (CUR.unit == CASTLE && enemyDist[CUR.y][CUR.x][0] > 25) canRush = false;
-      if (isRushing() && U.closeAttackers() >= 6) attackMode = true;
+      if (isRushing() && U.closeAttackers() >= 3) attackMode = true;
       // log(CUR.getInfo()+toString(myCastle)+" "+toString(otherCastle));
   }
   int compress(int i) {

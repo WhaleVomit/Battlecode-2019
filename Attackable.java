@@ -170,7 +170,7 @@ public class Attackable extends Movable {
   		if (Z.euclidDist(X,Y,x,y) < 4) return val += big; // avoid congestion
   		if (Z.enemyDist[Y][X][0] <= Math.min(14,Z.enemyDist[y][x][0])) return val += 2*big;
       if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {
-          val += Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]);
+          val += Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]-1);
           if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += big;
           return val;
       }

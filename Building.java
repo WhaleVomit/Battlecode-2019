@@ -40,6 +40,7 @@ public class Building extends Attackable {
       if (mn < 10 && Z.U.closeAttackers() > mn+2) return null;
     }
 
+    if (Z.CUR.team == 1) return Z.tryBuild(CRUSADER);
     return Z.tryBuild(Z.U.decideUnit());
   }
 

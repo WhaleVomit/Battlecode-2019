@@ -336,7 +336,7 @@ public class Castle extends Building {
   }
 
   Action2 castleBuild() {
-    if (Z.CUR.team == 1) return Z.tryBuild(CRUSADER);
+    // if (Z.CUR.team == 1) return Z.tryBuild(CRUSADER);
 
     if (Z.CUR.turn == 1) return null;
     Action2 A = null; if (Z.CUR.turn >= 30 || (Z.U.closeEnemyAttackers() > 0 && Z.U.totUnits[PILGRIM] > 0)) A = panicBuild();
@@ -352,7 +352,7 @@ public class Castle extends Building {
     determineCastleLoc();
     updatePilgrimID();
     updateVars();
-    Action2 A = castleBuild(); if (A != null) return A;
+    Action2 A = castleBuild(); if (A != null && A.type != -1) return A;
     return tryAttack();
   }
 }
