@@ -14,8 +14,14 @@ public class Pilgrim extends Movable {
 
   Action2 mine() {
     if (Z.fuel == 0) return null;
-    if (Z.CUR.karbonite <= 18 && Z.karboniteMap[Z.CUR.y][Z.CUR.x]) return Z.mineAction();
-    if (Z.CUR.fuel <= 90 && Z.fuelMap[Z.CUR.y][Z.CUR.x]) return Z.mineAction();
+    if (Z.CUR.karbonite <= 18 && Z.karboniteMap[Z.CUR.y][Z.CUR.x]) {
+      Z.lastAction = Z.CUR.turn;
+      return Z.mineAction();
+    }
+    if (Z.CUR.fuel <= 90 && Z.fuelMap[Z.CUR.y][Z.CUR.x]) {
+      Z.lastAction = Z.CUR.turn;
+      return Z.mineAction();
+    }
     return null;
   }
 
@@ -70,7 +76,10 @@ public class Pilgrim extends Movable {
       Action2 A = tryGive(); if (A != null) return A;
       return moveAway(R);
     }
-    if (shouldBuildChurch()) return Z.tryBuildChurch();
+    if (shouldBuildChurch()) {
+      Z.lastAction = Z.CUR.turn;
+      return Z.tryBuildChurch();
+    }
   }
 
   Action2 considerResourceLoc() {
@@ -93,25 +102,31 @@ public class Pilgrim extends Movable {
       }
     }
     int distKarb = Z.safe.dist(bestKarb), distFuel = Z.safe.dist(bestFuel);
-
     if (Z.CUR.karbonite < 5 && Z.CUR.fuel < 25) Z.goHome = false;
-    // if (Z.resource == 0 && Z.CUR.karbonite > 16) Z.goHome = true;
-    // if (Z.resource == 1 && Z.CUR.fuel > 80) Z.goHome = true;
     if (Z.CUR.karbonite > 16 || Z.CUR.fuel > 80) Z.goHome = true;
     if (Z.bfs.distHome() >= 15) {
   		Z.goHome = Z.CUR.karbonite == 20 && Z.CUR.fuel == 100;
   	}
     if (Z.goHome) return goHome();
 
-    Action2 A = considerResourceLoc(); if (A != null) return A;
+    if (Z.lastAction >= Z.CUR.turn-100) {
+      Action2 A = considerResourceLoc(); if (A != null) return A;
 
-    if (Math.min(distKarb,distFuel) == MOD) return greedy();
-    if (Math.min(distKarb,distFuel) <= 2) {
-      if (distKarb <= distFuel) return Z.safe.move(bestKarb);
+      if (Math.min(distKarb,distFuel) == MOD) return greedy();
+      if (Math.min(distKarb,distFuel) <= 2) {
+        if (distKarb <= distFuel) return Z.safe.move(bestKarb);
+        return Z.safe.move(bestFuel);
+      }
+      if (Z.resource == 0 && distKarb != MOD) return Z.safe.move(bestKarb);
       return Z.safe.move(bestFuel);
+    } else { // inactive pilgrim
+      if (Math.min(distKarb,distFuel) <= 5) {
+        if (distKarb <= distFuel) return Z.safe.move(bestKarb);
+        return Z.safe.move(bestFuel);
+      }
+      if (Z.euclidDist(Z.bfs.closestStruct(true)) > 100) return Z.bfs.moveYourStruct();
+      return null;
     }
-    if (Z.resource == 0 && distKarb != MOD) return Z.safe.move(bestKarb);
-    return Z.safe.move(bestFuel);
   }
 
   Action2 run() {

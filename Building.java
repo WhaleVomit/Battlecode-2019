@@ -46,7 +46,7 @@ public class Building extends Attackable {
     if (Z.CUR.turn > 4 && Z.CUR.unit == CASTLE) {
       for (Robot2 C: Z.robots) if (Z.myCastleID.contains(C.id))
       mn = Math.min(mn,C.castle_talk);
-      if (mn < 10 && Z.U.closeAttackers() > mn+2) return null;
+      if (mn < 30 && Z.U.closeAttackers() > mn+2) return null;
     }
 
     if (Z.CUR.team == 1) return Z.tryBuild(CRUSADER);

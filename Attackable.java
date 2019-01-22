@@ -255,13 +255,10 @@ public class Attackable extends Movable {
     }
 
     Action2 runDefault() {
-      if (Z.CUR.team == 0 && Z.CUR.unit == CRUSADER) Z.log("WHAT");
       Action2 A = react();
       if (Z.CUR.team == 0 && Z.CUR.unit == CRUSADER) {
-        Z.log("HUH ");
         if (A != null) Z.log(""+A.type);
   		  Robot2 R = Z.closestNotPilgrim(Z.CUR,1-Z.CUR.team);
-        if (R != null) Z.log("ZZ "+R.x+" "+R.y);
       }
       if (A != null) {
         return A;

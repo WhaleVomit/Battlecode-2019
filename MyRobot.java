@@ -26,7 +26,7 @@ public class MyRobot extends BCAbstractRobot {
   bfsMap bfs; // bfsShort;
 
   // ALL UNITS
-  int lastHealth, castle_talk, lastPatrol, endPos = MOD;
+  int lastHealth, castle_talk, lastPatrol, endPos = MOD, lastAction;
   pi nextSignal;
   unitCounter U;
   int initCastle;
@@ -546,8 +546,8 @@ public class MyRobot extends BCAbstractRobot {
     }
   }
   public boolean isRushing() {
-    // return false;
-    return CUR.team == 1;
+    return false;
+    // return CUR.team == 1;
     // int x = bfs.closestStruct(true);
     // return canRush && CUR.unit != PILGRIM && CUR.turn <= 30 && enemyDist[x%64][fdiv(x,64)][0] <= 25;
   }
@@ -683,7 +683,7 @@ public class MyRobot extends BCAbstractRobot {
           int type = fdiv(tmp,625); tmp %= 625;
           int x = fdiv(tmp,25)-12; x += R.x;
           int y = (tmp%25)-12; y += R.y;
-          log("ADDED "+CUR.coordinates()+" "+R.coordinates()+" "+x+" "+y);
+          // log("ADDED "+CUR.coordinates()+" "+R.coordinates()+" "+x+" "+y);
           robotMapID[y][x] = MOD; robotMap[y][x] = makeRobot(type,1-CUR.team,x,y);
           lastTurn[y][x] = CUR.turn;
       } else if (R.team == CUR.team && R.unit == CASTLE && R.signal >= 7000 && R.signal < 20000 && adjacent(CUR,R)) {

@@ -94,6 +94,7 @@ public class Movable {
         for (Robot2 R: Z.robots)
             if (R.isStructure() && R.team == Z.CUR.team && Z.adjacent(Z.CUR,R) && enoughResources()) {
                 Z.resource = -1;
+                Z.lastAction = Z.CUR.turn;
                 return Z.giveAction(R.x-Z.CUR.x,R.y-Z.CUR.y,Z.CUR.karbonite,Z.CUR.fuel);
             }
         return null;
