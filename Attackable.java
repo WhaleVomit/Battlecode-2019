@@ -100,28 +100,34 @@ public class Attackable extends Movable {
     }
 
     public Action2 crusaderPosition(Robot2 R) {
-        if (Z.euclidDist(R) > 100) return moveTowardEnemy(R);
-        Action2 A = waitOutOfRange(R);
-        if (A != null) {
-            double d0 = Math.sqrt(Z.euclidDist(R));
-            double d1 = Math.sqrt(Z.euclidDist(R,Z.CUR.x+A.dx,Z.CUR.y+A.dy));
-            if (d1+1 <= d0) return A;
-        }
-        if (Z.euclidDist(R) > 49 || R.unit == PROPHET) return moveTowardEnemy(R);
-        return minimizeDamage(R);
+      if (Z.euclidDist(R) > 100) return moveTowardEnemy(R);
+      Action2 A = waitOutOfRange(R);
+      if (A != null) {
+          double d0 = Math.sqrt(Z.euclidDist(R));
+          double d1 = Math.sqrt(Z.euclidDist(R,Z.CUR.x+A.dx,Z.CUR.y+A.dy));
+          if (d1+1 <= d0) return A;
+      }
+      if (Z.euclidDist(R) > 49 || R.unit == PROPHET) return moveTowardEnemy(R);
+      return minimizeDamage(R);
     }
 
     public Action2 prophetPosition(Robot2 R) {
-        if (Z.euclidDist(R) > 100) return moveTowardEnemy(R);
-        if (R.unit == PROPHET && !attacking(R)) {
-            Z.log("WAIT FOR IT");
-            return waitOutOfRange(R);
-        }
-        return minimizeDamage(R);
+      if (Z.euclidDist(R) > 100) return moveTowardEnemy(R);
+      if (R.unit == PROPHET && !attacking(R)) {
+          Z.log("WAIT FOR IT");
+          return waitOutOfRange(R);
+      }
+      return minimizeDamage(R);
+    }
+
+    public boolean closeToStruct(Robot2 R) {
+      int t = Z.bfs.closestStruct(true);
+      return Z.euclidDist(R,Z.fdiv(t,64),t%64) <= 100;
     }
 
     public Action2 position() {
 		  Robot2 R = Z.closestAttacker(Z.CUR,1-Z.CUR.team);
+      if (!Z.attackMode && Z.euclidDist(R) > 64 && !closeToStruct(R)) return null;
 		  if (Z.euclidDist(R) > 196 || (Z.euclidDist(R) > 100 && Z.bfs.distHome() > 9)) return null;
       if (Z.U.closeUnits[PROPHET] > 15 && !Z.attackMode) return null;
       if (Z.euclidDist(R) < MIN_ATTACK_R[Z.CUR.unit]) {
@@ -157,7 +163,7 @@ public class Attackable extends Movable {
     public Action2 react() {
         Action2 A = dealWithPreacher();  if (A != null) return A;
         A = tryAttack(); if (A != null) return A;
-        if(Z.attackMode) return position();
+        return position();
     }
     public int patrolVal(int X, int Y, int x, int y) {
   		int big = 123456, val = 0;

@@ -40,6 +40,7 @@ public class unitCounter {
   }
   int closeEnemyAttackers() {
       int res = 0; for (int i = 3; i < 6; ++i) res += closeEnemy[i];
+      res += closeEnemy[1];
       return res;
   }
   int needAttackers() {
@@ -65,7 +66,7 @@ public class unitCounter {
   }
 
   int decideUnit() {
-	  if (Z.CUR.unit == CASTLE && Z.me.turn <= 20) return CRUSADER;
+	  if (Z.CUR.unit == CASTLE && Z.me.turn <= 20) return PREACHER; // CRUSADER
     return PROPHET;
     /*if (Z.numAttacks > 0) return PROPHET;
     double a = closeUnits[3], b = closeUnits[4]/2.0, c = closeUnits[5];

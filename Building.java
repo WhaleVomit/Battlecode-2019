@@ -9,12 +9,12 @@ public class Building extends Attackable {
 
   int decideUnit() {
 	  if (Z.U.closeEnemy[CRUSADER]+Z.U.closeEnemy[PREACHER]-Z.U.closeUnits[PREACHER] > 0) return PREACHER;
-    int numEnemy = Z.U.closeEnemy[CRUSADER]+Z.U.closeEnemy[PROPHET]+Z.U.closeEnemy[PREACHER];
-    if (numEnemy == 0) {
-      if (Z.U.closeEnemy[CHURCH] > 0) return PREACHER;
+    if (Z.U.closeEnemyAttackers() == 0) {
       if (Z.U.closeUnits[CRUSADER]+Z.U.closeUnits[PREACHER]+Z.U.closeUnits[PROPHET] < 2) return PROPHET;
       return MOD;
     }
+    if (Z.karbonite < 25) return CRUSADER;
+    if (Z.U.closeEnemy[CHURCH] > 0 && Z.U.closeEnemy[PROPHET] == 0) return PREACHER;
     return PROPHET;
 
     /*int crus = 2*Z.U.closeEnemy[CRUSADER] - Z.U.closeUnits[CRUSADER]; // if(!Z.canBuild(CRUSADER) || cnt[PREACHER] >= 3) crus = 0; cnt[PREACHER] + cnt[CASTLE]
@@ -48,9 +48,11 @@ public class Building extends Attackable {
   }
 
   Action2 panicBuild() {
-    int w = decideUnit();
-    if (w == MOD) return null;
-    if (Z.me.unit == CASTLE) return Z.tryBuild(w);
-    else return Z.tryBuildNoSignal(w);
+    int w = decideUnit(); if (w == MOD) return null;
+    Action2 A = null;
+    if (Z.CUR.unit == CASTLE) A = Z.tryBuild(w);
+    else A = Z.tryBuildNoSignal(w);
+    if (A == null) A = new Action2();
+    return A;
   }
 }

@@ -20,9 +20,8 @@ public class Church extends Building {
     }
 
     public Action2 run() {
-	    Action2 A = panicBuild();
-      if (A == null && openResources() > closePilgrim())
-        A = Z.tryBuildNoSignal(PILGRIM);
+	    Action2 A = panicBuild(); if (A != null) return A;
+      if (openResources() > closePilgrim()) A = Z.tryBuildNoSignal(PILGRIM);
       if (A == null && Z.U.closeUnits[PROPHET] < 15 && Z.fuel > 1000) return safeBuild();
       if (Z.me.turn >= 900 && A == null) A = spamBuild();
       return A;

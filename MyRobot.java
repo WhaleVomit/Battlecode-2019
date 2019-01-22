@@ -367,6 +367,7 @@ public class MyRobot extends BCAbstractRobot {
       // round 1000: 60
       // 5+round/20
       int dangerRound = CUR.turn-(5+CUR.turn/20);
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) danger[i][j] = 0;
       for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) if (lastTurn[i][j] >= dangerRound) {
         if (enemyAttacker(j,i)) {
           Robot2 R = robotMap[i][j];
@@ -538,13 +539,14 @@ public class MyRobot extends BCAbstractRobot {
     }
   }
   public boolean isRushing() {
-    int x = bfs.closestStruct(true);
-    return canRush && CUR.unit != PILGRIM && CUR.turn <= 30 && enemyDist[x%64][fdiv(x,64)][0] <= 25;
+    return CUR.team == 1;
+    // int x = bfs.closestStruct(true);
+    // return canRush && CUR.unit != PILGRIM && CUR.turn <= 30 && enemyDist[x%64][fdiv(x,64)][0] <= 25;
   }
 
   void updateAttackMode() {
       if (CUR.unit == CASTLE && enemyDist[CUR.y][CUR.x][0] > 25) canRush = false;
-      if (isRushing() && U.closeAttackers() >= 3) attackMode = true;
+      if (isRushing() && U.closeAttackers() >= 6) attackMode = true;
       // log(CUR.getInfo()+toString(myCastle)+" "+toString(otherCastle));
   }
   int compress(int i) {
@@ -658,6 +660,14 @@ public class MyRobot extends BCAbstractRobot {
       return true;
   }
 
+  boolean clearVisionStruct(Robot2 R) {
+    for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) if (i*i+j*j <= 100) {
+        if (i*i+j*j > VISION_R[R.unit]) continue;
+        if (enemyRobot(R.x+i,R.y+j)) return false;
+    }
+    return true;
+  }
+
   void checkSignal() {
     for (Robot2 R: robots)
       if (R.team == CUR.team && 30000 <= R.signal && R.signal < 40000) {
@@ -686,11 +696,7 @@ public class MyRobot extends BCAbstractRobot {
 
   // COMMUNICATION
 
-  void warnOthers() { // CUR.x, CUR.y are new pos, not necessarily equal to me.x, me.y;
-    if (fuel < 100 || superseded(CUR.x,CUR.y) || nextSignal != null) return;
-    Robot2 R = closestAttacker(ORI,1-CUR.team);
-    if (euclidDist(ORI,R) > VISION_R[CUR.unit]) R = closestRobot(ORI,1-CUR.team);
-    if (euclidDist(ORI,R) > VISION_R[CUR.unit]) return;
+  int needRadius(Robot2 R) {
     int numEnemies = Math.max(U.closeEnemyAttackers(),1);
     // try to activate around 2*numEnemies allies
     // count number allies already activated
@@ -710,12 +716,44 @@ public class MyRobot extends BCAbstractRobot {
 		}
 		sortClose(allies);
 
-		int ind = Math.min(necessary-1, allies.size()-1); if(ind == -1) return;
+		int ind = Math.min(necessary-1, allies.size()-1); if (ind == -1) return 0;
 		int dx = allies.get(ind).f; int dy = allies.get(ind).s;
-    int needDist = dx*dx + dy*dy;
-    if (needDist > 0) {
-        // log("SIGNAL ENEMY: OPOS "+ORI.coordinates()+", CPOS "+CUR.coordinates()+", EPOS "+R.coordinates()+" "+getSignal(R));
-        nextSignal = new pi(getSignal(R),needDist);
+    return dx*dx+dy*dy;
+  }
+
+  int needRadiusStruct(Robot2 R) {
+    int numEnemies = Math.max(U.closeEnemyAttackers(),1);
+    // try to activate around 2*numEnemies allies
+    // count number allies already activated
+
+    int necessary = 2*numEnemies;
+    // activate as much as necessary
+
+    ArrayList<pi> allies = new ArrayList<>();
+    for(int dx = -4; dx <= 4; dx++) for(int dy = -4; dy <= 4; dy++) {
+      int x = CUR.x+dx, y = CUR.y+dy;
+      if (dx*dx + dy*dy <= 16 && yourAttacker(x,y) && clearVisionStruct(robotMap[y][x]))
+        allies.add(new pi(dx,dy));
+    }
+    sortClose(allies);
+
+    int ind = Math.min(necessary-1, allies.size()-1); if (ind == -1) return 0;
+    int dx = allies.get(ind).f; int dy = allies.get(ind).s;
+    return dx*dx+dy*dy;
+  }
+
+  void warnOthers() { // CUR.x, CUR.y are new pos, not necessarily equal to me.x, me.y;
+    if (fuel < 100 || superseded(CUR.x,CUR.y) || nextSignal != null) return;
+    Robot2 R = closestAttacker(ORI,1-CUR.team);
+    if (euclidDist(ORI,R) > VISION_R[CUR.unit]) R = closestRobot(ORI,1-CUR.team);
+    if (euclidDist(ORI,R) > VISION_R[CUR.unit]) return;
+
+    int r = 0;
+    if (CUR.isStructure()) r = needRadiusStruct(R);
+    else r = needRadius(R);
+    if (r > 0) {
+        log("SIGNAL ENEMY: OPOS "+ORI.coordinates()+", CPOS "+CUR.coordinates()+", EPOS "+R.coordinates()+" "+getSignal(R));
+        nextSignal = new pi(getSignal(R),r);
     }
   }
 
