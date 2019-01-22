@@ -179,6 +179,8 @@ public class Attackable extends Movable {
     }
 
     public Action2 patrol() {
+      if(Z.bfs.dist(Z.endPosAssigned) != MOD) return Z.bfs.move(Z.endPosAssigned);
+    
   	  int t = Z.bfs.closestStruct(true); if (t == MOD) return null;
   	  int x = Z.fdiv(t,64), y = t%64;
 
@@ -247,6 +249,16 @@ public class Attackable extends Movable {
       Z.waited = false;
       return false;
     }
+    
+    void getPatrolLoc() {
+		for (Robot2 R: Z.robots) {
+			if (R.team == Z.CUR.team && (R.unit == CASTLE || R.unit == CHURCH) && R.signal >= 40000 && R.signal < 50000 && Z.endPosAssigned == MOD) { // patrol
+					int tmp = R.signal-40000;
+					Z.endPosAssigned = 64*Z.fdiv(tmp,64) + (tmp%64);
+					Z.log("recieved instructions to patrol " + Z.coordinates(Z.endPosAssigned));
+			}
+		}
+	}
 
     Action2 aggressive() {
         if (shouldWait()) return null;
@@ -255,18 +267,24 @@ public class Attackable extends Movable {
     }
 
     Action2 runDefault() {
-      Action2 A = react();
-      if (Z.CUR.team == 0 && Z.CUR.unit == CRUSADER) {
-        if (A != null) Z.log(""+A.type);
-  		  Robot2 R = Z.closestNotPilgrim(Z.CUR,1-Z.CUR.team);
-      }
-      if (A != null) {
-        return A;
-      }
-      if (!Z.attackMode) {
+      getPatrolLoc();
+      if(Z.CUR.turn == 1) {
+        Z.nextSignal = new pi(Z.CUR.unit, 2);
+        return null;
+      } else {
+        Action2 A = react();
+        if (Z.CUR.team == 0 && Z.CUR.unit == CRUSADER) {
+          if (A != null) Z.log(""+A.type);
+  		    Robot2 R = Z.closestNotPilgrim(Z.CUR,1-Z.CUR.team);
+        }
+        if (A != null) {
+          return A;
+        }
+        if (!Z.attackMode) {
           if (enoughResources()) return goHome();
           return patrol();
+        }
+        return aggressive();
       }
-      return aggressive();
     }
 }
