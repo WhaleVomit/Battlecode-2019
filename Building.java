@@ -17,10 +17,17 @@ public class Building extends Attackable {
     return true;
   }
 
+  int reallyCloseAttackers() {
+    int ret = 0;
+    for (int i = -5; i <= 5; ++i) for (int j = -5; j <= 5; ++j)
+      if (i*i+j*j <= 25 && Z.teamAttacker(Z.CUR.x+i,Z.CUR.y+j,Z.CUR.team))
+        ret ++;
+    return ret;
+  }
   int decideUnit() {
 	  if (Z.U.closeEnemy[CRUSADER]+Z.U.closeEnemy[PREACHER]-Z.U.closeUnits[PREACHER] > 0) return PREACHER;
     if (Z.U.closeEnemyAttackers() == 0) {
-      if (Z.U.closeUnits[CRUSADER]+Z.U.closeUnits[PREACHER]+Z.U.closeUnits[PROPHET] < 2) return PROPHET;
+      if (reallyCloseAttackers() < 2) return PROPHET;
       return MOD;
     }
     if ((Z.karbonite < 25 || Z.fuel < 100) && Z.U.closeEnemy[PREACHER]+Z.U.closeEnemy[CASTLE]+Z.U.closeEnemy[CHURCH] == 0) return CRUSADER;

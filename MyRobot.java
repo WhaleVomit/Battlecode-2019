@@ -277,8 +277,8 @@ public class MyRobot extends BCAbstractRobot {
       return ret;
   }
   int dangerRadius(Robot2 R) {
-      if (R.unit == 3 || R.unit == 5) return 64;
-      return 100;
+      if (R.unit == PREACHER) return 36;
+      return 64;
   }
   int lastDanger(int x, int y) {
       int ret = -MOD;
@@ -763,7 +763,7 @@ public class MyRobot extends BCAbstractRobot {
   void warnOthers(Action2 A) { // CUR.x, CUR.y are new pos, not necessarily equal to me.x, me.y;
     if (fuel < 100 || superseded(CUR.x,CUR.y) || nextSignal != null) return;
     Robot2 R = closestNotPilgrim(ORI,1-CUR.team);
-    if (euclidDist(ORI,R) > VISION_R[CUR.unit]) R = closestRobot(ORI,1-CUR.team);
+    // if (euclidDist(ORI,R) > VISION_R[CUR.unit]) R = closestRobot(ORI,1-CUR.team);
     if (euclidDist(ORI,R) > VISION_R[CUR.unit]) return;
 
     int r = 0;
