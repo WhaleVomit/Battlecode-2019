@@ -55,10 +55,10 @@ public class unitCounter {
   }
 
   boolean shouldBeginAttack() {
+    if (Z.CUR.turn != 900) return false;
 	if (Z.initCastle == totUnits[CASTLE]) return false; // no point in attacking & losing unit value
     if (Z.enemyDist[Z.CUR.y][Z.CUR.x][0] < 10) return false;
-    if (Z.CUR.turn > 900) return true;
-    return false;
+    return true;
     /*
     if (Z.lastAttack >= Z.CUR.turn-5 && closeAttackers() >= 0.75*needAttackers())
       return true;

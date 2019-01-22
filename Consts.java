@@ -35,6 +35,9 @@ public class Consts {
     public static final int[] DAMAGE = {10, -1, -1, 10, 10, 20};
 
     public static final boolean[] CAN_ATTACK = {true, false, false, true, true, true};
+    public static final boolean[] IS_ATTACKER = {false, false, false, true, true, true};
+    public static final boolean[] IS_STRUCT = {true, true, false, false, false, false};
+
     public static final int[] MIN_ATTACK_R = {1, -1, -1, 1, 16, 1};
     public static final int[] MAX_ATTACK_R = {64, -1, -1, 16, 64, 16};
     public static final int[] ATTACK_F_COST = {10, -1, -1, 10, 25, 15};
