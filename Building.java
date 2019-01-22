@@ -1,9 +1,11 @@
 package bc19;
 
 import static bc19.Consts.*;
+import java.util.*;
 
 public class Building extends Attackable {
   boolean shouldBuild = true;
+  boolean isOccupiedPatrol[];
 
   public Building(MyRobot z) { super(z); }
 
@@ -49,12 +51,12 @@ public class Building extends Attackable {
       if (mn < 30 && Z.U.closeAttackers() > mn+2) return null;
     }
 
-    if (Z.CUR.team == 1) return Z.tryBuild(CRUSADER);
-    return Z.tryBuild(Z.U.decideUnit());
+    if (Z.CUR.team == 1) return tryBuildAttacker(CRUSADER);
+    return tryBuildAttacker(Z.U.decideUnit());
   }
 
   Action2 spamBuild() {
-	  return Z.tryBuild(CRUSADER);
+	  return tryBuildAttacker(CRUSADER);
   }
 
   Action2 panicBuild() {
@@ -64,10 +66,120 @@ public class Building extends Attackable {
     }
     if (!enoughFuel()) return new Action2();
     int w = decideUnit(); if (w == MOD) return null;
-    Action2 A = null;
-    if (Z.CUR.unit == CASTLE) A = Z.tryBuild(w);
-    else A = Z.tryBuildNoSignal(w);
+    Action2 A = tryBuildAttacker(w);
     if (A == null) A = new Action2();
     return A;
+  }
+  
+  boolean betterPatrol(int pos1, int pos2) { // true if pos1 is better than pos2
+	  return Z.bfs.dist(pos1) < Z.bfs.dist(pos2);
+  }
+  
+  void sortPatrol() {
+	ArrayList<Integer> temp = new ArrayList<>();
+	for(int i = 0; i < Z.patrolcount; i++) temp.add(Z.sortedPatrol[i]);
+    Collections.sort(temp, new Comparator<Integer>() {
+      public int compare(Integer a, Integer b) {
+		int p1 = Z.patrolPos[a]; int p2 = Z.patrolPos[b];
+        if(betterPatrol(p1, p2)) return -1;
+        else if(betterPatrol(p2,p1)) return 1;
+        return 0;
+      }
+    });
+    for(int i = 0; i < Z.patrolcount; i++) Z.sortedPatrol[i] = temp.get(i);
+  }
+  
+  void initPatrol() {
+	  Z.patrolcount = 0;
+	  for(int x = 0; x < Z.w; x++) {
+		  for(int y = 0; y < Z.h; y++) {
+			  if(Z.containsStruct(x,y) || Z.containsResource(x,y) || (x+y)%2 == 1) continue;
+			  Z.patrolcount++;
+		  }
+	  }
+	  
+	  Z.sortedPatrol = new int[Z.patrolcount];
+	  Z.atkToPatrol = new int[4097]; for(int i = 0; i < 4097; i++) Z.atkToPatrol[i] = -1;
+	  Z.patrolPos = new int[Z.patrolcount];
+	  
+	  Z.patrolcount = 0;
+	  for(int x = 0; x < Z.w; x++) {
+		  for(int y = 0; y < Z.h; y++) {
+			  if(Z.containsStruct(x,y) || Z.containsResource(x,y) || (x+y)%2 == 1) continue;
+			  Z.sortedPatrol[Z.patrolcount] = Z.patrolcount;
+			  Z.patrolPos[Z.patrolcount] = 64*x + y;
+			  Z.patrolcount ++;
+		  }
+	  }
+	  sortPatrol();
+  }
+  
+  void updatePatrolVars() {
+		isOccupiedPatrol = new boolean[Z.patrolcount];
+		for (Robot2 R: Z.robots) {
+      if (R.team == Z.CUR.team && IS_ATTACKER[Z.type[R.id]]) {
+      if (Z.atkToPatrol[R.id] != -1) isOccupiedPatrol[Z.atkToPatrol[R.id]] = true;
+      }
+		}
+	}
+  
+  void assignPatrol(int i) {
+    Z.log("assigned smth to patrol at " + Z.coordinates(Z.patrolPos[i]));
+    Z.nextSignal = new pi(Z.patrolPos[i]+40000, 2);
+    Z.assignedAttackerPos = i;
+  }
+  
+  boolean tryAssignPatrol() {
+		for(int i = 0; i < Z.patrolcount; i++) {
+			if(!isOccupiedPatrol[Z.sortedPatrol[i]]) {
+				assignPatrol(Z.sortedPatrol[i]);
+				return true;
+			}
+		}
+		return false;
+  }
+  
+  Robot2 newAttacker() {
+		int bestDist = MOD; Robot2 P = null;
+    for (int dx = -4; dx <= 4; ++dx) for (int dy = -4; dy <= 4; ++dy) {
+      int d = dx*dx+dy*dy; if (d > bestDist) continue;
+      int x = Z.me.x+dx, y = Z.me.y+dy;
+      if (Z.yourRobot(x,y)) {
+        Robot2 R = Z.robotMap[y][x];
+        if (IS_ATTACKER[R.unit] && IS_ATTACKER[R.signal]) {
+          bestDist = d;
+          P = R;
+        }
+      }
+    }
+    return P;
+	}
+  
+  void updateAttackerID() {
+    if (Z.assignedAttackerPos == -1) return;
+    Robot2 R = newAttacker();
+    if (R == null) {
+      Z.log("NO ATTACKER? " + Z.CUR.x + " " + Z.CUR.y);
+      Z.assignedAttackerPos = -1;
+      return;
+    }
+    Z.atkToPatrol[R.id] = Z.assignedAttackerPos;
+    Z.log(R.id+" IS PATROLLER "+Z.coordinates(Z.patrolPos[Z.atkToPatrol[R.id]]));
+
+    Z.assignedAttackerPos = -1;
+  }
+  
+  Action2 tryBuildAttacker(int t) {
+    if (!Z.canBuild(t)) return null;
+    if(tryAssignPatrol()) {
+      for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
+          int x = Z.CUR.x+dx, y = Z.CUR.y+dy;
+          if (t == CHURCH && Z.containsResource(x,y)) continue;
+          if (Z.passable(x,y)) return Z.buildAction(t, dx, dy);
+      }
+      return null;
+    } else {
+      return null;
+    }
   }
 }
