@@ -58,7 +58,6 @@ public class Building extends Attackable {
       if (mn < 30 && Z.U.closeAttackers() > mn+2) return null;
     }
 
-    if (Z.CUR.team == 1) return tryBuildAttacker(CRUSADER);
     return tryBuildAttacker(Z.U.decideUnit());
   }
 
@@ -177,6 +176,7 @@ public class Building extends Attackable {
   }
   
   Action2 tryBuildAttacker(int t) {
+		if (Z.CUR.unit == CASTLE && Z.me.turn == 900) return null; // turn 900 used to signal attack
     if (!Z.canBuild(t)) return null;
     if(tryAssignPatrol()) {
       for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {

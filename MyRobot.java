@@ -545,7 +545,7 @@ public class MyRobot extends BCAbstractRobot {
             lastAttack = CUR.turn;
     if (nextSignal != null || lastSignalAttack >= CUR.turn-10) return;
     if (U.shouldBeginAttack()) { // (CUR.team == 0 && attackMode))
-        int r = farthestDefenderRadius();
+        int r = 8192;
         if (r > 0 && fuel >= Math.ceil(Math.sqrt(r))) {
             lastSignalAttack = CUR.turn;
             log("SIGNAL ATTACK "+CUR.x+" "+CUR.y+" "+r+" "+fuel+" "+U.closeAttackers());
@@ -855,7 +855,7 @@ public class MyRobot extends BCAbstractRobot {
       if (CUR.unit == PILGRIM) genDanger();
       else genEnemyDist();
       updateAttackMode();
-      if(me.turn == 5 && CUR.unit == CASTLE) initCastle = U.totUnits[CASTLE];
+      if(CUR.unit == CASTLE) initCastle = Math.max(initCastle,U.totUnits[CASTLE]);
       //atFront--; atFront = Math.max(atFront, 0);
       //if(seenAllyDie()) atFront = 100;
   }
