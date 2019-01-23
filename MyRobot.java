@@ -142,6 +142,7 @@ public class MyRobot extends BCAbstractRobot {
   // MATH
   int fdiv(int a, int b) { return (a-(a%b))/b; }
   int sq(int x) { return x*x; }
+  double sq(double x) { return x*x; }
   String coordinates(int t) {
     if (t == MOD) return "(??)";
     int y = t%64, x = fdiv(t,64);

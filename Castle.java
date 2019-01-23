@@ -70,7 +70,7 @@ public class Castle extends Building {
   }
   
   double crowdedFactor(int pos) {
-	  double val = countAssigned(pos)+1.0;
+	  double val = Z.sq(countAssigned(pos)+1.0);
 	  return val;
   }
 

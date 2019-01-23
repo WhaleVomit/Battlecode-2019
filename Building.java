@@ -48,7 +48,7 @@ public class Building extends Attackable {
 
   Action2 safeBuild() {
 	  int numDefenders = Z.U.closeUnits[CRUSADER]+Z.U.closeUnits[PREACHER]+Z.U.closeUnits[PROPHET];
-	  if (numDefenders >= 2 && (Z.karbonite < 80 || Z.fuel < 250)) return null; // always reserve room for new church
+	  if (Z.karbonite < 80 || Z.fuel < 250) return null; // always reserve room for new church
     if (Z.CUR.unit == CASTLE && Z.U.tooMany()) return null;
 
     int mn = MOD;
