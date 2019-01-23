@@ -56,6 +56,7 @@ public class MyRobot extends BCAbstractRobot {
   Map<Integer,Integer> castleX = new HashMap<>();
   Map<Integer,Integer> castleY = new HashMap<>();
   pi assignedPilgrimPos;
+  boolean[][] assigned;
   
   // BUILDING
   int patrolcount;

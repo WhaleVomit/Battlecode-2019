@@ -57,38 +57,56 @@ public class Castle extends Building {
       }
     }
   }
+  
+  double countAssigned(int pos) { // how many pilgrims assigned to vicinity?
+	  int x = Z.fdiv(pos,64); int y = pos%64;
+	  double res = 0;
+	  for(int dx = -2; dx <= 2; dx++) {
+		  for(int dy = -2; dy <= 2; dy++) {
+			  if(Z.valid(x+dx, y+dy) && Z.assigned[y+dy][x+dx]) res += 1.0;
+		  }
+	  }
+	  return res;
+  }
+  
+  double crowdedFactor(int pos) {
+	  double val = countAssigned(pos)+1.0;
+	  return val;
+  }
 
   boolean better(int pos1, int pos2) {
     boolean b1 = ourSide(pos1), b2 = ourSide(pos2);
     if (b1 && !b2) return true;
 	else if (!b1 && b2) return false;
-    return Z.bfs.dist(pos1) < Z.bfs.dist(pos2);
+    return Z.bfs.dist(pos1)*crowdedFactor(pos1) < Z.bfs.dist(pos2)*crowdedFactor(pos2);
   }
 
-  void sortKarb(){
-    for (int i = 0; i < Z.karbcount-1; i++) {
-      for (int j = 0; j < Z.karbcount - i - 1; j++) {
-        if (!better(Z.karbPos[Z.sortedKarb[j]],Z.karbPos[Z.sortedKarb[j+1]])) {
-          // swap arr[j+1] and arr[i]
-          int temp = Z.sortedKarb[j];
-          Z.sortedKarb[j] = Z.sortedKarb[j + 1];
-          Z.sortedKarb[j + 1] = temp;
-        }
+  void sortKarb() {
+    ArrayList<Integer> temp = new ArrayList<Integer>();
+	for(int i = 0; i < Z.karbcount; i++) temp.add(Z.sortedKarb[i]);
+	Collections.sort(temp, new Comparator<Integer>() {
+      public int compare(Integer a, Integer b) {
+		int p1 = Z.karbPos[a]; int p2 = Z.karbPos[b];
+        if(better(p1, p2)) return -1;
+        else if(better(p2,p1)) return 1;
+        return 0;
       }
-    }
+    });
+    for(int i = 0; i < Z.karbcount; i++) Z.sortedKarb[i] = temp.get(i);
   }
 
-  void sortFuel(){
-    for (int i = 0; i < Z.fuelcount-1; i++) {
-      for (int j = 0; j < Z.fuelcount - i - 1; j++) {
-        if (!better(Z.fuelPos[Z.sortedFuel[j]],Z.fuelPos[Z.sortedFuel[j+1]])) {
-          // swap arr[j+1] and arr[i]
-          int temp = Z.sortedFuel[j];
-          Z.sortedFuel[j] = Z.sortedFuel[j + 1];
-          Z.sortedFuel[j + 1] = temp;
-        }
+  void sortFuel() {
+	ArrayList<Integer> temp = new ArrayList<Integer>();
+	for(int i = 0; i < Z.fuelcount; i++) temp.add(Z.sortedFuel[i]);
+	Collections.sort(temp, new Comparator<Integer>() {
+      public int compare(Integer a, Integer b) {
+		int p1 = Z.fuelPos[a]; int p2 = Z.fuelPos[b];
+        if(better(p1, p2)) return -1;
+        else if(better(p2,p1)) return 1;
+        return 0;
       }
-    }
+    });
+    for(int i = 0; i < Z.fuelcount; i++) Z.sortedFuel[i] = temp.get(i);
   }
 
   boolean betterAgg(int pos1, int pos2) {
@@ -105,33 +123,35 @@ public class Castle extends Building {
 		val1 *= Math.abs(y1 - Z.fdiv(Z.h,2));
 		val2 *= Math.abs(y2 - Z.fdiv(Z.h,2));
 	}
-    return val1 < val2;
+    return val1*crowdedFactor(pos1) < val2*crowdedFactor(pos2);
   }
 
   void sortKarbAgg() {
-    for (int i = 0; i < Z.karbcount-1; i++) {
-      for (int j = 0; j < Z.karbcount - i - 1; j++) {
-        if (!betterAgg(Z.karbPos[Z.sortedKarb[j]],Z.karbPos[Z.sortedKarb[j+1]])) {
-          // swap arr[j+1] and arr[i]
-          int temp = Z.sortedKarb[j];
-          Z.sortedKarb[j] = Z.sortedKarb[j + 1];
-          Z.sortedKarb[j + 1] = temp;
-        }
+    ArrayList<Integer> temp = new ArrayList<Integer>();
+	for(int i = 0; i < Z.karbcount; i++) temp.add(Z.sortedKarb[i]);
+	Collections.sort(temp, new Comparator<Integer>() {
+      public int compare(Integer a, Integer b) {
+		int p1 = Z.karbPos[a]; int p2 = Z.karbPos[b];
+        if(betterAgg(p1, p2)) return -1;
+        else if(betterAgg(p2,p1)) return 1;
+        return 0;
       }
-    }
+    });
+    for(int i = 0; i < Z.karbcount; i++) Z.sortedKarb[i] = temp.get(i);
   }
 
   void sortFuelAgg(){
-    for (int i = 0; i < Z.fuelcount-1; i++) {
-      for (int j = 0; j < Z.fuelcount - i - 1; j++) {
-        if (!betterAgg(Z.fuelPos[Z.sortedFuel[j]],Z.fuelPos[Z.sortedFuel[j+1]])) {
-          // swap arr[j+1] and arr[i]
-          int temp = Z.sortedFuel[j];
-          Z.sortedFuel[j] = Z.sortedFuel[j + 1];
-          Z.sortedFuel[j + 1] = temp;
-        }
+    ArrayList<Integer> temp = new ArrayList<Integer>();
+	for(int i = 0; i < Z.fuelcount; i++) temp.add(Z.sortedFuel[i]);
+	Collections.sort(temp, new Comparator<Integer>() {
+      public int compare(Integer a, Integer b) {
+		int p1 = Z.fuelPos[a]; int p2 = Z.fuelPos[b];
+        if(betterAgg(p1, p2)) return -1;
+        else if(betterAgg(p2,p1)) return 1;
+        return 0;
       }
-    }
+    });
+    for(int i = 0; i < Z.fuelcount; i++) Z.sortedFuel[i] = temp.get(i);
   }
 
   void initVars() {
@@ -144,6 +164,7 @@ public class Castle extends Building {
     Z.pilToKarb = new int[4097]; Z.pilToFuel = new int[4097];
     for (int i = 0; i < 4097; ++i) Z.pilToKarb[i] = Z.pilToFuel[i] = -1;
     Z.karbPos = new int[Z.karbcount]; Z.fuelPos = new int[Z.fuelcount];
+    Z.assigned = new boolean[Z.h][Z.w];
 
     Z.karbcount = 0; Z.fuelcount = 0;
 
@@ -183,13 +204,22 @@ public class Castle extends Building {
     shouldBuild = true;
     isOccupiedKarb = new boolean[Z.karbcount];
     isOccupiedFuel = new boolean[Z.fuelcount];
+    Z.assigned = new boolean[Z.h][Z.w];
 
     // find current assignments
     for (Robot2 R: Z.robots)
       if (R.team == Z.CUR.team && Z.type[R.id] == 2) {
     	if (R.castle_talk == 30) shouldBuild = false;
-        if (Z.pilToKarb[R.id] != -1) isOccupiedKarb[Z.pilToKarb[R.id]] = true;
-        if (Z.pilToFuel[R.id] != -1) isOccupiedFuel[Z.pilToFuel[R.id]] = true;
+        if (Z.pilToKarb[R.id] != -1) { 
+			isOccupiedKarb[Z.pilToKarb[R.id]] = true;
+			int pos = Z.karbPos[Z.pilToKarb[R.id]];
+			Z.assigned[pos%64][Z.fdiv(pos,64)] = true;
+		}
+        if (Z.pilToFuel[R.id] != -1) {
+			isOccupiedFuel[Z.pilToFuel[R.id]] = true;
+			int pos = Z.fuelPos[Z.pilToFuel[R.id]];
+			Z.assigned[pos%64][Z.fdiv(pos,64)] = true;
+		}
       }
 
     for (int i = 0; i < Z.karbcount; i++) if (isOccupiedKarb[i]) numKarb ++;
@@ -216,6 +246,7 @@ public class Castle extends Building {
   }
 
   void assignRand() { // assign to random if all positions have been filled
+	sortKarb(); sortFuel();
     int tot = Z.karbcount+Z.fuelcount;
     int i = (int)(Math.random()*tot);
     if(i < Z.karbcount) assignKarb(i);
@@ -223,6 +254,7 @@ public class Castle extends Building {
   }
 
   boolean tryAssignKarb() {
+	sortKarb();
     for (int i = 0; i < Z.karbcount; i++)
       if (!isOccupiedKarb[Z.sortedKarb[i]]) {
         assignKarb(Z.sortedKarb[i]); return true;
@@ -231,6 +263,7 @@ public class Castle extends Building {
   }
 
   boolean tryAssignFuel() {
+	sortFuel();
     for (int i = 0; i < Z.fuelcount; i++)
       if (!isOccupiedFuel[Z.sortedFuel[i]]) {
         assignFuel(Z.sortedFuel[i]); return true;
@@ -239,28 +272,23 @@ public class Castle extends Building {
   }
 
   boolean tryAssignAggressive() {
+	sortKarbAgg(); sortFuelAgg();
     int tot = Z.karbcount+Z.fuelcount;
     int x = (int)(Math.random()*tot);
     if(x < Z.karbcount) {
-      sortKarbAgg();
       for(int i = 0; i < Z.karbcount; i++) {
         if (!isOccupiedKarb[Z.sortedKarb[i]]) {
           assignKarb(Z.sortedKarb[i]);
-          sortKarb();
           return true;
         }
       }
-      sortKarb();
     } else {
-      sortFuelAgg();
       for (int i = 0; i < Z.fuelcount; i++) {
         if (!isOccupiedFuel[Z.sortedFuel[i]]) {
           assignFuel(Z.sortedFuel[i]);
-          sortFuel();
           return true;
         }
       }
-      sortFuel();
     }
     return false;
   }
@@ -341,7 +369,6 @@ public class Castle extends Building {
 
   Action2 castleBuild() {
     // if (Z.CUR.team == 1) return Z.tryBuild(CRUSADER);
-
     if (Z.CUR.turn == 1) return null;
     Action2 A = panicBuild(); if (A != null) return A;
     if (!shouldBuild && (Z.karbonite < 80 || Z.fuel < 250)) return null;
