@@ -108,22 +108,29 @@ public class Castle extends Building {
     });
     for(int i = 0; i < Z.fuelcount; i++) Z.sortedFuel[i] = temp.get(i);
   }
+  
+  double sideFactor(int pos) { // decreases gradually from our side, steep incline on other side
+	if(Z.wsim) {
+	  int x = Z.fdiv(pos,64);
+	  int disMid = Math.abs(x - Z.fdiv(Z.w,2));
+	  if(ourSide(pos)) return disMid;
+	  else return 2*disMid;
+	} else {
+	  int y = pos%64;
+	  int disMid = Math.abs(y - Z.fdiv(Z.h,2));
+	  if(ourSide(pos)) return disMid;
+	  else return 2*disMid;
+	}
+  }
 
   boolean betterAgg(int pos1, int pos2) {
-    int val1 = Z.bfs.dist(pos1);
-    int val2 = Z.bfs.dist(pos2);
-    if(Z.wsim) {
-		int x1 = Z.fdiv(pos1, 64);
-		int x2 = Z.fdiv(pos2, 64);
-		val1 *= Math.abs(x1 - Z.fdiv(Z.w,2));
-		val2 *= Math.abs(x2 - Z.fdiv(Z.w,2));
-	} else {
-		int y1 = pos1%64;
-		int y2 = pos2%64;
-		val1 *= Math.abs(y1 - Z.fdiv(Z.h,2));
-		val2 *= Math.abs(y2 - Z.fdiv(Z.h,2));
-	}
-    return val1*crowdedFactor(pos1) < val2*crowdedFactor(pos2);
+    double val1 = Z.bfs.dist(pos1);
+    double val2 = Z.bfs.dist(pos2);
+    val1 *= sideFactor(pos1);
+    val2 *= sideFactor(pos2);
+    val1 *= crowdedFactor(pos1);
+    val2 *= crowdedFactor(pos2);
+    return val1 < val2;
   }
 
   void sortKarbAgg() {
@@ -296,7 +303,7 @@ public class Castle extends Building {
   Action2 makePilgrim() {
     double a = Z.karbonite, b = (Z.fuel-Z.FUEL_RATIO*Z.U.totAttackers())/5.0;
     boolean assigned = false;
-    if (Z.U.totUnits[PILGRIM]%6 == 3) {
+    if (Math.random() <= .3) {
       assigned = tryAssignAggressive();
     } else {
       if (Z.CUR.turn <= 30 || 2*numKarb <= numFuel) assigned = tryAssignKarb();
