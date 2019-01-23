@@ -78,6 +78,12 @@ public class Building extends Attackable {
   }
   
   boolean betterPatrol(int pos1, int pos2) { // true if pos1 is better than pos2
+		if(Z.badPatrol != null) {
+			boolean b1 = Z.badPatrol[pos1%64][Z.fdiv(pos1,64)] > 0;
+			boolean b2 = Z.badPatrol[pos2%64][Z.fdiv(pos2,64)] > 0;
+			if(b1 && !b2) return false;
+			else if(!b1 && b2) return true;
+		}
 	  return Z.bfs.dist(pos1) < Z.bfs.dist(pos2);
   }
   
@@ -86,7 +92,7 @@ public class Building extends Attackable {
 	for(int i = 0; i < Z.patrolcount; i++) temp.add(Z.sortedPatrol[i]);
     Collections.sort(temp, new Comparator<Integer>() {
       public int compare(Integer a, Integer b) {
-		int p1 = Z.patrolPos[a]; int p2 = Z.patrolPos[b];
+				int p1 = Z.patrolPos[a]; int p2 = Z.patrolPos[b];
         if(betterPatrol(p1, p2)) return -1;
         else if(betterPatrol(p2,p1)) return 1;
         return 0;
@@ -118,14 +124,49 @@ public class Building extends Attackable {
 		  }
 	  }
 	  sortPatrol();
+	  Z.badPatrol = new int[Z.h][Z.w];
   }
   
   void updatePatrolVars() {
 		isOccupiedPatrol = new boolean[Z.patrolcount];
 		for (Robot2 R: Z.robots) {
       if (R.team == Z.CUR.team && IS_ATTACKER[Z.type[R.id]]) {
-      if (Z.atkToPatrol[R.id] != -1) isOccupiedPatrol[Z.atkToPatrol[R.id]] = true;
+				if (Z.atkToPatrol[R.id] != -1) isOccupiedPatrol[Z.atkToPatrol[R.id]] = true;
       }
+		}
+		
+		if(Z.atkToPatrolPrev != null) {
+			// figure out who died
+			ArrayList<Integer> dead = new ArrayList<Integer>();
+			for(int i = 0; i < 4097; i++) {
+				if(Z.atkToPatrolPrev[i] != -1 && !isOccupiedPatrol[Z.atkToPatrolPrev[i]]) {
+					dead.add(i);
+				}
+			}
+			
+			// update badPatrol
+			for(int i = 0; i < dead.size(); i++) {
+				int id = dead.get(i);
+				int pos = Z.patrolPos[Z.atkToPatrol[id]];
+				int x = Z.fdiv(pos,64); int y = pos%64;
+				Z.log("DONT PATROL NEAR: " + Z.coordinates(pos) + ", " + id + " HAS DIED HERE");
+				for(int dx = -3; dx <= 3; dx++) {
+					for(int dy = -3; dy <= 3; dy++) if(dx*dx + dy*dy <= 9) {
+						if(Z.valid(x+dx, y+dy)) Z.badPatrol[y+dy][x+dx] = 300;
+					}
+				}
+			}
+			
+			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) {
+				if(Z.badPatrol[y][x] != 0) Z.badPatrol[y][x]--;
+			}
+			
+			for (int i = 0; i < 4097; i++) {
+			if (!isOccupiedPatrol[Z.atkToPatrol[i]]) Z.atkToPatrol[i] = -1;
+		}
+		
+			// sort again
+			sortPatrol();
 		}
 	}
   

@@ -60,6 +60,8 @@ public class MyRobot extends BCAbstractRobot {
   // BUILDING
   int patrolcount;
   int[] sortedPatrol, atkToPatrol, patrolPos;
+  int[] atkToPatrolPrev;
+  int[][] badPatrol; // if positive, don't patrol here
   int assignedAttackerPos = -1;
 
   // PILGRIM
@@ -823,6 +825,12 @@ public class MyRobot extends BCAbstractRobot {
 			}
 		}
 	}
+	
+	void remAtkToPatrolPrev() {
+		if(!IS_STRUCT[CUR.unit]) return;
+		if(atkToPatrolPrev == null) atkToPatrolPrev = new int[4097];
+		for(int i = 0; i < 4097; i++) atkToPatrolPrev[i] = atkToPatrol[i];
+	}
 
   // TURN
   void updateVars() {
@@ -936,6 +944,7 @@ public class MyRobot extends BCAbstractRobot {
     }
     castleTalk(castle_talk);
     if (nextSignal != null) signal(nextSignal.f,nextSignal.s);
+    remAtkToPatrolPrev();
   }
 
   public Action turn() {
