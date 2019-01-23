@@ -43,6 +43,10 @@ public class unitCounter {
       res += closeEnemy[1];
       return res;
   }
+  int closeEnemyUnits() {
+	  int res = 0; for (int i = 0; i < 6; ++i) res += closeEnemy[i];
+	  return res;
+  }
   int needAttackers() {
       if (Z.numAttacks > 0) return MOD;
       int t = (int)Math.floor(2*Z.enemyDist[Z.CUR.y][Z.CUR.x][0]/3)-3;
