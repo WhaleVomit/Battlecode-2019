@@ -99,7 +99,7 @@ public class Building extends Attackable {
 	  Z.patrolcount = 0;
 	  for(int x = 0; x < Z.w; x++) {
 		  for(int y = 0; y < Z.h; y++) {
-			  if(Z.containsStruct(x,y) || Z.containsResource(x,y) || (x+y)%2 == 1) continue;
+			  if(Z.adjStruct(x,y) || Z.containsResource(x,y) || (x+y)%2 == 1) continue;
 			  Z.patrolcount++;
 		  }
 	  }
@@ -111,7 +111,7 @@ public class Building extends Attackable {
 	  Z.patrolcount = 0;
 	  for(int x = 0; x < Z.w; x++) {
 		  for(int y = 0; y < Z.h; y++) {
-			  if(Z.containsStruct(x,y) || Z.containsResource(x,y) || (x+y)%2 == 1) continue;
+			  if(Z.adjStruct(x,y) || Z.containsResource(x,y) || (x+y)%2 == 1) continue;
 			  Z.sortedPatrol[Z.patrolcount] = Z.patrolcount;
 			  Z.patrolPos[Z.patrolcount] = 64*x + y;
 			  Z.patrolcount ++;

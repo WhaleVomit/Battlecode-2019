@@ -253,6 +253,14 @@ public class MyRobot extends BCAbstractRobot {
   public boolean passable(int x, int y) { return valid(x, y) && (robotMapID[y][x] <= 0 || robotMapID[y][x] == MOD); }
   boolean containsRobot(int x, int y) { return valid(x, y) && robotMapID[y][x] > 0; }
   boolean containsStruct(int x, int y) { return containsRobot(x, y) && IS_STRUCT[robotMap[y][x].unit]; }
+  boolean adjStruct(int x, int y) {
+		for(int dx = -1; dx <= 1; dx++) {
+			for(int dy = -1; dy <= 1; dy++) {
+				if(containsStruct(x+dx,y+dy)) return true;
+			}
+		}
+		return false;
+	}
 
   boolean teamRobot(int x, int y, int t) { return containsRobot(x,y) && robotMap[y][x].team == t; }
   boolean yourRobot(int x, int y) { return teamRobot(x,y,CUR.team); }
