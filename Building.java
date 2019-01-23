@@ -27,6 +27,7 @@ public class Building extends Attackable {
     return ret;
   }
   int decideUnit() {
+		if (Z.U.closeEnemyAttackers() == 0 && (Z.fuel < 250 || Z.karbonite < 80)) return MOD;
 	  if (Z.U.closeEnemy[CRUSADER]+Z.U.closeEnemy[PREACHER]-Z.U.closeUnits[PREACHER] > 0) return PREACHER;
     if (Z.U.closeEnemyAttackers() == 0) {
       if (reallyCloseAttackers() < 2) return PROPHET;
@@ -66,7 +67,7 @@ public class Building extends Attackable {
   }
 
   Action2 panicBuild() {
-    if (Z.CUR.unit == CASTLE && Z.CUR.turn < 30) {
+    if (Z.CUR.unit == CASTLE) {
       if (Z.U.closeEnemyAttackers() == 0) return null;
       if (Z.U.totUnits[PILGRIM] == 0) return null;
     }
