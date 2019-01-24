@@ -70,6 +70,12 @@ public class MyRobot extends BCAbstractRobot {
   int resource = -1; // karbonite or fuel
   pi resourceLoc;
   boolean giveup = false;
+  
+  // SUPER SECRET STRATEGY
+  boolean continuedChain = false; // has this pilgrim/church already built the next one in line?
+  boolean isSuperSecret = false; // is this unit part of the super secret strategy?
+  int destination;
+  secretMap sm;
 
   void sortClose(ArrayList<pi> dirs) {
       Collections.sort(dirs, new Comparator<pi>() {
@@ -833,6 +839,29 @@ public class MyRobot extends BCAbstractRobot {
 		if(atkToPatrolPrev == null) atkToPatrolPrev = new int[4097];
 		for(int i = 0; i < 4097; i++) atkToPatrolPrev[i] = atkToPatrol[i];
 	}
+	
+	boolean isSignalSecret(int sig) {
+		return sig >= 40000 && sig < 50000;
+	}
+	
+	int decodeSecretSignal(int s) { // returns signaled destination
+		s -= 40000;
+		return s;
+	}
+	
+	void initSecretStrategy() {
+		// determine if this is a super secret unit
+		for(Robot2 R: robots) {
+			if(IS_STRUCT[R.unit] && adjacent(CUR,R) && R.team == CUR.team) {
+				if(isSignalSecret(R.signal)) {
+					isSuperSecret = true;
+					destination = decodeSecretSignal(R.signal);
+				}
+			}
+		}
+		if(!isSuperSecret) return;
+		sm = new secretMap(CUR,2);
+	}
 
   // TURN
   void updateVars() {
@@ -874,6 +903,7 @@ public class MyRobot extends BCAbstractRobot {
       else genEnemyDist();
       updateAttackMode();
       if(CUR.unit == CASTLE) initCastle = Math.max(initCastle,U.totUnits[CASTLE]);
+      if(CUR.turn == 1) initSecretStrategy();
       //atFront--; atFront = Math.max(atFront, 0);
       //if(seenAllyDie()) atFront = 100;
   }
