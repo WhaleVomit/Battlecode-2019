@@ -78,7 +78,13 @@ public class Building extends Attackable {
     return A;
   }
   
+  boolean near(int pos) {
+		return Z.euclidDist(pos) <= 15;
+	}
+  
   boolean betterPatrol(int pos1, int pos2) { // true if pos1 is better than pos2
+		if(near(pos1) && !near(pos2)) return true;
+		else if(!near(pos1) && near(pos2)) return false;
 		if(Z.badPatrol != null) {
 			boolean b1 = Z.badPatrol[pos1%64][Z.fdiv(pos1,64)] > 0;
 			boolean b2 = Z.badPatrol[pos2%64][Z.fdiv(pos2,64)] > 0;

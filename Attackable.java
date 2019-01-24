@@ -270,7 +270,7 @@ public class Attackable extends Movable {
       getPatrolLoc();
       if(Z.CUR.turn == 1) {
         Z.nextSignal = new pi(Z.CUR.unit, 2);
-        return null;
+        return tryAttack();
       } else {
         Action2 A = react();
         if (Z.CUR.team == 0 && Z.CUR.unit == CRUSADER) {
