@@ -629,11 +629,11 @@ public class MyRobot extends BCAbstractRobot {
 
   // ATTACK DAMAGE
   public int attackPriority(Robot2 R) {
-      if (R.unit == PREACHER) return 10;
-      if (R.unit == PROPHET) return 7;
-      if (R.unit == CRUSADER) return 6;
-      if (R.unit == PILGRIM) return 5;
-      return 4;
+    if (R.unit == PREACHER) return 10;
+    if (R.unit == PROPHET) return 7;
+    if (R.unit == CRUSADER) return 6;
+    if (R.unit == PILGRIM) return 5;
+    return 4;
   }
   public boolean inAttackRange(Robot2 R, int x, int y) { // can R attack (x,y)? assuming there is a robot at (x,y)
       int d = euclidDist(R,x,y);
@@ -649,7 +649,10 @@ public class MyRobot extends BCAbstractRobot {
               Robot2 R = robotMap[j][i];
               int val = attackPriority(R);
               val *= (R.team == P.team) ? -4 : 1;
-              if (R.isStructure()) val *= 2;
+              if (R.isStructure()) {
+                val *= 2;
+                if (euclidDist(P,R) <= 16) val *= 4;
+              }
               if (R.unit == CASTLE && R.team != CUR.team && R.id == MOD) continue;
               t += val;
           }
@@ -706,6 +709,26 @@ public class MyRobot extends BCAbstractRobot {
       return t;
   }
 
+  Action2 buildLeastDamage(int t) {
+    int bestVal = 2*MOD; Action2 A = null;
+
+    for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
+      int x = CUR.x+dx, y = CUR.y+dy;
+      if (passable(x,y)) {
+        int val = enemyDist[y][x][0];
+        val = Math.max(val,5-val);
+        if (!isSuperSecret) val += 100*totDamage(x,y);
+        if (val < bestVal) {
+          bestVal = val;
+          A = buildAction(t, dx, dy);
+        }
+      }
+    }
+
+    if (A != null && isSuperSecret) continuedChain = true;
+    return A;
+  }
+
   // BUILD
   public boolean canBuild(int t) {
       if (!(fuel >= CONSTRUCTION_F[t] && karbonite >= CONSTRUCTION_K[t])) return false;
@@ -718,51 +741,40 @@ public class MyRobot extends BCAbstractRobot {
   }
   public Action2 tryBuildChurch() {
     if (!canBuild(CHURCH)) return null;
-    int bestDx = MOD, bestDy = MOD, bestCnt = -MOD; // try to build adjacent to as many as possible
-    for (int dx = -1; dx <= 1; dx++) {
-    	for(int dy = -1; dy <= 1; dy++) {
-    		int x = CUR.x+dx; int y = CUR.y+dy;
-    		if(passable(x,y) && !karboniteMap[y][x] && !fuelMap[y][x]) {
-    			int cnt = 0;
-    			for(int dx2 = -1; dx2 <= 1; dx2++) {
-    				for(int dy2 = -1; dy2 <= 1; dy2++) {
-    					if(!(dx2 == 0 && dy2 == 0)) {
-    						int x2 = x+dx2; int y2 = y+dy2;
-    						if(valid(x2,y2) && (karboniteMap[y2][x2] || fuelMap[y2][x2])) cnt++;
-    					}
-    				}
-    			}
-    			if(cnt > bestCnt) {
-    				bestDx = dx;
-    				bestDy = dy;
-    				bestCnt = cnt;
-    			}
-    		}
-    	}
+    if (isSuperSecret) {
+      return buildLeastDamage(CHURCH);
+    } else {
+      int bestDx = MOD, bestDy = MOD, bestCnt = -MOD; // try to build adjacent to as many as possible
+      for (int dx = -1; dx <= 1; dx++) {
+      	for(int dy = -1; dy <= 1; dy++) {
+      		int x = CUR.x+dx; int y = CUR.y+dy;
+      		if(passable(x,y) && !karboniteMap[y][x] && !fuelMap[y][x]) {
+      			int cnt = 0;
+      			for(int dx2 = -1; dx2 <= 1; dx2++) {
+      				for(int dy2 = -1; dy2 <= 1; dy2++) {
+      					if(!(dx2 == 0 && dy2 == 0)) {
+      						int x2 = x+dx2; int y2 = y+dy2;
+      						if(valid(x2,y2) && (karboniteMap[y2][x2] || fuelMap[y2][x2])) cnt++;
+      					}
+      				}
+      			}
+      			if(cnt > bestCnt) {
+      				bestDx = dx;
+      				bestDy = dy;
+      				bestCnt = cnt;
+      			}
+      		}
+      	}
+      }
+      if(bestDx == MOD) return null;
+      return buildAction(CHURCH, bestDx, bestDy);
     }
-    if(bestDx == MOD) return null;
-    return buildAction(CHURCH, bestDx, bestDy);
   }
   public Action2 tryBuild(int t) {
       if (!canBuild(t)) return null;
-      if (isSuperSecret) nextSignal = new pi(encodeSecretSignal(),2);
+      if (isSuperSecret && !continuedChain) nextSignal = new pi(encodeSecretSignal(),2);
       if (t == CHURCH) return tryBuildChurch();
-
-      int bestVal = 2*MOD; Action2 A = null;
-
-      for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
-        int x = CUR.x+dx, y = CUR.y+dy;
-        if (passable(x,y)) {
-          int val = enemyDist[y][x][0];
-          if (!isSuperSecret) val += 100*totDamage(x,y);
-          if (val < bestVal) {
-            bestVal = val;
-            A = buildAction(t, dx, dy);
-          }
-        }
-      }
-
-      return A;
+      return buildLeastDamage(t);
   }
   public Action2 tryBuildNoSignal(int t) {
       if (!canBuild(t)) return null;
@@ -941,7 +953,7 @@ public class MyRobot extends BCAbstractRobot {
 
 	void checkSecretUnit() { // determine if this is a super secret unit
     if (CUR.unit == CASTLE) {
-      if (karbonite > 1000 && fuel > 4000 && CUR.id == min(myCastleID)) {
+      if (karbonite > enemyDist[CUR.x][CUR.y][0]*30+10*30 && fuel > enemyDist[CUR.x][CUR.y][0]*125+10*(50+15) && CUR.id == min(myCastleID)) {
         if (wsim) destination = 64*(w-1-CUR.x)+CUR.y;
         else destination = 64*CUR.x+(h-1-CUR.y);
         isSuperSecret = true;

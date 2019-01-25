@@ -9,28 +9,28 @@ public class Attackable extends Movable {
     public double canAttack(int dx, int dy) {
         if (ATTACK_F_COST[Z.CUR.unit] > Z.fuel) return -MOD;
         int x = Z.CUR.x + dx, y = Z.CUR.y + dy;
-        if (!inAttackRange(Z.CUR,x,y)) return -MOD;
+        if (!Z.inAttackRange(Z.CUR,x,y)) return -MOD;
         if (Z.CUR.unit == CRUSADER || Z.CUR.unit == PROPHET || Z.CUR.unit == CASTLE) {
             if (!Z.enemyRobot(x,y)) return -MOD;
-            return attackPriority(Z.robotMap[y][x]);
+            return Z.attackPriority(Z.robotMap[y][x]);
         } else {
             if (!containsConfident(x,y)) return -MOD;
-            return preacherVal(Z.CUR,x,y);
+            return Z.preacherVal(Z.CUR,x,y);
         }
     }
 
     public Action2 dealWithPreacher() {
-        if (totPreacherDamage(Z.CUR.x,Z.CUR.y) == 0) return null;
+        if (Z.totPreacherDamage(Z.CUR.x,Z.CUR.y) == 0) return null;
         int C = Z.bfs.closestStruct(true); int cx = Z.fdiv(C,64), cy = C%64;
         if (Z.CUR.unit == PROPHET) { // move away
             for (int i = -2; i <= 2; ++i) for (int j = -2; j <= 2; ++j)
-                if (Z.canMove(Z.CUR,i,j) && totDamageAfter(Z.CUR.x+i,Z.CUR.y+j) == 0)
+                if (Z.canMove(Z.CUR,i,j) && Z.totDamageAfter(Z.CUR.x+i,Z.CUR.y+j) == 0)
                     return Z.moveAction(i,j);
         } else if (Z.CUR.unit == CRUSADER) {
             int bestDist = MOD; Action2 bestMove = null;
             for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j) {
                 int x = Z.CUR.x+i, y = Z.CUR.y+j;
-                if (Z.canMove(Z.CUR,i,j) && Z.adjEnemyPreacher(x,y) && totDamageAfter(x,y) == 0) {
+                if (Z.canMove(Z.CUR,i,j) && Z.adjEnemyPreacher(x,y) && Z.totDamageAfter(x,y) == 0) {
                     int dist = Z.sq(cx-x)+Z.sq(cy-y);
                     if (dist < bestDist) {
                         bestDist = dist;
@@ -44,12 +44,12 @@ public class Attackable extends Movable {
     }
 
     public Action2 minimizeDamage(Robot2 R) {
-        int oriDist = Z.sq(Z.CUR.x-R.x)+Z.sq(Z.CUR.y-R.y), oriDam = totDamage(Z.CUR.x,Z.CUR.y);
+        int oriDist = Z.sq(Z.CUR.x-R.x)+Z.sq(Z.CUR.y-R.y), oriDam = Z.totDamage(Z.CUR.x,Z.CUR.y);
         int bestDam = MOD, bestDist = MOD; Action2 A = null;
 
         for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j)
             if (Z.canMove(Z.CUR,i,j)) {
-                int dam = totDamageAfter(Z.CUR.x+i,Z.CUR.y+j), dist = Z.sq(Z.CUR.x+i-R.x)+Z.sq(Z.CUR.y+j-R.y);
+                int dam = Z.totDamageAfter(Z.CUR.x+i,Z.CUR.y+j), dist = Z.sq(Z.CUR.x+i-R.x)+Z.sq(Z.CUR.y+j-R.y);
                 if (Math.sqrt(dist)+0.5 <= Math.sqrt(oriDist) && (dam < bestDam || (dam == bestDam && dist < bestDist))) {
                     bestDam = dam; bestDist = dist; A = Z.moveAction(i,j);
                 }
@@ -57,7 +57,7 @@ public class Attackable extends Movable {
         if (bestDam <= 1.5*oriDam+10) return A;
         for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j)
             if (Z.canMove(Z.CUR,i,j)) {
-                int dam = totDamageAfter(Z.CUR.x+i,Z.CUR.y+j), dist = Z.sq(Z.CUR.x+i-R.x)+Z.sq(Z.CUR.y+j-R.y);
+                int dam = Z.totDamageAfter(Z.CUR.x+i,Z.CUR.y+j), dist = Z.sq(Z.CUR.x+i-R.x)+Z.sq(Z.CUR.y+j-R.y);
                 if (dam < bestDam || (dam == bestDam && dist < bestDist)) {
                     bestDam = dam; bestDist = dist; A = Z.moveAction(i,j);
                 }
@@ -68,7 +68,7 @@ public class Attackable extends Movable {
     public boolean attacking(Robot2 R) { // PROPHET
         for (int i = -8; i <= 8; ++i) for (int j = -8; j <= 8; ++j) {
             int x = R.x+i, y = R.y+j;
-            if (Z.yourRobot(x,y) && inAttackRange(R,x,y)) return true;
+            if (Z.yourRobot(x,y) && Z.inAttackRange(R,x,y)) return true;
         }
         return false;
     }
@@ -77,7 +77,7 @@ public class Attackable extends Movable {
         int bestDist = Z.euclidDist(R);
         Action2 bestMove = null;
         for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j) {
-            if (Z.canMove(Z.CUR,i,j) && totDamageAfter(Z.CUR.x+i,Z.CUR.y+j) == 0) {
+            if (Z.canMove(Z.CUR,i,j) && Z.totDamageAfter(Z.CUR.x+i,Z.CUR.y+j) == 0) {
                 int dist = Z.sq(Z.CUR.x+i-R.x)+Z.sq(Z.CUR.y+j-R.y);
                 if (dist < bestDist) {
                     bestDist = dist;
@@ -133,9 +133,9 @@ public class Attackable extends Movable {
       if (Z.euclidDist(R) < MIN_ATTACK_R[Z.CUR.unit]) {
           Action2 A = moveAway(R);
           // Z.log("OOPS "+Z.CUR.unit+" "+Z.CUR.x+" "+Z.CUR.y+A.dx+" "+A.dy);
-          // Z.log("?? "+totPreacherDamageAfter(Z.CUR.x+A.dx,Z.CUR.y+A.dy)+" "+totPreacherDamageAfter(Z.CUR.x,Z.CUR.y));
-          if (A != null && totPreacherDamageAfter(Z.CUR.x+A.dx,Z.CUR.y+A.dy) >
-                          totPreacherDamageAfter(Z.CUR.x,Z.CUR.y))
+          // Z.log("?? "+Z.totPreacherDamageAfter(Z.CUR.x+A.dx,Z.CUR.y+A.dy)+" "+Z.totPreacherDamageAfter(Z.CUR.x,Z.CUR.y));
+          if (A != null && Z.totPreacherDamageAfter(Z.CUR.x+A.dx,Z.CUR.y+A.dy) >
+                          Z.totPreacherDamageAfter(Z.CUR.x,Z.CUR.y))
               A = new Action2();
           return A;
       }
@@ -180,7 +180,7 @@ public class Attackable extends Movable {
 
     public Action2 patrol() {
       if(Z.bfs.dist(Z.endPosAssigned) != MOD) return Z.bfs.move(Z.endPosAssigned);
-    
+
   	  int t = Z.bfs.closestStruct(true); if (t == MOD) return null;
   	  int x = Z.fdiv(t,64), y = t%64;
 
@@ -249,7 +249,7 @@ public class Attackable extends Movable {
       Z.waited = false;
       return false;
     }
-    
+
     void getPatrolLoc() {
 		for (Robot2 R: Z.robots) {
 			if (R.team == Z.CUR.team && (R.unit == CASTLE || R.unit == CHURCH) && R.signal >= 40000 && R.signal < 50000 && Z.endPosAssigned == MOD) { // patrol

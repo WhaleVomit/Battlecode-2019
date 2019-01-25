@@ -392,7 +392,8 @@ public class Castle extends Building {
     updatePilgrimID();
     updateAttackerID();
     updateVars();
-    if (Z.isSuperSecret) return Z.tryBuild(PILGRIM);
+    if (Z.isSuperSecret) Z.log("WHAT "+Z.CUR.turn);
+    if (Z.isSuperSecret && !Z.continuedChain) return Z.tryBuild(PILGRIM);
     Action2 A = castleBuild(); if (A != null && A.type != -1) return A;
     return tryAttack();
   }

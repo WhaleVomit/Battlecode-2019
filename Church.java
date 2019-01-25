@@ -21,7 +21,7 @@ public class Church extends Building {
 
     boolean seesEnemyStruct(Robot2 R) {
       for (int i = -4; i <= 4; ++i) for (int j = -4; j <= 4; ++j) if (i*i+j*j <= 16) {
-        int x = Z.CUR.x+i, y = Z.CUR.y+j;
+        int x = R.x+i, y = R.y+j;
         if (Z.teamRobot(x,y,1-Z.CUR.team)) {
           Robot2 E = Z.robotMap[y][x];
           if (E.isStructure()) return true;
@@ -34,15 +34,21 @@ public class Church extends Building {
       if (Z.CUR.turn == 1) initPatrol();
       if (Z.isSuperSecret) {
         Action2 A = Z.tryBuild(PREACHER);
-        if (A != null) {
-          Z.log("HUH "+Z.destination+" "+A.dx+" "+A.dy+" "+(Z.CUR.x+A.dx)+" "+(Z.CUR.y+A.dy));
-          Robot2 R = Z.makeRobot(PREACHER,Z.CUR.team,Z.CUR.x+A.dx,Z.CUR.y+A.dy);
+        Robot2 R = null;
+        if (A != null) R = Z.makeRobot(PREACHER,Z.CUR.team,Z.CUR.x+A.dx,Z.CUR.y+A.dy);
+        /*  Z.log("HUH "+Z.destination+" "+A.dx+" "+A.dy+" "+(Z.CUR.x+A.dx)+" "+(Z.CUR.y+A.dy));
           if (seesEnemyStruct(R)) {
             Z.log("MADE PREACHER!");
             return A;
           }
+        }*/
+        if (Z.CUR.turn > 1) {
+          if (R != null && seesEnemyStruct(R)) return A;
+          return null;
+        } else {
+          if (R != null && Z.enemyDist[R.y][R.x][0] >= Z.enemyDist[Z.CUR.y][Z.CUR.x][0] && seesEnemyStruct(R)) return A;
+          return Z.tryBuild(PILGRIM);
         }
-        return Z.tryBuild(PILGRIM);
       }
 	    updatePatrolVars();
       Action2 A = panicBuild(); if (A != null) return A;
