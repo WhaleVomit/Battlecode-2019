@@ -57,7 +57,7 @@ public class MyRobot extends BCAbstractRobot {
   Map<Integer,Integer> castleY = new HashMap<>();
   pi assignedPilgrimPos;
   boolean[][] assigned;
-  
+
   // BUILDING
   int patrolcount;
   int[] sortedPatrol, atkToPatrol, patrolPos;
@@ -70,6 +70,12 @@ public class MyRobot extends BCAbstractRobot {
   int resource = -1; // karbonite or fuel
   pi resourceLoc;
   boolean giveup = false;
+
+  // SUPER SECRET STRATEGY
+  boolean continuedChain = false; // has this pilgrim/church already built the next one in line?
+  boolean isSuperSecret = false; // is this unit part of the super secret strategy?
+  int destination;
+  secretMap sm;
 
   void sortClose(ArrayList<pi> dirs) {
       Collections.sort(dirs, new Comparator<pi>() {
@@ -590,7 +596,7 @@ public class MyRobot extends BCAbstractRobot {
       else if(valid(x,y)) key += 3;
     }
     key %= 50;
-      
+
     int myLoc = compress(64*CUR.x+CUR.y);
 
     int ret = (myLoc * 50) + key + 7000;
@@ -612,13 +618,92 @@ public class MyRobot extends BCAbstractRobot {
       else if(valid(x,y)) key += 3;
     }
     key %= 50;
-			
+
     if((sig%50) != key) return;
-      
+
     sig -= key;
     sig /= 50;
-      
+
     fill4by4(fdiv(sig,16),sig%16);
+  }
+
+  // ATTACK DAMAGE
+  public int attackPriority(Robot2 R) {
+      if (R.unit == PREACHER) return 10;
+      if (R.unit == PROPHET) return 7;
+      if (R.unit == CRUSADER) return 6;
+      if (R.unit == PILGRIM) return 5;
+      return 4;
+  }
+  public boolean inAttackRange(Robot2 R, int x, int y) { // can R attack (x,y)? assuming there is a robot at (x,y)
+      int d = euclidDist(R,x,y);
+      int mn = MIN_ATTACK_R[R.unit]; if (R.unit == PREACHER) mn = 3;
+      return d >= mn && d <= MAX_ATTACK_R[R.unit];
+  }
+
+  public int preacherVal(Robot2 P, int x, int y) {
+      if (!valid(x,y)) return 0;
+      int t = 0;
+      for (int i = x-1; i <= x+1; ++i) for (int j = y-1; j <= y+1; ++j)
+          if (valid(i,j) && robotMapID[j][i] > 0) {
+              Robot2 R = robotMap[j][i];
+              int val = attackPriority(R);
+              val *= (R.team == P.team) ? -4 : 1;
+              if (R.isStructure()) val *= 2;
+              if (R.unit == CASTLE && R.team != CUR.team && R.id == MOD) continue;
+              t += val;
+          }
+      return t;
+  }
+  // PREACHER EVASION
+  public int maxPreacherVal(Robot2 P, int x, int y) { // P is the preacher
+      int tot = 0;
+      for (int X = x-1; X <= x+1; ++X) for (int Y = y-1; Y <= y+1; ++Y)
+          if (inAttackRange(P,X,Y)) tot = Math.max(tot,preacherVal(P,X,Y));
+      return tot;
+  }
+  public int totPreacherDamage(int x, int y) {
+      int res = 0;
+      for (int i = x-5; i <= x+5; ++i) for (int j = y-5; j <= y+5; ++j)
+          if (enemyRobot(i,j,PREACHER))
+              res += maxPreacherVal(robotMap[j][i],x,y);
+      return 2*res;
+  }
+  public int totDamage(int x, int y) { // sum of damage of all enemy units that can attack this position
+      int res = totPreacherDamage(x,y);
+      for (int i = -8; i <= 8; ++i) for (int j = -8; j <= 8; ++j)
+          if (enemyAttacker(x+i,y+j)) {
+              Robot2 R = robotMap[y+j][x+i];
+              if (R.unit == 5) continue;
+              if (inAttackRange(R,x,y)) res += DAMAGE[R.unit];
+          }
+      return res;
+  }
+  public int totPreacherDamageAfter(int x, int y) {
+      robotMapID[CUR.y][CUR.x] = 0; robotMap[CUR.y][CUR.x] = null;
+      CUR.x = x; CUR.y = y;
+      robotMapID[CUR.y][CUR.x] = CUR.id; robotMap[CUR.y][CUR.x] = CUR;
+
+      int t = totPreacherDamage(x,y);
+
+      robotMapID[CUR.y][CUR.x] = 0; robotMap[CUR.y][CUR.x] = null;
+      CUR.x = ORI.x; CUR.y = ORI.y;
+      robotMapID[CUR.y][CUR.x] = CUR.id; robotMap[CUR.y][CUR.x] = CUR;
+
+      return t;
+  }
+  public int totDamageAfter(int x, int y) {
+      robotMapID[CUR.y][CUR.x] = 0; robotMap[CUR.y][CUR.x] = null;
+      CUR.x = x; CUR.y = y;
+      robotMapID[CUR.y][CUR.x] = CUR.id; robotMap[CUR.y][CUR.x] = CUR;
+
+      int t = totDamage(x,y);
+
+      robotMapID[CUR.y][CUR.x] = 0; robotMap[CUR.y][CUR.x] = null;
+      CUR.x = ORI.x; CUR.y = ORI.y;
+      robotMapID[CUR.y][CUR.x] = CUR.id; robotMap[CUR.y][CUR.x] = CUR;
+
+      return t;
   }
 
   // BUILD
@@ -632,7 +717,7 @@ public class MyRobot extends BCAbstractRobot {
       return false;
   }
   public Action2 tryBuildChurch() {
-    if(!canBuild(CHURCH)) return null;
+    if (!canBuild(CHURCH)) return null;
     int bestDx = MOD, bestDy = MOD, bestCnt = -MOD; // try to build adjacent to as many as possible
     for (int dx = -1; dx <= 1; dx++) {
     	for(int dy = -1; dy <= 1; dy++) {
@@ -660,13 +745,24 @@ public class MyRobot extends BCAbstractRobot {
   }
   public Action2 tryBuild(int t) {
       if (!canBuild(t)) return null;
-      // if (CAN_ATTACK[t]) nextSignal = new pi(encodeCastleLocations(),2);
+      if (isSuperSecret) nextSignal = new pi(encodeSecretSignal(),2);
+      if (t == CHURCH) return tryBuildChurch();
+
+      int bestVal = 2*MOD; Action2 A = null;
+
       for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
-          int x = CUR.x+dx, y = CUR.y+dy;
-          if (t == CHURCH && containsResource(x,y)) continue;
-          if (passable(x,y)) return buildAction(t, dx, dy);
+        int x = CUR.x+dx, y = CUR.y+dy;
+        if (passable(x,y)) {
+          int val = enemyDist[y][x][0];
+          if (!isSuperSecret) val += 100*totDamage(x,y);
+          if (val < bestVal) {
+            bestVal = val;
+            A = buildAction(t, dx, dy);
+          }
+        }
       }
-      return null;
+
+      return A;
   }
   public Action2 tryBuildNoSignal(int t) {
       if (!canBuild(t)) return null;
@@ -808,74 +904,113 @@ public class MyRobot extends BCAbstractRobot {
 	}
 
 	boolean seenAllyDie() { // inaccurate if current robot is moving
-		if(posLastTurn != 64*CUR.x + CUR.y) return false;
-		for(int id: nearbyAllies) {
+		if (posLastTurn != 64*CUR.x + CUR.y) return false;
+		for (int id: nearbyAllies) {
 			boolean see = false;
-			for(Robot2 R: robots) if(R.id == id) see = true;
-			if(!see) return true;
+			for (Robot2 R: robots) if (R.id == id) see = true;
+			if (!see) return true;
 		}
 		return false;
 	}
 
 	void remNearbyAllies() {
 		nearbyAllies.clear();
-		for(int dx = -2; dx <= 2; dx++) {
-			for(int dy = -2; dy <= 2; dy++) {
-				if(yourRobot(CUR.x+dx, CUR.y+dy)) {
-					nearbyAllies.add(robotMapID[CUR.y+dy][CUR.x+dx]);
-				}
-			}
-		}
+		for (int dx = -2; dx <= 2; dx++) for (int dy = -2; dy <= 2; dy++)
+			if (yourRobot(CUR.x+dx, CUR.y+dy))
+				nearbyAllies.add(robotMapID[CUR.y+dy][CUR.x+dx]);
 	}
-	
+
 	void remAtkToPatrolPrev() {
 		if(!IS_STRUCT[CUR.unit]) return;
 		if(atkToPatrolPrev == null) atkToPatrolPrev = new int[4097];
 		for(int i = 0; i < 4097; i++) atkToPatrolPrev[i] = atkToPatrol[i];
 	}
 
+	boolean isSignalSecret(int sig) {
+		return sig >= 50000 && sig < 60000;
+	}
+
+	int decodeSecretSignal(int s) { // returns signaled destination
+		s -= 50000;
+		return s;
+	}
+
+  int encodeSecretSignal() {
+    return destination+50000;
+  }
+
+	void checkSecretUnit() { // determine if this is a super secret unit
+    if (CUR.unit == CASTLE) {
+      if (karbonite > 1000 && fuel > 4000 && CUR.id == min(myCastleID)) {
+        if (wsim) destination = 64*(w-1-CUR.x)+CUR.y;
+        else destination = 64*CUR.x+(h-1-CUR.y);
+        isSuperSecret = true;
+      }
+    } else {
+      if (CUR.turn != 1) return;
+  		for (Robot2 R: robots) if (adjacent(CUR,R) && R.team == CUR.team && isSignalSecret(R.signal)) {
+  			isSuperSecret = true;
+  			destination = decodeSecretSignal(R.signal);
+        int x = fdiv(destination,64), y = destination%64;
+        addStruct(makeRobot(CASTLE,1-CUR.team,x,y));
+  		}
+    }
+
+		if (!isSuperSecret) return;
+    log(karbonite+" "+fuel+" "+CUR.turn+" "+CUR.unit+" IS SUPER SECRET!"+" "+fdiv(destination,64)+" "+(destination%64));
+		sm = new secretMap(this,2);
+	}
+
+  void checkValid(ArrayList<Integer> A) {
+    ArrayList<Integer> res = new ArrayList<Integer>();
+    for (Robot2 R: robots) for (int j: A) if (R.id == j) res.add(j);
+    A.clear();
+    for (int i: res) A.add(i);
+  }
+
   // TURN
   void updateVars() {
-      ORI = new Robot2(me); CUR = new Robot2(me);
-      robots = new Robot2[getVisibleRobots().length];
-      for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
+    ORI = new Robot2(me); CUR = new Robot2(me);
+    robots = new Robot2[getVisibleRobots().length];
+    for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
 
-      posRecord[me.turn] = new pi(me.x,me.y);
-      for (int i = 1; i <= 4096; ++i) lastPos[i] = null;
-      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
-        if (robotMapID[i][j] > 0 && robotMapID[i][j] < MOD)
-          lastPos[robotMapID[i][j]] = new pi(j,i);
+    posRecord[me.turn] = new pi(me.x,me.y);
+    for (int i = 1; i <= 4096; ++i) lastPos[i] = null;
+    for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
+      if (robotMapID[i][j] > 0 && robotMapID[i][j] < MOD)
+        lastPos[robotMapID[i][j]] = new pi(j,i);
 
-      checkSignal(); // info might not be accurate: some troops may be dead already
-      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
-          int t = getVisibleRobotMap()[i][j];
-          if (t != -1) {
-              lastTurn[i][j] = CUR.turn;
-              robotMapID[i][j] = t;
-              if (robotMapID[i][j] == 0) robotMap[i][j] = null;
-              else {
-                  Robot2 R = getRobot2(t);
-                  if (lastPos[t] != null && robotMapID[lastPos[t].s][lastPos[t].f] == t) {
-                      robotMapID[lastPos[t].s][lastPos[t].f] = -1;
-                      robotMap[lastPos[t].s][lastPos[t].f] = null;
-                      robotMapID[i][j] = t;
-                  }
-                  lastPos[t] = new pi(j,i); robotMap[i][j] = R;
-                  addStruct(R);
-              }
-          }
-      }
-      rem(myCastle); rem(otherCastle); rem(myChurch); rem(otherChurch);
-
-      bfs.upd(); // if (CUR.unit == CRUSADER) bfsShort.upd();
-      castle_talk = -1; nextSignal = null;
-      U = new unitCounter(this);
-      if (CUR.unit == PILGRIM) genDanger();
-      else genEnemyDist();
-      updateAttackMode();
-      if(CUR.unit == CASTLE) initCastle = Math.max(initCastle,U.totUnits[CASTLE]);
-      //atFront--; atFront = Math.max(atFront, 0);
-      //if(seenAllyDie()) atFront = 100;
+    checkSignal(); // info might not be accurate: some troops may be dead already
+    checkSecretUnit();
+    for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
+        int t = getVisibleRobotMap()[i][j];
+        if (t != -1) {
+            lastTurn[i][j] = CUR.turn;
+            robotMapID[i][j] = t;
+            if (robotMapID[i][j] == 0) robotMap[i][j] = null;
+            else {
+                Robot2 R = getRobot2(t);
+                if (lastPos[t] != null && robotMapID[lastPos[t].s][lastPos[t].f] == t) {
+                    robotMapID[lastPos[t].s][lastPos[t].f] = -1;
+                    robotMap[lastPos[t].s][lastPos[t].f] = null;
+                    robotMapID[i][j] = t;
+                }
+                lastPos[t] = new pi(j,i); robotMap[i][j] = R;
+                addStruct(R);
+            }
+        }
+    }
+    rem(myCastle); rem(otherCastle); rem(myChurch); rem(otherChurch);
+    if (CUR.unit == CASTLE) { checkValid(myStructID); checkValid(myCastleID); }
+    bfs.upd(); // if (CUR.unit == CRUSADER) bfsShort.upd();
+    castle_talk = -1; nextSignal = null;
+    U = new unitCounter(this);
+    if (CUR.unit == PILGRIM) genDanger();
+    genEnemyDist();
+    updateAttackMode();
+    if (CUR.unit == CASTLE) initCastle = Math.max(initCastle,U.totUnits[CASTLE]);
+    //atFront--; atFront = Math.max(atFront, 0);
+    //if(seenAllyDie()) atFront = 100;
   }
 
   public Action2 chooseAction() {
@@ -950,13 +1085,13 @@ public class MyRobot extends BCAbstractRobot {
   }
 
   public Action turn() {
+    if (me.team == 0) return null;
     if (me.turn == 1) initVars();
     updateVars();
     if (me.turn == 1) log("UNIT: "+CUR.unit);
 
     Action2 A = chooseAction();
-    warnOthers(A);
-    startAttack(); finish();
+    warnOthers(A); startAttack(); finish();
     return conv(A);
   }
 }

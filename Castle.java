@@ -57,7 +57,7 @@ public class Castle extends Building {
       }
     }
   }
-  
+
   double countAssigned(int pos) { // how many pilgrims assigned to vicinity?
 	  int x = Z.fdiv(pos,64); int y = pos%64;
 	  double res = 0;
@@ -68,7 +68,7 @@ public class Castle extends Building {
 	  }
 	  return res;
   }
-  
+
   double crowdedFactor(int pos) {
 	  double val = Z.sq(countAssigned(pos)+1.0);
 	  return val;
@@ -108,7 +108,7 @@ public class Castle extends Building {
     });
     for(int i = 0; i < Z.fuelcount; i++) Z.sortedFuel[i] = temp.get(i);
   }
-  
+
   double sideFactor(int pos) { // decreases gradually from our side, steep incline on other side
 	if(Z.wsim) {
 	  int x = Z.fdiv(pos,64);
@@ -193,7 +193,7 @@ public class Castle extends Building {
       int p = Z.karbPos[Z.sortedKarb[i]];
       Z.log("AA "+Z.karbPos[Z.sortedKarb[i]]+" "+Z.coordinates(p)+" "+ourSide(p)+" "+Z.bfs.dist(p));
     }*/
-    
+
     initPatrol();
   }
 
@@ -217,7 +217,7 @@ public class Castle extends Building {
     for (Robot2 R: Z.robots)
       if (R.team == Z.CUR.team && Z.type[R.id] == 2) {
     	if (R.castle_talk == 30) shouldBuild = false;
-        if (Z.pilToKarb[R.id] != -1) { 
+        if (Z.pilToKarb[R.id] != -1) {
 			isOccupiedKarb[Z.pilToKarb[R.id]] = true;
 			int pos = Z.karbPos[Z.pilToKarb[R.id]];
 			Z.assigned[pos%64][Z.fdiv(pos,64)] = true;
@@ -231,7 +231,7 @@ public class Castle extends Building {
 
     for (int i = 0; i < Z.karbcount; i++) if (isOccupiedKarb[i]) numKarb ++;
     for (int i = 0; i < Z.fuelcount; i++) if (isOccupiedFuel[i]) numFuel ++;
-    
+
     updatePatrolVars();
 
     if (Z.CUR.unit == CASTLE && Z.myCastle.get(0) == 64 * Z.CUR.x + Z.CUR.y && Z.CUR.turn%10 == 0)
@@ -377,6 +377,8 @@ public class Castle extends Building {
   Action2 castleBuild() {
     // if (Z.CUR.team == 1) return Z.tryBuild(CRUSADER);
     if (Z.CUR.turn == 1) return null;
+    if (Z.CUR.turn > 200) return null;
+
     Action2 A = panicBuild(); if (A != null) return A;
     if (!shouldBuild && (Z.karbonite < 80 || Z.fuel < 250)) return null;
     if (shouldPilgrim()) return makePilgrim();
@@ -390,6 +392,7 @@ public class Castle extends Building {
     updatePilgrimID();
     updateAttackerID();
     updateVars();
+    if (Z.isSuperSecret) return Z.tryBuild(PILGRIM);
     Action2 A = castleBuild(); if (A != null && A.type != -1) return A;
     return tryAttack();
   }

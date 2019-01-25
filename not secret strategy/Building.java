@@ -78,11 +78,6 @@ public class Building extends Attackable {
     return A;
   }
   
-  Action2 makeSpecialPilgrim() {
-	  if(continuedChain) return null;
-	  
-  }
-  
   boolean near(int pos) {
 		return Z.euclidDist(pos) <= 15;
 	}

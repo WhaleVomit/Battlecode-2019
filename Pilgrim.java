@@ -78,7 +78,7 @@ public class Pilgrim extends Movable {
     }
     if (shouldBuildChurch()) {
       Z.lastAction = Z.CUR.turn; Z.giveup = false;
-      return Z.tryBuildChurch();
+      return Z.tryBuild(CHURCH);
     }
   }
 
@@ -142,6 +142,7 @@ public class Pilgrim extends Movable {
 
   Action2 run() {
     if (Z.CUR.turn == 1) init();
+    if (Z.isSuperSecret) return Z.tryBuild(CHURCH);
     Action2 A = react(); if (A != null) return A;
     if (!Z.giveup) {
       if (Z.lastAction <= Z.CUR.turn-100) Z.giveup = true;
