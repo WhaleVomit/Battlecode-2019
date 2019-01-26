@@ -34,6 +34,7 @@ public class MyRobot extends BCAbstractRobot {
 
   // MOVABLE
   boolean goHome;
+  boolean producedByCastle;
 
   // NOT PILGRIM
   boolean updEnemy;
@@ -72,8 +73,10 @@ public class MyRobot extends BCAbstractRobot {
   boolean giveup = false;
 
   // SUPER SECRET STRATEGY
-  boolean continuedChain = false; // has this pilgrim/church already built the next one in line?
-  boolean isSuperSecret = false; // is this unit part of the super secret strategy?
+  boolean continuedChain = false, isSuperSecret = false, isFst = false;
+  // has this pilgrim/church already built the next one in line?
+  // is this unit part of the super secret strategy?
+
   int destination;
   secretMap sm;
 
@@ -136,6 +139,7 @@ public class MyRobot extends BCAbstractRobot {
       robotMapID[i][j] = -1;
 
     lastTurn = new int[h][w];
+    for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) lastTurn[i][j] = -MOD;
     if (me.unit == PILGRIM) {
       danger = new int[h][w];
       safe = new safeMap(this,4);
@@ -648,12 +652,14 @@ public class MyRobot extends BCAbstractRobot {
           if (valid(i,j) && robotMapID[j][i] > 0) {
               Robot2 R = robotMap[j][i];
               int val = attackPriority(R);
-              val *= (R.team == P.team) ? -4 : 1;
-              if (R.isStructure()) {
-                val *= 2;
-                if (euclidDist(P,R) <= 16) val *= 4;
+              val *= (R.team == P.team) ? -3 : 1;
+              if (R.isStructure()) val *= 2;
+              if (P.id == CUR.id) {
+                if (lastTurn[j][i] >= CUR.turn-1) {
+                  val *= 4;
+                  if (isSuperSecret && R.unit == CASTLE) val = 1000;
+                }
               }
-              if (R.unit == CASTLE && R.team != CUR.team && R.id == MOD) continue;
               t += val;
           }
       return t;
@@ -709,15 +715,35 @@ public class MyRobot extends BCAbstractRobot {
       return t;
   }
 
-  Action2 buildLeastDamage(int t) {
+  boolean isAttacked(int x, int y) {
+    for (int i = -8; i <= 8; ++i) for (int j = -8; j <= 8; ++j) {
+      int X = x+i, Y = y+j;
+      if (teamAttacker(X,Y,1-CUR.team) && inAttackRange(robotMap[Y][X],x,y))
+        return true;
+    }
+    return false;
+  }
+
+  Action2 buildLeastDamage(int t) { // first minimize damage, try to build closer to enemy
     int bestVal = 2*MOD; Action2 A = null;
+
+    if (isSuperSecret) {
+      A = sm.moveFake(destination);
+      if (A == null) return null;
+      boolean bad = false;
+      if (CUR.turn > 1 && (t == CHURCH || t == PILGRIM))
+        if (isAttacked(CUR.x+A.dx,CUR.y+A.dy))
+          bad = true;
+      // log("HUH "+t+" "+A.dx+" "+A.dy);
+      if (!bad) return buildAction(t,A.dx,A.dy);
+    }
 
     for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
       int x = CUR.x+dx, y = CUR.y+dy;
       if (passable(x,y)) {
         int val = enemyDist[y][x][0];
         val = Math.max(val,5-val);
-        if (!isSuperSecret) val += 100*totDamage(x,y);
+        val += 100*totDamage(x,y);
         if (val < bestVal) {
           bestVal = val;
           A = buildAction(t, dx, dy);
@@ -725,7 +751,6 @@ public class MyRobot extends BCAbstractRobot {
       }
     }
 
-    if (A != null && isSuperSecret) continuedChain = true;
     return A;
   }
 
@@ -772,7 +797,6 @@ public class MyRobot extends BCAbstractRobot {
   }
   public Action2 tryBuild(int t) {
       if (!canBuild(t)) return null;
-      if (isSuperSecret && !continuedChain) nextSignal = new pi(encodeSecretSignal(),2);
       if (t == CHURCH) return tryBuildChurch();
       return buildLeastDamage(t);
   }
@@ -952,11 +976,13 @@ public class MyRobot extends BCAbstractRobot {
   }
 
 	void checkSecretUnit() { // determine if this is a super secret unit
+		if (isSuperSecret || CUR.team == 0) return;
+
     if (CUR.unit == CASTLE) {
-      if (karbonite > enemyDist[CUR.x][CUR.y][0]*30+10*30 && fuel > enemyDist[CUR.x][CUR.y][0]*125+10*(50+15) && CUR.id == min(myCastleID)) {
+      if (karbonite > 1.2*(enemyDist[CUR.x][CUR.y][0]*30+10*30) && fuel > 1.2*(enemyDist[CUR.x][CUR.y][0]*125+10*(50+15)) && CUR.id == min(myCastleID)) {
         if (wsim) destination = 64*(w-1-CUR.x)+CUR.y;
         else destination = 64*CUR.x+(h-1-CUR.y);
-        isSuperSecret = true;
+        isSuperSecret = true; isFst = true;
       }
     } else {
       if (CUR.turn != 1) return;
@@ -964,13 +990,14 @@ public class MyRobot extends BCAbstractRobot {
   			isSuperSecret = true;
   			destination = decodeSecretSignal(R.signal);
         int x = fdiv(destination,64), y = destination%64;
+        if (R.unit == CASTLE && CUR.unit == PILGRIM) isFst = true;
         addStruct(makeRobot(CASTLE,1-CUR.team,x,y));
   		}
     }
 
 		if (!isSuperSecret) return;
-    log(karbonite+" "+fuel+" "+CUR.turn+" "+CUR.unit+" IS SUPER SECRET!"+" "+fdiv(destination,64)+" "+(destination%64));
-		sm = new secretMap(this,2);
+    log("KARBONITE: "+karbonite+" FUEL: "+fuel+" TURN: "+CUR.turn+" UNIT: "+CUR.unit+" IS SUPER SECRET! "+fdiv(destination,64)+" "+(destination%64));
+		sm = new secretMap(this);
 	}
 
   void checkValid(ArrayList<Integer> A) {
@@ -985,6 +1012,11 @@ public class MyRobot extends BCAbstractRobot {
     ORI = new Robot2(me); CUR = new Robot2(me);
     robots = new Robot2[getVisibleRobots().length];
     for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
+    if (CUR.turn == 1) {
+      for (int i = 0; i < robots.length; ++i)
+        if (robots[i].team == CUR.team && robots[i].unit == CASTLE && adjacent(CUR,robots[i]))
+          producedByCastle = true;
+    }
 
     posRecord[me.turn] = new pi(me.x,me.y);
     for (int i = 1; i <= 4096; ++i) lastPos[i] = null;
@@ -1015,6 +1047,7 @@ public class MyRobot extends BCAbstractRobot {
     rem(myCastle); rem(otherCastle); rem(myChurch); rem(otherChurch);
     if (CUR.unit == CASTLE) { checkValid(myStructID); checkValid(myCastleID); }
     bfs.upd(); // if (CUR.unit == CRUSADER) bfsShort.upd();
+    if (isSuperSecret) sm.upd();
     castle_talk = -1; nextSignal = null;
     U = new unitCounter(this);
     if (CUR.unit == PILGRIM) genDanger();
@@ -1097,13 +1130,21 @@ public class MyRobot extends BCAbstractRobot {
   }
 
   public Action turn() {
-    if (me.team == 0) return null;
     if (me.turn == 1) initVars();
     updateVars();
     if (me.turn == 1) log("UNIT: "+CUR.unit);
 
     Action2 A = chooseAction();
+    if (isSuperSecret && A != null && A.type == 4)
+      if (!(CUR.unit == CASTLE && continuedChain)) {
+        nextSignal = new pi(encodeSecretSignal(),2);
+        continuedChain = true;
+      }
     warnOthers(A); startAttack(); finish();
+    if (A.type == 3 && CUR.team == 0) A = null;
+    if (A != null && A.type == 4 && isSuperSecret) {
+      log("SECRET BUILD "+A.unit+" "+A.dx+" "+A.dy);
+    }
     return conv(A);
   }
 }

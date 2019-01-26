@@ -109,13 +109,20 @@ public abstract class moveMap {
   int distHome() { return distClose(closestStruct(true)); }
 
   Action2 move(int x, int y) {
-    if (x == Z.CUR.x && y == Z.CUR.y) return null;
     int t = next(close(x,y)); if (t == MOD) return null;
     int dx = Z.fdiv(t,64)-Z.CUR.x, dy = (t%64)-Z.CUR.y;
     if (!Z.canMove(Z.CUR,dx,dy)) return null;
     return Z.moveAction(dx,dy);
   }
   Action2 move(int t) { return t == MOD ? null : move(Z.fdiv(t,64),t%64); }
+  Action2 moveFake(int x, int y) {
+    int t = next(close(x,y)); if (t == MOD) return null;
+    int dx = Z.fdiv(t,64)-Z.CUR.x, dy = (t%64)-Z.CUR.y;
+    // Z.log("WHAT "+Z.coordinates(t)+" "+Z.CUR.coordinates()+" "+x+" "+y+" "+dx+" "+dy);
+    return Z.moveAction(dx,dy);
+  }
+  Action2 moveFake(int t) { return t == MOD ? null : moveFake(Z.fdiv(t,64),t%64); }
+
   Action2 moveUnseen() { return move(closestUnseen()); }
   Action2 moveYourStruct() {
     int x = closestStruct(true);

@@ -389,10 +389,7 @@ public class Castle extends Building {
   Action2 run() {
     if (Z.me.turn == 1) initVars();
     determineCastleLoc();
-    updatePilgrimID();
-    updateAttackerID();
-    updateVars();
-    if (Z.isSuperSecret) Z.log("WHAT "+Z.CUR.turn);
+    updatePilgrimID(); updateAttackerID(); updateVars();
     if (Z.isSuperSecret && !Z.continuedChain) return Z.tryBuild(PILGRIM);
     Action2 A = castleBuild(); if (A != null && A.type != -1) return A;
     return tryAttack();

@@ -140,9 +140,24 @@ public class Pilgrim extends Movable {
       return minx+6 >= maxx && miny+6 >= maxy;
   }
 
+
   Action2 run() {
     if (Z.CUR.turn == 1) init();
-    if (Z.isSuperSecret && !Z.continuedChain) return Z.tryBuild(CHURCH);
+    if (Z.isSuperSecret) {
+      if (!Z.continuedChain) {
+        if (Z.producedByCastle) {
+          Action2 A = Z.bfs.move(Z.destination);
+          if (A != null) {
+            int x = Z.CUR.x+A.dx, y = Z.CUR.y+A.dy;
+            if (!Z.isAttacked(x,y)) return A;
+          }
+        }
+        return Z.tryBuild(CHURCH);
+      } else if (Z.CUR.turn <= 5) {
+        int t = Z.bfs.closestStruct(true);
+        if (t != MOD) return moveAway(Z.fdiv(t,64),t%64);
+      }
+    }
     Action2 A = react(); if (A != null) return A;
     if (!Z.giveup) {
       if (Z.lastAction <= Z.CUR.turn-100) Z.giveup = true;
