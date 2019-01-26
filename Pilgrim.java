@@ -112,7 +112,7 @@ public class Pilgrim extends Movable {
     if (!Z.giveup) {
       Action2 A = considerResourceLoc(); if (A != null) return A;
 
-      if (Math.min(distKarb,distFuel) == MOD) return greedy();
+      if (Math.min(distKarb,distFuel) == MOD) return null;
       if (Math.min(distKarb,distFuel) <= 2) {
         if (distKarb <= distFuel) return Z.safe.move(bestKarb);
         return Z.safe.move(bestFuel);
