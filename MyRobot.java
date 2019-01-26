@@ -723,20 +723,90 @@ public class MyRobot extends BCAbstractRobot {
     }
     return false;
   }
+  
+  public int countNearbyChurches(int pos) {
+	int x = fdiv(pos,64); int y = pos%64;
+	int res = 0;
+	
+	for(int dx = -6; dx <= 6; dx++) {
+      for(int dy = -6; dy <= 6; dy++) {
+		if(dx*dx + dy*dy > 36) continue;
+		int x1 = x+dx; int y1 = y+dy;
+		if(yourRobot(x1,y1) && robotMap[y1][x1].unit == CHURCH) {
+	      res++;
+		}
+	  }
+	}
+	return res;
+  }
+  
+  Action2 buildSuperSecret(int t) {
+	if (!isSuperSecret) return null;
+	
+	// for mages, build between r^2 in [4,16]
+	if (t == PREACHER) {
+	  int bestVal = -MOD; Action2 A = null;
+	  for(int dx = -1; dx <= 1; dx++) {
+		for(int dy = -1; dy <= 1; dy++) {
+	    int x = CUR.x+dx, y = CUR.y+dy;
+		  if(passable(x,y)) {
+			int val = 0;
+			int dis = euclidDist(fdiv(destination,64),destination%64, x,y);
+			if(4 <= dis && dis <= 16) {
+			  val += 1000000;
+			  val -= totDamage(x,y);
+			}
+			else if(dis > 16) { // get closer
+			  val = 64-dis;
+			}
+			if(val > bestVal) {
+			  bestVal = val;
+			  A = buildAction(t, dx, dy);
+			}
+		  }
+		}
+	  }
+	  return A;
+	}
+	
+	// if close enough, stay in r^2 in [17,36], and as close as possible to destination
+	if (euclidDist(destination) <= 36) {
+	  // if already enough to kill or running out of resources, stop building
+	  if(countNearbyChurches(destination) >= 7 || fuel < 1000 || karbonite < 200) return null;
+	  
+	  int bestVal = 2*MOD; Action2 A = null;
+	  for(int dx = -1; dx <= 1; dx++) {
+		for(int dy = -1; dy <= 1; dy++) {
+	    int x = CUR.x+dx, y = CUR.y+dy;
+		  if(passable(x,y)) {
+			int val = 0;
+			int dis = euclidDist(fdiv(destination,64),destination%64, x,y);
+			if(dis < 17) val += 1000;
+			else val = dis;
+			if(val < bestVal) {
+			  bestVal = val;
+			  A = buildAction(t, dx, dy);
+			}
+		  }
+		}
+	  }
+	  return A;
+	}
+	
+	Action2 A = sm.moveFake(destination);
+    if (A == null) return null;
+    boolean bad = false;
+    if (CUR.turn > 1 && (t == CHURCH || t == PILGRIM)) {
+      if (isAttacked(CUR.x+A.dx,CUR.y+A.dy)) bad = true;
+    }
+    // log("HUH "+t+" "+A.dx+" "+A.dy);
+    if (!bad) return buildAction(t,A.dx,A.dy);
+    
+    return buildLeastDamage(t);
+  }
 
   Action2 buildLeastDamage(int t) { // first minimize damage, try to build closer to enemy
     int bestVal = 2*MOD; Action2 A = null;
-
-    if (isSuperSecret) {
-      A = sm.moveFake(destination);
-      if (A == null) return null;
-      boolean bad = false;
-      if (CUR.turn > 1 && (t == CHURCH || t == PILGRIM))
-        if (isAttacked(CUR.x+A.dx,CUR.y+A.dy))
-          bad = true;
-      // log("HUH "+t+" "+A.dx+" "+A.dy);
-      if (!bad) return buildAction(t,A.dx,A.dy);
-    }
 
     for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
       int x = CUR.x+dx, y = CUR.y+dy;
@@ -767,7 +837,7 @@ public class MyRobot extends BCAbstractRobot {
   public Action2 tryBuildChurch() {
     if (!canBuild(CHURCH)) return null;
     if (isSuperSecret) {
-      return buildLeastDamage(CHURCH);
+      return buildSuperSecret(CHURCH);
     } else {
       int bestDx = MOD, bestDy = MOD, bestCnt = -MOD; // try to build adjacent to as many as possible
       for (int dx = -1; dx <= 1; dx++) {
@@ -798,6 +868,7 @@ public class MyRobot extends BCAbstractRobot {
   public Action2 tryBuild(int t) {
       if (!canBuild(t)) return null;
       if (t == CHURCH) return tryBuildChurch();
+      if (isSuperSecret) return buildSuperSecret(t);
       return buildLeastDamage(t);
   }
   public Action2 tryBuildNoSignal(int t) {
