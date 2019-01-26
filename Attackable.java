@@ -44,12 +44,13 @@ public class Attackable extends Movable {
     }
 
     public Action2 minimizeDamage(Robot2 R) {
-        int oriDist = Z.sq(Z.CUR.x-R.x)+Z.sq(Z.CUR.y-R.y), oriDam = Z.totDamage(Z.CUR.x,Z.CUR.y);
-        int bestDam = MOD, bestDist = MOD; Action2 A = null;
+        int oriDist = Z.sq(Z.CUR.x-R.x)+Z.sq(Z.CUR.y-R.y), bestDist = MOD;
+        double oriDam = Z.totDamage(Z.CUR.x,Z.CUR.y), bestDam = MOD;
+        Action2 A = null;
 
         for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j)
             if (Z.canMove(Z.CUR,i,j)) {
-                int dam = Z.totDamageAfter(Z.CUR.x+i,Z.CUR.y+j), dist = Z.sq(Z.CUR.x+i-R.x)+Z.sq(Z.CUR.y+j-R.y);
+                double dam = Z.totDamageAfter(Z.CUR.x+i,Z.CUR.y+j); int dist = Z.sq(Z.CUR.x+i-R.x)+Z.sq(Z.CUR.y+j-R.y);
                 if (Math.sqrt(dist)+0.5 <= Math.sqrt(oriDist) && (dam < bestDam || (dam == bestDam && dist < bestDist))) {
                     bestDam = dam; bestDist = dist; A = Z.moveAction(i,j);
                 }
@@ -57,7 +58,7 @@ public class Attackable extends Movable {
         if (bestDam <= 1.5*oriDam+10) return A;
         for (int i = -3; i <= 3; ++i) for (int j = -3; j <= 3; ++j)
             if (Z.canMove(Z.CUR,i,j)) {
-                int dam = Z.totDamageAfter(Z.CUR.x+i,Z.CUR.y+j), dist = Z.sq(Z.CUR.x+i-R.x)+Z.sq(Z.CUR.y+j-R.y);
+                double dam = Z.totDamageAfter(Z.CUR.x+i,Z.CUR.y+j); int dist = Z.sq(Z.CUR.x+i-R.x)+Z.sq(Z.CUR.y+j-R.y);
                 if (dam < bestDam || (dam == bestDam && dist < bestDist)) {
                     bestDam = dam; bestDist = dist; A = Z.moveAction(i,j);
                 }
