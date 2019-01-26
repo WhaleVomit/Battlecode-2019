@@ -24,7 +24,7 @@ public class Church extends Building {
       boolean buildPilgrim = true;
       if (Z.continuedChain) buildPilgrim = false;
       if (Z.shouldStopChain()) buildPilgrim = false;
-      if (Z.numOpen(64*Z.CUR.x+Z.CUR.y) <= 1) buildPilgrim = false;
+      // if (Z.numOpen(64*Z.CUR.x+Z.CUR.y) <= 1) buildPilgrim = false;
 
       if (buildPilgrim) return Z.tryBuildSecret(PILGRIM);
       Action2 A = Z.tryBuildSecret(PREACHER);

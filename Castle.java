@@ -377,7 +377,7 @@ public class Castle extends Building {
   Action2 castleBuild() {
     // if (Z.CUR.team == 1) return Z.tryBuild(CRUSADER);
     if (Z.CUR.turn == 1) return null;
-    if (Z.CUR.turn > 200 && Z.CUR.team == 1) return null;
+    if (Z.CUR.turn > 400 && Z.CUR.team == 1) return null;
 
     Action2 A = panicBuild(); if (A != null) return A;
     if (!shouldBuild && (Z.karbonite < 80 || Z.fuel < 250)) return null;

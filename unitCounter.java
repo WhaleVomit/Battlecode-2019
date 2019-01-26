@@ -55,12 +55,12 @@ public class unitCounter {
   }
 
   boolean tooMany() {
-    return totUnits[2] >= 10 && totAttackers() >= 20 && Z.fuel < Z.FUEL_RATIO*totAttackers();
+    return totAttackers() >= 20 && Z.fuel < Z.FUEL_RATIO*totAttackers();
   }
 
   boolean shouldBeginAttack() {
     if (Z.CUR.turn != 900) return false;
-	if (Z.initCastle == totUnits[CASTLE]) return false; // no point in attacking & losing unit value
+	  if (Z.initCastle == totUnits[CASTLE]) return false; // no point in attacking & losing unit value
     if (Z.enemyDist[Z.CUR.y][Z.CUR.x][0] < 10) return false;
     return true;
     /*

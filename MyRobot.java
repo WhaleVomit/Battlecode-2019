@@ -128,10 +128,8 @@ public class MyRobot extends BCAbstractRobot {
     w = map[0].length; h = map.length;
     wsim = genwsim(); hsim = genhsim();
 
-    if (me.unit == CRUSADER) {
-      bfs = new bfsMap(this,9);
-      // bfsShort = new bfsMap(this,4);
-    } else bfs = new bfsMap(this,4);
+    if (me.unit == CRUSADER) bfs = new bfsMap(this,9);
+    else bfs = new bfsMap(this,4);
 
     robotMap = new Robot2[h][w];
     robotMapID = new int[h][w];
@@ -818,7 +816,7 @@ public class MyRobot extends BCAbstractRobot {
     return A;
   }
   boolean shouldStopChain() {
-    return countNearbyChurches(destination) >= 7 || fuel <= 300+15*potentialPreachers() || karbonite <= 150;
+    return countNearbyChurches(destination) >= 10 || fuel <= 300+15*potentialPreachers() || karbonite <= 150;
   }
   int churchSquare(int x, int y) {
     int ret = 0;
@@ -850,6 +848,7 @@ public class MyRobot extends BCAbstractRobot {
       if (fuel <= 15*activePreachers()+100) return null;
       int x = mostDangerousPreacher(CUR);
       if (x != MOD) {
+        if (activePreachers() > Math.max(5,U.closeEnemyAttackers())) return null;
         Robot2 P = makeRobot(PREACHER,CUR.team,fdiv(x,64),x%64);
         log("DANGEROUS PREACHER: "+CUR.x+" "+CUR.y+" "+P.x+" "+P.y+" "+preacherDanger(P));
         return buildAction(t,fdiv(x,64)-CUR.x,(x%64)-CUR.y);
@@ -1059,21 +1058,20 @@ public class MyRobot extends BCAbstractRobot {
 	boolean isSignalSecret(int sig) {
 		return sig >= 50000 && sig < 60000;
 	}
-
 	int decodeSecretSignal(int s) { // returns signaled destination
 		s -= 50000;
 		return s;
 	}
-
   int encodeSecretSignal() {
     return destination+50000;
   }
-
 	void checkSecretUnit() { // determine if this is a super secret unit
 		if (isSuperSecret || CUR.team == 0) return;
 
     if (CUR.unit == CASTLE) {
-      if (karbonite > 1.2*(enemyDist[CUR.x][CUR.y][0]*30+10*30) && fuel > 1.2*(enemyDist[CUR.x][CUR.y][0]*125+10*(50+15)) && CUR.id == min(myCastleID)) {
+      int needKarbonite = (30+50+10)*20;
+      int needFuel = (50+200+50)*20;
+      if (karbonite > needKarbonite && fuel > needFuel && CUR.id == min(myCastleID)) {
         if (wsim) destination = 64*(w-1-CUR.x)+CUR.y;
         else destination = 64*CUR.x+(h-1-CUR.y);
         isSuperSecret = true; isFst = true;
