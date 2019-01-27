@@ -56,7 +56,7 @@ public class Building extends Attackable {
   int decideUnit() {
   	if (Z.U.closeEnemyUnits() == 0 && (Z.fuel < 250 || Z.karbonite < 80)) return MOD;
 
-  	int res = -1;
+  	int res = MOD;
   	if (Z.U.closeEnemy[CRUSADER]+Z.U.closeEnemy[PREACHER]-Z.U.closeUnits[PREACHER] > 0) res = PREACHER;
     else if (Z.U.closeEnemyAttackers() == 0) {
       if (reallyCloseAttackers() < 2) res = PROPHET;
@@ -110,7 +110,9 @@ public class Building extends Attackable {
       if (Z.U.totUnits[PILGRIM] == 0) return null;
     }
     if (!enoughFuel()) return new Action2();
-    int w = decideUnit(); if (w == MOD) return null;
+    int w = decideUnit();
+    // Z.log("GOOD UNIT "+w);
+    if (w == MOD) return null;
     Action2 A = tryBuildAttacker(w);
     if (A == null) A = new Action2();
     return A;

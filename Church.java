@@ -5,23 +5,8 @@ import static bc19.Consts.*;
 public class Church extends Building {
     public Church(MyRobot z) { super(z); }
 
-    int openResources() {
-      int ret = 0;
-      for (int i = -5; i <= 5; ++i) for (int j = -5; j <= 5; ++j)
-        if (Z.containsResource(Z.CUR.x+i,Z.CUR.y+j)) ret ++;
-      return ret;
-    }
-
-    int closePilgrim() {
-      int ret = 0;
-      for (int i = -5; i <= 5; ++i) for (int j = -5; j <= 5; ++j)
-        if (Z.teamRobot(Z.CUR.x+i,Z.CUR.y+j,Z.CUR.team) &&
-          Z.robotMap[Z.CUR.y+j][Z.CUR.x+i].unit == PILGRIM) ret ++;
-      return ret;
-    }
-
     int decideSuperSecret() {
-	  if (Z.euclidDist(Z.CUR.x, Z.CUR.y, Z.fdiv(Z.destination,64), Z.destination%64) > 100) return MOD;
+	    if (Z.euclidDist(Z.CUR.x, Z.CUR.y, Z.fdiv(Z.destination,64), Z.destination%64) > 100) return MOD;
       int t = Z.mostDangerousPreacher(Z.CUR);
       if (t == MOD) return PROPHET;
       return PREACHER;
@@ -47,7 +32,6 @@ public class Church extends Building {
     public Action2 run() {
       if (Z.CUR.turn == 1) initPatrol();
 	    updatePatrolVars();
-	  if(Z.shouldSpam) return Z.tryBuildNoSignal(PILGRIM);
       if (Z.isSuperSecret && (Z.CUR.turn <= 3 || !Z.continuedChain)) {
         Action2 A = runSuperSecret();
         if (A != null) return A;
@@ -55,7 +39,8 @@ public class Church extends Building {
       Action2 A = panicBuild(); if (A != null) return A;
       if (Z.isSuperSecret) return null;
       if (openResources() > closePilgrim()) A = Z.tryBuildNoSignal(PILGRIM);
-      if (A == null && Z.U.closeAttackers() < 20 && Z.fuel > 1800) return safeBuild();
+      // Z.log("HUH "+Z.U.closeAttackers());
+      if (A == null && Z.U.closeAttackers() < 20 && Z.fuel > 1800 && Z.karbonite > 200) return safeBuild();
       if (Z.me.turn >= 900 && A == null) A = spamBuild();
       return A;
     }
