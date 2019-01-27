@@ -340,7 +340,6 @@ public class MyRobot extends BCAbstractRobot {
   }
   int numOpen(int t) { return numOpen(fdiv(t,64),t%64); }
   int dangerRadius(Robot2 R) {
-    if (R.unit == PREACHER) return 36;
     return 64;
   }
   int lastDanger(int x, int y) {
@@ -447,7 +446,9 @@ public class MyRobot extends BCAbstractRobot {
           for (int I = -10; I <= 10; ++I) for (int J = -10; J <= 10; ++J) {
             int D = I*I+J*J;
             if (D <= d && inMap(j+J,i+I)) {
-              if (D <= MAX_ATTACK_R[R.unit]) danger[i+I][j+J] = 2;
+              int tmp = MAX_ATTACK_R[R.unit];
+              if (R.unit == PREACHER) tmp = 49;
+              if (D <= tmp) danger[i+I][j+J] = 2;
               else danger[i+I][j+J] = Math.max(danger[i+I][j+J],1);
             }
           }
@@ -1239,7 +1240,7 @@ public class MyRobot extends BCAbstractRobot {
     }
     if (myCastleID.size() > originalCastles-seenSuccesses.size()) shouldSave = false;
 
-    if (CUR.team == 1) shouldSave = false;
+    // if (CUR.team == 1) shouldSave = false;
     robots = new Robot2[getVisibleRobots().length];
     for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
     if (CUR.turn == 1) {
@@ -1375,11 +1376,12 @@ public class MyRobot extends BCAbstractRobot {
   }
 
   public Action turn() {
-    if (me.team == 1) return null;
+    // if (me.team == 1) return null;
     initVars();
     updateVars();
     if (me.turn == 1) log("UNIT: "+CUR.unit);
 
+    if (me.team == 1 && me.unit == PREACHER) attackMode = true;
     Action2 A = chooseAction();
     if (isSuperSecret && A != null && A.type == 4)
       if (!(CUR.unit == CASTLE && continuedChain)) {
