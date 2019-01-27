@@ -1186,9 +1186,9 @@ public class MyRobot extends BCAbstractRobot {
 
   // TURN
   void updateVars() {
+    ORI = new Robot2(me); CUR = new Robot2(me);
     castle_talk = -1; nextSignal = null;
     if (fuel > 2000) shouldSave = true;
-    ORI = new Robot2(me); CUR = new Robot2(me);
     robots = new Robot2[getVisibleRobots().length];
     for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
     if (CUR.turn == 1) {

@@ -383,7 +383,7 @@ public class Castle extends Building {
     if (Z.U.closeAttackers() < 20 && Z.fuel > 1800) return safeBuild();
     if (shouldPilgrim()) return makePilgrim();
     if (Z.shouldSave || Z.lastSecretAttack >= Z.CUR.turn-30) return null;
-    if (Z.me.turn >= 920 && Z.fuel >= 6000) return spamBuild();
+    if (Z.me.turn >= 920 && Z.fuel >= 6000-50*(1000-Z.me.turn)) return spamBuild();
     return safeBuild();
   }
 
