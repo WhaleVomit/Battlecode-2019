@@ -27,15 +27,25 @@ public class Building extends Attackable {
     return ret;
   }
   int decideUnit() {
-		if (Z.U.closeEnemyUnits() == 0 && (Z.fuel < 250 || Z.karbonite < 80)) return MOD;
-	  if (Z.U.closeEnemy[CRUSADER]+Z.U.closeEnemy[PREACHER]-Z.U.closeUnits[PREACHER] > 0) return PREACHER;
-    if (Z.U.closeEnemyAttackers() == 0) {
-      if (reallyCloseAttackers() < 2) return PROPHET;
-      return MOD;
-    }
-    if ((Z.karbonite < 25 || Z.fuel < 100) && Z.U.closeEnemy[PREACHER]+Z.U.closeEnemy[CASTLE]+Z.U.closeEnemy[CHURCH] == 0) return CRUSADER;
-    if (Z.U.closeEnemy[CHURCH] > 0 && Z.U.closeEnemy[PROPHET] == 0) return PREACHER;
-    return PROPHET;
+	if (Z.U.closeEnemyUnits() == 0 && (Z.fuel < 250 || Z.karbonite < 80)) return MOD;
+	int res = -1;
+	if (Z.U.closeEnemy[CRUSADER]+Z.U.closeEnemy[PREACHER]-Z.U.closeUnits[PREACHER] > 0) res = PREACHER;
+    else if (Z.U.closeEnemyAttackers() == 0) {
+      if (reallyCloseAttackers() < 2) res = PROPHET;
+    } else {
+	  if ((Z.karbonite < 25 || Z.fuel < 100) && Z.U.closeEnemy[PREACHER]+Z.U.closeEnemy[CASTLE]+Z.U.closeEnemy[CHURCH] == 0) res = CRUSADER;
+      if (Z.U.closeEnemy[CHURCH] > 0 && Z.U.closeEnemy[PROPHET] == 0) res = PREACHER;
+      res = PROPHET;
+	}
+	if(res == -1) return MOD;
+	
+	int mx = -1;
+	if(Z.canBuild(CRUSADER)) mx = CRUSADER;
+	if(Z.canBuild(PROPHET)) mx = PROPHET;
+	if(Z.canBuild(PREACHER)) mx = PREACHER;
+	if(mx == -1) return MOD;
+	
+	return Math.min(mx, res);
 
     /*int crus = 2*Z.U.closeEnemy[CRUSADER] - Z.U.closeUnits[CRUSADER]; // if(!Z.canBuild(CRUSADER) || cnt[PREACHER] >= 3) crus = 0; cnt[PREACHER] + cnt[CASTLE]
     int proph = 2*Z.U.closeEnemy[PREACHER] + 2*Z.U.closeEnemy[CRUSADER] + 2*Z.U.closeEnemy[PROPHET]; if(!Z.canBuild(PROPHET)) proph = 0;

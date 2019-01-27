@@ -360,19 +360,13 @@ public class Castle extends Building {
     Z.log(T);
   }
 
-  int myPilgrim() {
-    int res = 0;
-    for (Robot2 R: Z.robots) if (Z.pilToKarb[R.id] != -1 || Z.pilToFuel[R.id] != -1) res ++;
-    return res;
-  }
-
   boolean shouldPilgrim() {
     if (Z.nextSignal != null || !Z.canBuild(PILGRIM)) return false;
     int totResource = Z.fuelcount+Z.karbcount;
-    if (Z.U.totUnits[PILGRIM] >= totResource/2+3) return false;
+    if (Z.U.totUnits[PILGRIM] >= totResource/2) return false;
     if (Z.CUR.turn <= 20 && Z.U.totUnits[PILGRIM] < Math.min(Z.fdiv(totResource,2),4)) return true;
     if (Z.euclidDist(Z.CUR,Z.closestAttacker(Z.CUR,1-Z.CUR.team)) <= 64) return false;
-    return myPilgrim() <= Z.U.closeAttackers() && 20*Z.U.totUnits[PILGRIM] <= Z.fuel;
+    return Z.myPilgrim <= Z.U.closeAttackers() && 20*Z.U.totUnits[PILGRIM] <= Z.fuel;
   }
 
   Action2 castleBuild() {
