@@ -48,6 +48,7 @@ public class MyRobot extends BCAbstractRobot {
 
   // CASTLE
   boolean canRush = false, shouldSave = false;
+  int originalCastles;
   int FUEL_RATIO = 100;
   int[] type = new int[4097];
   int lastSignalAttack, lastAttack, numAttacks;
@@ -128,7 +129,6 @@ public class MyRobot extends BCAbstractRobot {
       for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy)
         if (dx*dx + dy*dy <= 9) dirs.add(new pi(dx,dy));
       sortMove(dirs);
-
     }
     if (w == 0) {
       w = map[0].length; h = map.length;
@@ -385,14 +385,14 @@ public class MyRobot extends BCAbstractRobot {
     return true;
   }
   void addYour(ArrayList<Integer> A, Robot2 R) {
-      int p = 64*R.x+R.y;
-      if (!yesStruct(R.x,R.y)) return;
-      // log("WHAT "+R.x+" "+R.y+" "+p);
-      if (R.id != MOD && !myStructID.contains(R.id)) myStructID.add(R.id);
-      if (R.unit == CASTLE && R.id != MOD && !myCastleID.contains(R.id)) myCastleID.add(R.id);
-      if (A.contains(p)) return;
-      A.add(p);
-      if (robotMapID[R.y][R.x] == -1) { robotMapID[R.y][R.x] = R.id; robotMap[R.y][R.x] = R; }
+    int p = 64*R.x+R.y;
+    if (!yesStruct(R.x,R.y)) return;
+    // log("WHAT "+R.x+" "+R.y+" "+p);
+    if (R.id != MOD && !myStructID.contains(R.id)) myStructID.add(R.id);
+    if (R.unit == CASTLE && R.id != MOD && !myCastleID.contains(R.id)) myCastleID.add(R.id);
+    if (A.contains(p)) return;
+    A.add(p);
+    if (robotMapID[R.y][R.x] == -1) { robotMapID[R.y][R.x] = R.id; robotMap[R.y][R.x] = R; }
   }
   void addOther(ArrayList<Integer> A, Robot2 R) {
       int p = 64*R.x+R.y;
@@ -664,7 +664,7 @@ public class MyRobot extends BCAbstractRobot {
 
   // ATTACK DAMAGE
   double attackPriority(Robot2 R) {
-	if (R.unit == CASTLE) return 50;
+	  if (R.unit == CASTLE) return 50;
     if (R.unit == PREACHER) return 20;
     if (R.unit == PROPHET) return 18;
     if (R.unit == CRUSADER) return 14;
@@ -1189,6 +1189,15 @@ public class MyRobot extends BCAbstractRobot {
     ORI = new Robot2(me); CUR = new Robot2(me);
     castle_talk = -1; nextSignal = null;
     if (fuel > 2000) shouldSave = true;
+    if (me.unit == CASTLE) {
+      originalCastles = Math.max(originalCastles,myCastleID.size());
+      /*String t = "NUM CASTLES "+originalCastles;
+      for (int i: myCastleID) t += " "+i;
+      log(t);*/
+    }
+    if (myCastleID.size() > originalCastles-seenSuccesses.size()) shouldSave = false;
+
+    if (CUR.team == 1) shouldSave = false;
     robots = new Robot2[getVisibleRobots().length];
     for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
     if (CUR.turn == 1) {

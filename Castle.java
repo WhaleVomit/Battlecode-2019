@@ -11,12 +11,12 @@ public class Castle extends Building {
 
   void determineCastleLoc() {
     if (Z.me.turn > 3) return;
-    if (Z.me.turn == 1) {
+    if (Z.me.turn == 1) 
       for (Robot2 R: Z.robots) if (R.team == Z.me.team) {
-        Z.myStructID.add(R.id);
-        Z.myCastleID.add(R.id);
+        if (!Z.myStructID.contains(R.id)) Z.myStructID.add(R.id);
+        if (!Z.myCastleID.contains(R.id)) Z.myCastleID.add(R.id);
       }
-    }
+
     for (Robot2 R: Z.robots) if (Z.myCastleID.contains(R.id) && R.castle_talk > 0) {
       int z = R.castle_talk;
       if (Z.me.turn <= 2 && z <= 64) Z.canRush = false;

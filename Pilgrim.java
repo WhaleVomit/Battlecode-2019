@@ -126,7 +126,7 @@ public class Pilgrim extends Movable {
         if (distKarb <= distFuel) return Z.safe.move(bestKarb);
         return Z.safe.move(bestFuel);
       }
-      if (Z.euclidDist(Z.bfs.closestStruct(true)) > 100) return Z.bfs.moveYourStruct();
+      if (Z.euclidDist(Z.bfs.closestStruct(true)) > 100) return Z.safe.moveYourStruct();
       return null;
     }
   }
