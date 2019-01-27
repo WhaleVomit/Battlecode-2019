@@ -73,9 +73,11 @@ public class MyRobot extends BCAbstractRobot {
   boolean giveup = false;
 
   // SUPER SECRET STRATEGY
-  boolean continuedChain = false, isSuperSecret = false, isFst = false;
+  boolean continuedChain = false, isSuperSecret = false, isFst = false, signaledSuccessfulAttack = false;
   // has this pilgrim/church already built the next one in line?
   // is this unit part of the super secret strategy?
+  Set<Integer> seenSuccesses = new HashSet<Integer>();
+  int numSuccessfulAttacks = 0;
 
   int destination;
   secretMap sm;
@@ -245,6 +247,7 @@ public class MyRobot extends BCAbstractRobot {
       return euclidDist(A,B) <= VISION_R[A.unit];
   }
   boolean inVisionRange(int x, int y) { return euclidDist(CUR,x,y) <= VISION_R[CUR.unit]; }
+  boolean inVisionRange(int pos) { return inVisionRange(fdiv(pos,64), pos%64); }
 
   // DEBUG
   void dumpCastles() {
@@ -264,6 +267,7 @@ public class MyRobot extends BCAbstractRobot {
   boolean containsResource(int x, int y) { return valid(x,y) && (karboniteMap[y][x] || fuelMap[y][x]); }
   boolean passable(int x, int y) { return valid(x, y) && (robotMapID[y][x] <= 0 || robotMapID[y][x] == MOD); }
   boolean containsRobot(int x, int y) { return valid(x, y) && robotMapID[y][x] > 0; }
+  boolean containsRobot(int pos) { return containsRobot(fdiv(pos,64), pos%64); }
   boolean containsStruct(int x, int y) { return containsRobot(x, y) && IS_STRUCT[robotMap[y][x].unit]; }
   boolean adjStruct(int x, int y) {
 		for(int dx = -1; dx <= 1; dx++) {
@@ -1071,7 +1075,7 @@ public class MyRobot extends BCAbstractRobot {
     if (CUR.unit == CASTLE) {
       int needKarbonite = (30+50+10)*20;
       int needFuel = (50+200+50)*20;
-      if (karbonite > needKarbonite && fuel > needFuel && CUR.id == min(myCastleID)) {
+      if (karbonite > needKarbonite && fuel > needFuel && numSuccessfulAttacks < myCastleID.size() && CUR.id == myCastleID.get(numSuccessfulAttacks)) {
         if (wsim) destination = 64*(w-1-CUR.x)+CUR.y;
         else destination = 64*CUR.x+(h-1-CUR.y);
         isSuperSecret = true; isFst = true;
@@ -1097,6 +1101,32 @@ public class MyRobot extends BCAbstractRobot {
     for (Robot2 R: robots) for (int j: A) if (R.id == j) res.add(j);
     A.clear();
     for (int i: res) A.add(i);
+  }
+  
+  void signalSuccessfulAttack() {
+	if(!isSuperSecret) return;
+	if(!inVisionRange(destination)) return;
+	if(signaledSuccessfulAttack) return;
+	
+	boolean dead = false;
+	if(!containsRobot(destination)) dead = true;
+	else if(robotMap[destination%64][fdiv(destination,64)].unit != CASTLE) dead = true;
+	if(!dead) return;
+	
+	signaledSuccessfulAttack = true;
+	castle_talk = 100+((destination^12345)%100);
+  }
+  
+  void updateSuccessfulAttacks() {
+	if(CUR.unit != CASTLE) return;
+	for (Robot2 R: robots) if (R.team == CUR.team) {
+      if(100 <= R.castle_talk && R.castle_talk < 200) {
+		if(!seenSuccesses.contains(R.castle_talk)) {
+		  numSuccessfulAttacks++;
+		  seenSuccesses.add(R.castle_talk);
+		}
+	  }
+    }
   }
 
   // TURN
@@ -1148,6 +1178,8 @@ public class MyRobot extends BCAbstractRobot {
     if (CUR.unit == CASTLE) initCastle = Math.max(initCastle,U.totUnits[CASTLE]);
     //atFront--; atFront = Math.max(atFront, 0);
     //if(seenAllyDie()) atFront = 100;
+    signalSuccessfulAttack();
+    updateSuccessfulAttacks();
   }
 
   public Action2 chooseAction() {
