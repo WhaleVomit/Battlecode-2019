@@ -978,6 +978,13 @@ public class MyRobot extends BCAbstractRobot {
           if (passable(CUR.x + dx, CUR.y + dy)) return buildAction(t, dx, dy);
       return null;
   }
+  Action2 tryBuildEconSpam(int t) {
+		nextSignal = new pi(25432, 2);
+		if (!canBuild(t)) return null;
+      for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy)
+          if (passable(CUR.x + dx, CUR.y + dy)) return buildAction(t, dx, dy);
+      return null;
+	}
 
   int getSignal(Robot2 R) {
       return 625*R.unit+25*(R.x-CUR.x+12)+(R.y-CUR.y+12)+30000;
