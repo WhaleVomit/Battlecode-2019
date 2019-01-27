@@ -148,17 +148,35 @@ public class Attackable extends Movable {
     }
 
     public Action2 tryAttack() {
-        double besPri = 0;
-        int DX = MOD, DY = MOD;
-        for (int dx = -8; dx <= 8; ++dx)
-            for (int dy = -8; dy <= 8; ++dy) {
-                double t = canAttack(dx, dy);
-                if (t > besPri) {
-                    besPri = t; DX = dx; DY = dy;
-                }
+      double besPri = 0; Action2 A = null;
+      for (int dx = -8; dx <= 8; ++dx)
+        for (int dy = -8; dy <= 8; ++dy) {
+          double t = canAttack(dx, dy);
+          if (t > besPri) {
+              besPri = t;
+              A = Z.attackAction(dx,dy);
+          }
+        }
+
+      if (besPri == 0) return null;
+      if (Z.CUR.unit == PREACHER) return A;
+
+      int besVal = -MOD;
+      for (int dx = -8; dx <= 8; ++dx)
+        for (int dy = -8; dy <= 8; ++dy) {
+          int x = Z.CUR.x+dx, y = Z.CUR.y+dy;
+          double t = canAttack(dx, dy);
+          if (t == besPri) {
+            int val = 100*Z.hits[Z.robotMap[y][x].id]-Z.euclidDist(Z.CUR,x,y);
+            if (val > besVal) {
+              besVal = val;
+              A = Z.attackAction(dx,dy);
             }
-        if (besPri == 0) return null;
-        return Z.attackAction(DX,DY);
+          }
+        }
+
+      // if (besVal > 0) Z.log("COMBO "+Z.CUR.x+" "+Z.CUR.y);
+      return A;
     }
 
     public Action2 react() {
