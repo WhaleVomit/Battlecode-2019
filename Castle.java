@@ -61,8 +61,8 @@ public class Castle extends Building {
   double countAssigned(int pos) { // how many pilgrims assigned to vicinity?
 	  int x = Z.fdiv(pos,64); int y = pos%64;
 	  double res = 0;
-	  for(int dx = -2; dx <= 2; dx++) {
-		  for(int dy = -2; dy <= 2; dy++) {
+	  for(int dx = -5; dx <= 5; dx++) {
+		  for(int dy = -5; dy <= 5; dy++) {
 			  if(Z.valid(x+dx, y+dy) && Z.assigned[y+dy][x+dx]) res += 1.0;
 		  }
 	  }
@@ -114,12 +114,12 @@ public class Castle extends Building {
 	  int x = Z.fdiv(pos,64);
 	  int disMid = Math.abs(x - Z.fdiv(Z.w,2));
 	  if(ourSide(pos)) return disMid;
-	  else return 2*disMid;
+	  else return 4*disMid;
 	} else {
 	  int y = pos%64;
 	  int disMid = Math.abs(y - Z.fdiv(Z.h,2));
 	  if(ourSide(pos)) return disMid;
-	  else return 2*disMid;
+	  else return 4*disMid;
 	}
   }
 
@@ -300,11 +300,23 @@ public class Castle extends Building {
     }
     return false;
   }
+  
+  int nearbyResources() {
+	int res = 0;
+	for(int dx = -5; dx <= 5; dx++) {
+	  for(int dy = -5; dy <= 5; dy++) {
+		if(Math.abs(dx) + Math.abs(dy) <= 5) {
+		  if(Z.containsResource(Z.CUR.x+dx, Z.CUR.y+dy)) res++;
+		}
+	  }
+	}
+	return res;
+  }
 
   Action2 makePilgrim() {
     double a = Z.karbonite, b = (Z.fuel-Z.FUEL_RATIO*Z.U.totAttackers())/5.0;
     boolean assigned = false;
-    if (Math.random() <= .3) {
+    if (Z.myPilgrim > nearbyResources() || Z.CUR.turn >= 50) {
       assigned = tryAssignAggressive();
     } else {
       if (Z.CUR.turn <= 30 || 2*numKarb <= numFuel) assigned = tryAssignKarb();
