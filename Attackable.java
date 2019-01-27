@@ -182,7 +182,7 @@ public class Attackable extends Movable {
     public Action2 react() {
         Action2 A = dealWithPreacher();
         if (A != null) {
-          Z.log("DEAL WITH PREACHER"+Z.CUR.x+" "+Z.CUR.y);
+          //Z.log("DEAL WITH PREACHER"+Z.CUR.x+" "+Z.CUR.y);
           return A;
         }
         A = tryAttack(); if (A != null) {
@@ -244,7 +244,7 @@ public class Attackable extends Movable {
               }
             }
         }
-        if (Z.CUR.unit == PREACHER) Z.log("PATROL "+Z.CUR.x+" "+Z.CUR.y+" "+Z.coordinates(Z.endPos)+" "+bestDist+" "+bestVal);
+        //if (Z.CUR.unit == PREACHER) Z.log("PATROL "+Z.CUR.x+" "+Z.CUR.y+" "+Z.coordinates(Z.endPos)+" "+bestDist+" "+bestVal);
       }
       // Z.log("FINISH");
 
@@ -274,7 +274,7 @@ public class Attackable extends Movable {
       Collections.sort(dists); Collections.reverse(dists);
       if (dists.size() > 1 && Z.enemyDist[Z.CUR.y][Z.CUR.x][0]+3 < dists.get(1) && !Z.waited) {
         Z.waited = true;
-        Z.log("WAITED");
+        //Z.log("WAITED");
         return true;
       }
       Z.waited = false;
@@ -286,7 +286,7 @@ public class Attackable extends Movable {
 			if (R.team == Z.CUR.team && (R.unit == CASTLE || R.unit == CHURCH) && R.signal >= 40000 && R.signal < 50000 && Z.endPosAssigned == MOD) { // patrol
 					int tmp = R.signal-40000;
 					Z.endPosAssigned = 64*Z.fdiv(tmp,64) + (tmp%64);
-					Z.log("received instructions to patrol " + Z.coordinates(Z.endPosAssigned));
+					//Z.log("received instructions to patrol " + Z.coordinates(Z.endPosAssigned));
 			}
 		}
 	}
@@ -305,7 +305,7 @@ public class Attackable extends Movable {
       } else {
         Action2 A = react();
         if (Z.CUR.team == 0 && Z.CUR.unit == CRUSADER) {
-          if (A != null) Z.log(""+A.type);
+          //if (A != null) Z.log(""+A.type);
   		    Robot2 R = Z.closestNotPilgrim(Z.CUR,1-Z.CUR.team);
         }
         if (A != null) {

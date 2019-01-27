@@ -58,14 +58,14 @@ public class Pilgrim extends Movable {
       if (r.team == Z.CUR.team && r.unit == CASTLE && s >= 2000 && s < 7000) {
         int a = s - 2000;
         Z.resourceLoc = new pi(Z.fdiv(a,64),a%64);
-        Z.log("ASSIGNED TO "+Z.resourceLoc.f+" "+Z.resourceLoc.s);
+        //Z.log("ASSIGNED TO "+Z.resourceLoc.f+" "+Z.resourceLoc.s);
       }
       if (Z.euclidDist(r) <= 2) closeToChurch = true;
     }
-    if (Z.resourceLoc == null) {
+    /*if (Z.resourceLoc == null) {
       if (closeToChurch) Z.log("SERVE CHURCH");
       else Z.log("NOT ASSIGNED?");
-    }
+    }*/
     Z.resource = getResource(Z.resourceLoc);
   }
 

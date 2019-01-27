@@ -196,7 +196,7 @@ public class Building extends Attackable {
 				int id = dead.get(i);
 				int pos = Z.patrolPos[Z.atkToPatrol[id]];
 				int x = Z.fdiv(pos,64); int y = pos%64;
-				Z.log("DONT PATROL NEAR: " + Z.coordinates(pos) + ", " + id + " HAS DIED HERE");
+				//Z.log("DONT PATROL NEAR: " + Z.coordinates(pos) + ", " + id + " HAS DIED HERE");
 				for(int dx = -3; dx <= 3; dx++) {
 					for(int dy = -3; dy <= 3; dy++) if(dx*dx + dy*dy <= 9) {
 						if(Z.valid(x+dx, y+dy)) Z.badPatrol[y+dy][x+dx] = 300;
@@ -218,7 +218,7 @@ public class Building extends Attackable {
 	}
 
   void assignPatrol(int i) {
-    Z.log("assigned smth to patrol at " + Z.coordinates(Z.patrolPos[i]));
+    //Z.log("assigned smth to patrol at " + Z.coordinates(Z.patrolPos[i]));
     Z.nextSignal = new pi(Z.patrolPos[i]+40000, 2);
     Z.assignedAttackerPos = i;
   }
@@ -253,12 +253,12 @@ public class Building extends Attackable {
     if (Z.assignedAttackerPos == -1) return;
     Robot2 R = newAttacker();
     if (R == null) {
-      Z.log("NO ATTACKER? " + Z.CUR.x + " " + Z.CUR.y);
+      //Z.log("NO ATTACKER? " + Z.CUR.x + " " + Z.CUR.y);
       Z.assignedAttackerPos = -1;
       return;
     }
     Z.atkToPatrol[R.id] = Z.assignedAttackerPos;
-    Z.log(R.id+" IS PATROLLER "+Z.coordinates(Z.patrolPos[Z.atkToPatrol[R.id]]));
+    //Z.log(R.id+" IS PATROLLER "+Z.coordinates(Z.patrolPos[Z.atkToPatrol[R.id]]));
 
     Z.assignedAttackerPos = -1;
   }

@@ -609,7 +609,7 @@ public class MyRobot extends BCAbstractRobot {
         int r = 8192;
         if (r > 0 && fuel >= Math.ceil(Math.sqrt(r))) {
             lastSignalAttack = CUR.turn;
-            log("SIGNAL ATTACK "+CUR.x+" "+CUR.y+" "+r+" "+fuel+" "+U.closeAttackers());
+            //log("SIGNAL ATTACK "+CUR.x+" "+CUR.y+" "+r+" "+fuel+" "+U.closeAttackers());
             numAttacks ++;
             nextSignal = new pi(encodeCastleLocations(),r); castle_talk = 255;
         }
@@ -621,7 +621,7 @@ public class MyRobot extends BCAbstractRobot {
 		if (CUR.turn != 999) return;
 		int r = w*w + h*h;
 		r = Math.min(r, fuel*fuel);
-		log("START SPAMMING!");
+		//log("START SPAMMING!");
 		nextSignal = new pi(25432, r);
 	}
 
@@ -911,7 +911,7 @@ public class MyRobot extends BCAbstractRobot {
       if (x != MOD) {
         if (activePreachers() > Math.max(5,U.closeEnemyAttackers())) return null;
         Robot2 P = makeRobot(PREACHER,CUR.team,fdiv(x,64),x%64);
-        log("DANGEROUS PREACHER: "+CUR.x+" "+CUR.y+" "+P.x+" "+P.y+" "+preacherDanger(P));
+        // log("DANGEROUS PREACHER: "+CUR.x+" "+CUR.y+" "+P.x+" "+P.y+" "+preacherDanger(P));
         return buildAction(t,fdiv(x,64)-CUR.x,(x%64)-CUR.y);
       }
       return null;
@@ -1103,7 +1103,7 @@ public class MyRobot extends BCAbstractRobot {
     if (CUR.isStructure()) r = needRadiusStruct(R,A);
     else r = needRadius(R);
     if (r > 0) {
-        log("SIGNAL ENEMY: OPOS "+ORI.coordinates()+", CPOS "+CUR.coordinates()+", EPOS "+R.coordinates()+" "+getSignal(R));
+        // log("SIGNAL ENEMY: OPOS "+ORI.coordinates()+", CPOS "+CUR.coordinates()+", EPOS "+R.coordinates()+" "+getSignal(R));
         nextSignal = new pi(getSignal(R),r);
     }
   }
@@ -1200,7 +1200,7 @@ public class MyRobot extends BCAbstractRobot {
       for (Robot2 R: robots)
         if (enemyStruct(R) && euclidDist(R) < euclidDist(destination))
           destination = 64*R.x+R.y;
-      log("RESET DESTINATION TO "+coordinates(destination));
+      // log("RESET DESTINATION TO "+coordinates(destination));
     }
   }
 
@@ -1227,7 +1227,7 @@ public class MyRobot extends BCAbstractRobot {
 
 		if (!isSuperSecret) return;
     recalcDestination();
-    log("KARBONITE: "+karbonite+" FUEL: "+fuel+" TURN: "+CUR.turn+" UNIT: "+CUR.unit+" IS SUPER SECRET! "+fdiv(destination,64)+" "+(destination%64));
+    // log("KARBONITE: "+karbonite+" FUEL: "+fuel+" TURN: "+CUR.turn+" UNIT: "+CUR.unit+" IS SUPER SECRET! "+fdiv(destination,64)+" "+(destination%64));
 	}
 
   void checkValid(ArrayList<Integer> A) {
@@ -1247,7 +1247,7 @@ public class MyRobot extends BCAbstractRobot {
   	else if (robotMap[destination%64][fdiv(destination,64)].unit != CASTLE) dead = true;
   	if (!dead) return;
 
-    log("DEAD! "+destination);
+    // log("DEAD! "+destination);
   	signaledSuccessfulAttack = true;
   	castle_talk = 100+((destination^12345)%100);
   }
@@ -1294,7 +1294,7 @@ public class MyRobot extends BCAbstractRobot {
 
     for (int i = 0; i < robots.length; ++i) if (robots[i].team == CUR.team && myCastleID.contains(robots[i].id))
       if (robots[i].castle_talk == 254) {
-        log("SECRET ATTACK!!!!");
+        // log("SECRET ATTACK!!!!");
         lastSecretAttack = CUR.turn; // update secret attacks
         shouldSave = false;
       }
@@ -1427,7 +1427,7 @@ public class MyRobot extends BCAbstractRobot {
     initVars();
     updateVars();
     // if (me.team == 1) shouldSave = false;
-    if (me.turn == 1) log("UNIT: "+CUR.unit);
+    //if (me.turn == 1) log("UNIT: "+CUR.unit);
 
     Action2 A = chooseAction();
     if (isSuperSecret && A.type == 4)
@@ -1438,7 +1438,7 @@ public class MyRobot extends BCAbstractRobot {
     warnOthers(A); startAttack(); startEconSpam(); finish();
     // if (A.type == 3 && CUR.team == 0) A = null;
     if (A.type == 4 && isSuperSecret) {
-      log("SECRET BUILD "+A.unit+" "+A.dx+" "+A.dy);
+      //log("SECRET BUILD "+A.unit+" "+A.dx+" "+A.dy);
     }
     if (A.type == 3 && CUR.unit != PREACHER)
       hits[robotMap[CUR.y+A.dy][CUR.x+A.dx].id] ++;
