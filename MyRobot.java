@@ -790,6 +790,14 @@ public class MyRobot extends BCAbstractRobot {
     }
     return ret;
   }
+  int activeProphets() {
+    int ret = 0;
+    for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) if (i*i+j*j <= 100) {
+      int x = CUR.x+i, y = CUR.y+j;
+      if (teamRobot(x,y,CUR.team) && robotMap[y][x].unit == PROPHET) ret ++;
+    }
+    return ret;
+  }
   int newPreachers() {
     int ret = 0;
     for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) if (i*i+j*j <= 100) {
@@ -798,15 +806,24 @@ public class MyRobot extends BCAbstractRobot {
     }
     return ret;
   }
-  int potentialPreachers() {
-    return activePreachers()+newPreachers();
+  int newProphets() {
+    int ret = 0;
+    for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) if (i*i+j*j <= 100) {
+      int x = CUR.x+i, y = CUR.y+j;
+      if (teamRobot(x,y,CUR.team) &&
+        robotMap[y][x].unit == CHURCH &&
+        euclidDist(fdiv(destination,64),destination%64,x,y) <= 100 &&
+        mostDangerousPreacher(robotMap[y][x]) != MOD)
+      ret ++;
+    }
+    return ret;
   }
   int countNearbyChurches(int pos) {
   	int x = fdiv(pos,64); int y = pos%64;
   	int res = 0;
 
   	for(int dx = -6; dx <= 6; dx++) for (int dy = -6; dy <= 6; dy++) {
-  		if (dx*dx + dy*dy > 36) continue;
+  		if (dx*dx + dy*dy > 40) continue;
   		int x1 = x+dx; int y1 = y+dy;
   		if (yourRobot(x1,y1) && robotMap[y1][x1].unit == CHURCH) res++;
   	}
@@ -841,9 +858,9 @@ public class MyRobot extends BCAbstractRobot {
     return A;
   }
   boolean shouldStopChain() {
-    int a = activePreachers(), n = newPreachers();
-    if (countNearbyChurches(destination) >= 10 || fuel <= 300+50*n+(a+n)*15 || karbonite <= 30*(n+5)) return true;
-    if (euclidDist(destination) <= 25 && countNearbyChurches(destination) > Math.max(5,U.closeEnemyAttackers())) return true;
+    int a = activePreachers(), n = newPreachers(), pr = newProphets();
+    if (countNearbyChurches(destination) >= 10 || fuel <= 300+50*(n+pr)+15*(a+n)+25*pr || karbonite <= 30*(n+5)+25*pr) return true;
+    if (euclidDist(destination) <= 36 && countNearbyChurches(destination) > Math.max(5,U.closeEnemyAttackers())) return true;
     return false;
   }
   int churchSquare(int x, int y) {
@@ -872,7 +889,7 @@ public class MyRobot extends BCAbstractRobot {
   Action2 tryBuildSecret(int t) {
     if (!isSuperSecret || !canBuild(t)) return null;
     if (t == PREACHER) {
-      if (fuel <= 15*activePreachers()+100) return null;
+      if (fuel <= 15*activePreachers()+25*activeProphets()+100) return null;
       int x = mostDangerousPreacher(CUR);
       if (x != MOD) {
         if (activePreachers() > Math.max(5,U.closeEnemyAttackers())) return null;
@@ -882,9 +899,15 @@ public class MyRobot extends BCAbstractRobot {
       }
       return null;
     }
+    if (t == PROPHET) {
+      if (euclidDist(destination) > 100) return null;
+      if (karbonite <= 60*newPreachers() || fuel <= 15*activePreachers()+25*activeProphets()+100*newPreachers()+100) return null;
+      return buildLeastDamage(t);
+    }
     if (euclidDist(destination) <= 36) return buildClose(t);
     Action2 A = sm.moveFake(destination); if (A == null) return null;
-    if (CUR.turn > 1 && isAttacked(CUR.x+A.dx,CUR.y+A.dy)) return buildLeastDamage(t); // if first in chain, don't let the next get attacked
+    if (CUR.turn > 1 && (isAttacked(CUR.x+A.dx,CUR.y+A.dy) || seeEnemyStruct()))
+      return buildLeastDamage(t); // if first in chain, don't let the next get attacked
     return buildAction(t,A.dx,A.dy);
   }
 
@@ -1165,9 +1188,9 @@ public class MyRobot extends BCAbstractRobot {
 
   // TURN
   void updateVars() {
+    ORI = new Robot2(me); CUR = new Robot2(me);
     castle_talk = -1; nextSignal = null;
     if (fuel > 2000) shouldSave = true;
-    ORI = new Robot2(me); CUR = new Robot2(me);
     robots = new Robot2[getVisibleRobots().length];
     for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
     if (CUR.turn == 1) {
@@ -1183,7 +1206,7 @@ public class MyRobot extends BCAbstractRobot {
         shouldSave = false;
       }
 
-    if (CUR.unit == CASTLE && lastSecretAttack <= CUR.turn-150) isSuperSecret = false;
+    if (CUR.unit == CASTLE && lastSecretAttack <= CUR.turn-100) isSuperSecret = false;
     posRecord[me.turn] = new pi(me.x,me.y);
     for (int i = 1; i <= 4096; ++i) lastPos[i] = null;
     for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
