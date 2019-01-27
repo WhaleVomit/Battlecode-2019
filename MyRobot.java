@@ -783,7 +783,7 @@ public class MyRobot extends BCAbstractRobot {
       double d = preacherDanger(P);
       if (d > bestVal) { bestVal = d; bestPos = 64*i+j; }
     }
-    if (bestVal < 50) bestPos = MOD;
+    if (bestVal < 60) bestPos = MOD;
     return bestPos;
   }
   int activePreachers() {
@@ -918,29 +918,24 @@ public class MyRobot extends BCAbstractRobot {
   Action2 tryBuildChurch() {
     if (!canBuild(CHURCH)) return null;
     int bestDx = MOD, bestDy = MOD, bestCnt = -MOD; // try to build adjacent to as many as possible
-    for (int dx = -1; dx <= 1; dx++) {
-    	for(int dy = -1; dy <= 1; dy++) {
-    		int x = CUR.x+dx; int y = CUR.y+dy;
-    		if(passable(x,y) && !karboniteMap[y][x] && !fuelMap[y][x]) {
-    			int cnt = 0;
-    			for(int dx2 = -1; dx2 <= 1; dx2++) {
-    				for(int dy2 = -1; dy2 <= 1; dy2++) {
-    					if(!(dx2 == 0 && dy2 == 0)) {
-    						int x2 = x+dx2; int y2 = y+dy2;
-    						if(valid(x2,y2) && (karboniteMap[y2][x2] || fuelMap[y2][x2])) cnt++;
-    					}
-    				}
-    			}
-    			if(cnt > bestCnt) {
-    				bestDx = dx;
-    				bestDy = dy;
-    				bestCnt = cnt;
-    			}
-    		}
-    	}
-      if(bestDx == MOD) return null;
-      return buildAction(CHURCH, bestDx, bestDy);
-    }
+    for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) {
+  		int x = CUR.x+dx; int y = CUR.y+dy;
+  		if (passable(x,y) && !karboniteMap[y][x] && !fuelMap[y][x]) {
+  			int cnt = 0;
+  			for(int dx2 = -1; dx2 <= 1; dx2++) for(int dy2 = -1; dy2 <= 1; dy2++)
+					if(!(dx2 == 0 && dy2 == 0)) {
+						int x2 = x+dx2; int y2 = y+dy2;
+						if(valid(x2,y2) && (karboniteMap[y2][x2] || fuelMap[y2][x2])) cnt++;
+					}
+  			if(cnt > bestCnt) {
+  				bestDx = dx;
+  				bestDy = dy;
+  				bestCnt = cnt;
+  			}
+  		}
+  	}
+    if (bestDx == MOD) return null;
+    return buildAction(CHURCH, bestDx, bestDy);
   }
   Action2 tryBuild(int t) {
       if (!canBuild(t)) return null;
@@ -1376,12 +1371,11 @@ public class MyRobot extends BCAbstractRobot {
   }
 
   public Action turn() {
-    // if (me.team == 1) return null;
     initVars();
     updateVars();
+    if (me.team == 1) shouldSave = false;
     if (me.turn == 1) log("UNIT: "+CUR.unit);
 
-    if (me.team == 1 && me.unit == PREACHER) attackMode = true;
     Action2 A = chooseAction();
     if (isSuperSecret && A != null && A.type == 4)
       if (!(CUR.unit == CASTLE && continuedChain)) {
