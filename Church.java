@@ -21,6 +21,7 @@ public class Church extends Building {
     }
 
     int decideSuperSecret() {
+	  if (Z.euclidDist(Z.CUR.x, Z.CUR.y, Z.fdiv(Z.destination,64), Z.destination%64) > 100) return MOD;
       int t = Z.mostDangerousPreacher(Z.CUR);
       if (t == MOD) return PROPHET;
       return PREACHER;
@@ -37,7 +38,8 @@ public class Church extends Building {
       // if (Z.numOpen(64*Z.CUR.x+Z.CUR.y) <= 1) buildPilgrim = false;
 
       if (buildPilgrim) return Z.tryBuildSecret(PILGRIM);
-      Action2 A = Z.tryBuildSecret(decideSuperSecret());
+      int t = decideSuperSecret();
+      Action2 A = (t == MOD) ? null : Z.tryBuildSecret(decideSuperSecret());
       if (A == null) return new Action2();
       return A;
     }
