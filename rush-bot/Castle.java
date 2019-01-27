@@ -327,6 +327,7 @@ public class Castle extends Building {
   }
 
   boolean shouldPilgrim() {
+	if(Z.U.totUnits[PILGRIM] >= 1) return false;
     if (Z.nextSignal != null || !Z.canBuild(PILGRIM)) return false;
     int totResource = Z.fuelcount+Z.karbcount;
     if (Z.U.totUnits[PILGRIM] >= totResource/2+3) return false;
@@ -336,7 +337,9 @@ public class Castle extends Building {
   }
 
   Action2 castleBuild() {
-	return Z.tryBuild(Z.U.decideUnit());
+	Action2 A = Z.tryBuild(Z.U.decideUnit());
+	if(A != null) return A;
+	if (shouldPilgrim()) return makePilgrim();
     // if (Z.CUR.team == 1) return Z.tryBuild(CRUSADER);
 
     /*if (Z.CUR.turn == 1) return null;

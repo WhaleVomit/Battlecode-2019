@@ -256,6 +256,7 @@ public class Attackable extends Movable {
 
     Action2 runDefault() {
       Action2 A = react();
+      if(A != null) return A;
       /*if (Z.CUR.team == 0 && Z.CUR.unit == CRUSADER) {
         if (A != null) Z.log(""+A.type);
   		  Robot2 R = Z.closestNotPilgrim(Z.CUR,1-Z.CUR.team);
