@@ -200,7 +200,7 @@ public class MyRobot extends BCAbstractRobot {
       Action2 A = new Action2();
       A.type = 4; A.unit = unit; A.dx = dx; A.dy = dy;
       return A;
-  }
+	}
   Action conv(Action2 A) {
     if (A == null || A.type < 0) return null;
     if (A.type == 0 && A.dx == 0 && A.dy == 0) return null;
@@ -664,6 +664,7 @@ public class MyRobot extends BCAbstractRobot {
 
   // ATTACK DAMAGE
   double attackPriority(Robot2 R) {
+	if (R.unit == CASTLE) return 50;
     if (R.unit == PREACHER) return 20;
     if (R.unit == PROPHET) return 18;
     if (R.unit == CRUSADER) return 14;
@@ -694,7 +695,7 @@ public class MyRobot extends BCAbstractRobot {
         if (lastTurn[j][i] < CUR.turn-1) val /= 5;
         if (R.team == P.team) val *= -3;
         if (R.isStructure()) val *= 5;
-        if (R.unit == CASTLE && lastTurn[j][i] >= CUR.turn-1) val *= 10;
+        //if (R.unit == CASTLE && lastTurn[j][i] >= CUR.turn-1) val *= 10;
         t += val;
       }
 
@@ -855,8 +856,7 @@ public class MyRobot extends BCAbstractRobot {
      int x = CUR.x+dx, y = CUR.y+dy;
      if (passable(x,y)) {
        int dis = euclidDist(fdiv(destination,64),destination%64, x, y), val = 0;
-       if (dis < 9) val += 9-dis;
-       else if (dis > 25) val += dis-25;
+       val += Math.abs(dis-10);
        if (numOpen(x,y) <= 2) val += 20*(2-numOpen(x,y));
        val += 10*churchSquare(x,y);
        if (val < bestVal) { bestVal = val; A = buildAction(t, dx, dy); }
@@ -1088,8 +1088,8 @@ public class MyRobot extends BCAbstractRobot {
     return destination+50000;
   }
   boolean enoughResourcesSecret() {
-    int needKarbonite = (30+50+10)*20; // 1800
-    int needFuel = (50+200+50)*20; // 6000
+    int needKarbonite = fdiv(50+10,2)*64 + 1000; // path there + leftovers
+    int needFuel = fdiv(200+50,2)*64 + 3000;
     int num = Math.min(30,Math.max(totResource+3,10));
     needKarbonite = fdiv(needKarbonite*num,30);
     needFuel = fdiv(needFuel*num,30);
