@@ -176,6 +176,7 @@ public class Pilgrim extends Movable {
 
   Action2 run() {
     if (Z.CUR.turn == 1) init();
+    if (Z.shouldSpam) return Z.tryBuildNoSignal(CHURCH);
     if (Z.isSuperSecret) {
       Action2 A = runSuperSecret();
       if (A != null) return A;

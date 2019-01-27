@@ -84,6 +84,9 @@ public class MyRobot extends BCAbstractRobot {
 
   int destination;
   secretMap sm;
+  
+  // END SPAM
+  boolean shouldSpam = false;
 
   void sortClose(ArrayList<pi> dirs) {
       Collections.sort(dirs, new Comparator<pi>() {
@@ -612,6 +615,16 @@ public class MyRobot extends BCAbstractRobot {
         }
     }
   }
+  
+  void startEconSpam() {
+		if (CUR.unit != CASTLE) return;
+		if (CUR.turn != 999) return;
+		int r = w*w + h*h;
+		r = Math.min(r, fuel*fuel);
+		log("START SPAMMING!");
+		nextSignal = new pi(25432, r);
+	}
+  
   boolean isRushing() {
     return false;
     // return CUR.team == 1;
@@ -1221,6 +1234,10 @@ public class MyRobot extends BCAbstractRobot {
       if (100 <= R.castle_talk && R.castle_talk < 200)
 		    seenSuccesses.add(R.castle_talk);
   }
+  
+  void checkSpam() {
+		for (Robot2 R: robots) if(R.signal == 25432 && R.team == CUR.team) shouldSpam = true;
+	}
 
   // TURN
   void updateVars() {
@@ -1260,6 +1277,7 @@ public class MyRobot extends BCAbstractRobot {
 
     checkSignal(); // info might not be accurate: some troops may be dead already
     checkSecretUnit();
+    checkSpam();
     for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
         int t = getVisibleRobotMap()[i][j];
         if (t != -1) {
@@ -1383,7 +1401,7 @@ public class MyRobot extends BCAbstractRobot {
         nextSignal = new pi(encodeSecretSignal(),2);
         continuedChain = true;
       }
-    warnOthers(A); startAttack(); finish();
+    warnOthers(A); startAttack(); startEconSpam(); finish();
     // if (A.type == 3 && CUR.team == 0) A = null;
     if (A.type == 4 && isSuperSecret) {
       log("SECRET BUILD "+A.unit+" "+A.dx+" "+A.dy);
