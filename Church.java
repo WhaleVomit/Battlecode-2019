@@ -19,13 +19,12 @@ public class Church extends Building {
           Z.robotMap[Z.CUR.y+j][Z.CUR.x+i].unit == PILGRIM) ret ++;
       return ret;
     }
-    
+
     int decideSuperSecret() {
-	  Action2 A = Z.tryBuildSecret(PREACHER);
-	  int x = Z.CUR.x + A.dx; int y = Z.CUR.y + A.dy;
-	  if(Z.euclidDist(x,y, Z.fdiv(Z.destination,64), Z.destination%64) <= 16) return PREACHER;
-	  return PROPHET;
-	}
+      int t = Z.mostDangerousPreacher(Z.CUR);
+      if (t == MOD) return PROPHET;
+      return PREACHER;
+  	}
 
     Action2 runSuperSecret() {
       boolean buildPilgrim = true;
