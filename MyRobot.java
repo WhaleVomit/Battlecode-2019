@@ -300,6 +300,7 @@ public class MyRobot extends BCAbstractRobot {
   boolean enemyRobot(int x, int y) { return teamRobot(x,y,1-CUR.team); }
   boolean enemyRobot(int x, int y, int t) { return teamRobot(x,y,1-CUR.team) && robotMap[y][x].unit == t; }
   boolean enemyStruct(int x, int y) { return enemyRobot(x,y) && robotMap[y][x].unit <= 1; }
+  boolean enemyStruct(Robot2 R) { return R != null && R.team == 1-CUR.team && R.isStructure(); }
 
   boolean attacker(int x, int y) { return containsRobot(x,y) && CAN_ATTACK[robotMap[y][x].unit]; }
   boolean teamAttacker(int x, int y, int t) { return attacker(x,y) && teamRobot(x,y,t);  }
@@ -901,7 +902,7 @@ public class MyRobot extends BCAbstractRobot {
     }
     if (t == PROPHET) {
       if (euclidDist(destination) > 100) return null;
-      if (karbonite <= 60*newPreachers() || fuel <= 15*activePreachers()+25*activeProphets()+100*newPreachers()+100) return null;
+      if (karbonite <= 90*newPreachers() || fuel <= 15*activePreachers()+25*activeProphets()+100*newPreachers()+100) return null;
       return buildLeastDamage(t);
     }
     if (euclidDist(destination) <= 36) return buildClose(t);
@@ -1128,18 +1129,54 @@ public class MyRobot extends BCAbstractRobot {
     if (karbonite > needKarbonite/2 && fuel > needFuel/2 && CUR.turn > 900) return true;
     return false;
   }
+
+  int surround(int dest) {
+    int x = fdiv(dest,64), y = dest%64;
+    int ret = 0;
+    for (int i = x-3; i <= x+3; ++i) for (int j = y-3; j <= y+3; ++j)
+      if (!valid(i,j)) ret ++;
+    return ret;
+  }
+
+  int getDestination() {
+    int bestBlock = MOD, bestDest = MOD;
+    for (int t: castleX.keySet()) {
+      int x = castleX.get(t), y = castleY.get(t);
+      if (wsim) x = w-1-x;
+      else y = h-1-y;
+      int dest = 64*x+y;
+      if (seenSuccesses.contains(100+((dest^12345)%100))) continue;
+      int o = surround(dest);
+      if (o < bestBlock) {
+        bestBlock = o;
+        bestDest = dest;
+      }
+    }
+    for (int t: castleX.keySet()) if (myCastleID.contains(t))
+      if (euclidDist(castleX.get(t),castleY.get(t),fdiv(bestDest,64),bestDest%64) < euclidDist(bestDest)) return MOD;
+    return bestDest;
+  }
+
+  void recalcDestination() {
+    for (Robot2 R: robots)
+      if (enemyStruct(R) && Math.sqrt(euclidDist(R))+10 <= Math.sqrt(euclidDist(destination)))
+        destination = MOD;
+
+    if (destination == MOD) {
+      for (Robot2 R: robots)
+        if (enemyStruct(R) && euclidDist(R) < euclidDist(destination))
+          destination = 64*R.x+R.y;
+      log("RESET DESTINATION TO "+coordinates(destination));
+    }
+  }
+
 	void checkSecretUnit() { // determine if this is a super secret unit
 		if (isSuperSecret) return;
 
     if (CUR.unit == CASTLE) {
       if (enoughResourcesSecret()
           && lastSecretAttack <= CUR.turn-50) {
-        if (wsim) destination = 64*(w-1-CUR.x)+CUR.y;
-        else destination = 64*CUR.x+(h-1-CUR.y);
-        if (seenSuccesses.contains(100+((destination^12345)%100))) {
-          log("ALREADY DEAD??");
-          return;
-        }
+        destination = getDestination(); if (destination == MOD) return;
         isSuperSecret = true;
         lastSecretAttack = CUR.turn; castle_talk = 254;
       }
@@ -1154,6 +1191,7 @@ public class MyRobot extends BCAbstractRobot {
     }
 
 		if (!isSuperSecret) return;
+    recalcDestination();
     log("KARBONITE: "+karbonite+" FUEL: "+fuel+" TURN: "+CUR.turn+" UNIT: "+CUR.unit+" IS SUPER SECRET! "+fdiv(destination,64)+" "+(destination%64));
 	}
 
