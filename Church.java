@@ -38,7 +38,7 @@ public class Church extends Building {
       }
       Action2 A = panicBuild(); if (A != null) return A;
       if (Z.isSuperSecret) return null;
-      if (openResources() > closePilgrim()) A = Z.tryBuildNoSignal(PILGRIM);
+      if (openResources() > closePilgrim()) A = Z.tryBuildEconSpam(PILGRIM);
       // Z.log("HUH "+Z.U.closeAttackers());
       if (A == null && Z.U.closeAttackers() < 20 && Z.fuel > 1800 && Z.karbonite > 200) return safeBuild();
       if (Z.me.turn >= 900 && A == null) A = spamBuild();
