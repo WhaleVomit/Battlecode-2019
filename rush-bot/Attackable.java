@@ -161,8 +161,7 @@ public class Attackable extends Movable {
     }
 
     public Action2 react() {
-        Action2 A = dealWithPreacher();  if (A != null) return A;
-        A = tryAttack(); if (A != null) return A;
+        Action2 A = tryAttack(); if (A != null) return A;
         return position();
     }
 
@@ -253,6 +252,17 @@ public class Attackable extends Movable {
         Action2 A = Z.bfs.moveEnemyStruct(); if (A != null) return A;
         return Z.bfs.moveUnseen();
     }
+    
+    boolean hasEnough() {
+		int cnt = 0;
+		for(int dx = -8; dx <= 8; dx++) {
+			for(int dy = -8; dy <= 8; dy++) {
+				int x = Z.CUR.x + dx; int y = Z.CUR.y + dy;
+				if(Z.yourAttacker(x,y)) cnt++;
+			}
+		}
+		return cnt >= 4;
+	}
 
     Action2 runDefault() {
       Action2 A = react();
@@ -268,6 +278,7 @@ public class Attackable extends Movable {
           if (enoughResources()) return goHome();
           return patrol();
       }*/
-      return aggressive();
+      if(hasEnough()) return aggressive();
+      return null;
     }
 }

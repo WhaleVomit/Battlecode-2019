@@ -253,7 +253,7 @@ public class MyRobot extends BCAbstractRobot {
   boolean enemyRobot(int x, int y) { return teamRobot(x,y,1-CUR.team); }
   boolean enemyRobot(int x, int y, int t) { return teamRobot(x,y,1-CUR.team) && robotMap[y][x].unit == t; }
 
-  boolean attacker(int x, int y) { return containsRobot(x,y) && CAN_ATTACK[robotMap[y][x].unit]; }
+  boolean attacker(int x, int y) { return containsRobot(x,y) && IS_ATTACKER[robotMap[y][x].unit]; }
   boolean teamAttacker(int x, int y, int t) { return attacker(x,y) && teamRobot(x,y,t);  }
   boolean yourAttacker(int x, int y) { return teamAttacker(x,y,CUR.team); }
   boolean enemyAttacker(int x, int y) { return teamAttacker(x,y,1-CUR.team); }

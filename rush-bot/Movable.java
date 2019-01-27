@@ -7,6 +7,7 @@ public class Movable {
     public Movable (MyRobot z) { Z = z; }
 
     public int attackPriority(Robot2 R) {
+		if (R.unit == CASTLE) return 30;
         if (R.unit == PREACHER) return 10;
         if (R.unit == PROPHET) return 7;
         if (R.unit == CRUSADER) return 6;
