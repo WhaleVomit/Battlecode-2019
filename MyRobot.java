@@ -298,6 +298,7 @@ public class MyRobot extends BCAbstractRobot {
 
   boolean teamRobot(int x, int y, int t) { return containsRobot(x,y) && robotMap[y][x].team == t; }
   boolean yourRobot(int x, int y) { return teamRobot(x,y,CUR.team); }
+  boolean yourStruct(int x, int y) { return yourRobot(x,y) && robotMap[y][x].unit <= 1; }
   boolean enemyRobot(int x, int y) { return teamRobot(x,y,1-CUR.team); }
   boolean enemyRobot(int x, int y, int t) { return teamRobot(x,y,1-CUR.team) && robotMap[y][x].unit == t; }
   boolean enemyStruct(int x, int y) { return enemyRobot(x,y) && robotMap[y][x].unit <= 1; }
@@ -1374,7 +1375,7 @@ public class MyRobot extends BCAbstractRobot {
   }
 
   public Action turn() {
-    // if (me.team == 1) return null;
+    if (me.team == 1) return null;
     initVars();
     updateVars();
     if (me.turn == 1) log("UNIT: "+CUR.unit);

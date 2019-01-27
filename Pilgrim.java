@@ -93,6 +93,13 @@ public class Pilgrim extends Movable {
     return Z.safe.move(Z.resourceLoc.f, Z.resourceLoc.s);
   }
 
+  boolean closeToStruct(int t) {
+    int x = Z.fdiv(t,64), y = t%64;
+    for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) if (i*i+j*j <= 100)
+      if (Z.yourStruct(x+i,y+j)) return true;
+    return false;
+  }
+
   Action2 moveTowardResource() {
     int bestKarb = MOD, bestFuel = MOD;
     for (int i = 0; i < Z.h; ++i) for (int j = 0; j < Z.w; ++j) {
@@ -122,11 +129,11 @@ public class Pilgrim extends Movable {
       if (Z.resource == 0 && distKarb != MOD) return Z.safe.move(bestKarb);
       return Z.safe.move(bestFuel);
     } else { // inactive pilgrim
-      if (Math.min(distKarb,distFuel) <= 5) {
+      if (Math.min(distKarb,distFuel) <= 5 || closeToStruct(bestKarb) || closeToStruct(bestFuel)) {
         if (distKarb <= distFuel) return Z.safe.move(bestKarb);
         return Z.safe.move(bestFuel);
       }
-      if (Z.euclidDist(Z.bfs.closestStruct(true)) > 100) return Z.safe.moveYourStruct();
+      if (Z.euclidDist(Z.bfs.closestStruct(true)) > 64) return Z.safe.moveYourStruct();
       return null;
     }
   }
@@ -143,6 +150,10 @@ public class Pilgrim extends Movable {
   }
 
   Action2 runSuperSecret() {
+    /*if (Math.random() < 0.3) {
+      Z.log("TEST PILGRIM TLE "+Z.CUR.x+" "+Z.CUR.y);
+      return new Action2();
+    }*/
     if (!Z.continuedChain) {
       if (Z.producedByCastle && !Z.seeEnemyStruct()) {
         Action2 A = Z.bfs.move(Z.destination);
