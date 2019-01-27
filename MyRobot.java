@@ -1362,6 +1362,7 @@ public class MyRobot extends BCAbstractRobot {
           castle_talk = 6;
           if (seeEnemy()) castle_talk += 1;
           if (attackMode) castle_talk += 2;
+          if (castle_talk == 6 && giveup) castle_talk = 10;
         }
       }
     }

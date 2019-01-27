@@ -113,9 +113,8 @@ public class Pilgrim extends Movable {
     int distKarb = Z.safe.dist(bestKarb), distFuel = Z.safe.dist(bestFuel);
     if (Z.CUR.karbonite < 5 && Z.CUR.fuel < 25) Z.goHome = false;
     if (Z.CUR.karbonite > 16 || Z.CUR.fuel > 80) Z.goHome = true;
-    if (Z.bfs.distHome() >= 15) {
-  		Z.goHome = Z.CUR.karbonite == 20 && Z.CUR.fuel == 100;
-  	}
+    if (Z.bfs.distHome() >= 15) Z.goHome = Z.CUR.karbonite == 20 && Z.CUR.fuel == 100;
+    if (Z.giveup) Z.log("GIVE UP "+Z.CUR.coordinates()+" "+distKarb+" "+distFuel+" "+Z.goHome);
     if (Z.goHome) return goHome();
 
     if (!Z.giveup) {
@@ -129,8 +128,13 @@ public class Pilgrim extends Movable {
       if (Z.resource == 0 && distKarb != MOD) return Z.safe.move(bestKarb);
       return Z.safe.move(bestFuel);
     } else { // inactive pilgrim
-      if (Math.min(distKarb,distFuel) <= 5 || closeToStruct(bestKarb) || closeToStruct(bestFuel)) {
+      Z.log("GIVE UP 2 "+Z.coordinates(bestKarb)+" "+Z.coordinates(bestFuel)+" "+closeToStruct(bestKarb)+" "+closeToStruct(bestFuel)+" "+Z.euclidDist(Z.bfs.closestStruct(true)));
+      if (Math.min(distKarb,distFuel) <= 5) {
         if (distKarb <= distFuel) return Z.safe.move(bestKarb);
+        return Z.safe.move(bestFuel);
+      }
+      if (closeToStruct(bestKarb) || closeToStruct(bestFuel)) {
+        if (closeToStruct(bestKarb) && (distKarb <= distFuel || !closeToStruct(bestFuel))) return Z.safe.move(bestKarb);
         return Z.safe.move(bestFuel);
       }
       if (Z.euclidDist(Z.bfs.closestStruct(true)) > 64) return Z.safe.moveYourStruct();
