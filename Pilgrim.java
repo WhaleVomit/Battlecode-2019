@@ -167,7 +167,7 @@ public class Pilgrim extends Movable {
         }
       }
       return Z.tryBuildSecret(CHURCH);
-    } else if (Z.CUR.turn <= 5) {
+    } else {
       int t = Z.bfs.closestStruct(true);
       if (t != MOD) return moveAway(Z.fdiv(t,64),t%64);
     }
@@ -176,6 +176,10 @@ public class Pilgrim extends Movable {
 
   Action2 run() {
     if (Z.CUR.turn == 1) init();
+    if (Z.continuedChain && Z.CUR.turn > 5) {
+      Z.continuedChain = false;
+      Z.isSuperSecret = false;
+    }
     if (Z.isSuperSecret) {
       Action2 A = runSuperSecret();
       if (A != null) return A;

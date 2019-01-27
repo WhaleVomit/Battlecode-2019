@@ -9,6 +9,21 @@ public class Building extends Attackable {
 
   public Building(MyRobot z) { super(z); }
 
+  int openResources() {
+    int ret = 0;
+    for (int i = -5; i <= 5; ++i) for (int j = -5; j <= 5; ++j)
+      if (Z.containsResource(Z.CUR.x+i,Z.CUR.y+j)) ret ++;
+    return ret;
+  }
+
+  int closePilgrim() {
+    int ret = 0;
+    for (int i = -5; i <= 5; ++i) for (int j = -5; j <= 5; ++j)
+      if (Z.teamRobot(Z.CUR.x+i,Z.CUR.y+j,Z.CUR.team) &&
+        Z.robotMap[Z.CUR.y+j][Z.CUR.x+i].unit == PILGRIM) ret ++;
+    return ret;
+  }
+
   int needAttackFuel() {
     return 10*Z.U.closeUnits[CRUSADER]+25*Z.U.closeUnits[PROPHET]+15*Z.U.closeUnits[PREACHER];
   }

@@ -1190,6 +1190,7 @@ public class MyRobot extends BCAbstractRobot {
     if (CUR.unit == CASTLE) {
       if (enoughResourcesSecret()
           && lastSecretAttack <= CUR.turn-50) {
+        if (myCastleID.size() > survivingOtherCastles()) return;
         destination = getDestination(); if (destination == MOD) return;
         isSuperSecret = true;
         lastSecretAttack = CUR.turn; castle_talk = 254;
@@ -1238,18 +1239,25 @@ public class MyRobot extends BCAbstractRobot {
 		    seenSuccesses.add(R.castle_talk);
   }
 
+  int survivingOtherCastles() {
+    int ret = 0;
+    for (int t: castleX.keySet()) {
+      int x = castleX.get(t), y = castleY.get(t);
+      if (wsim) x = w-1-x;
+      else y = h-1-y;
+      int dest = 64*x+y;
+      if (seenSuccesses.contains(100+((dest^12345)%100))) continue;
+      ret ++;
+    }
+    return ret;
+  }
+
   // TURN
   void updateVars() {
     ORI = new Robot2(me); CUR = new Robot2(me);
     castle_talk = -1; nextSignal = null;
     if (fuel > 2000) shouldSave = true;
-    if (me.unit == CASTLE) {
-      originalCastles = Math.max(originalCastles,myCastleID.size());
-      /*String t = "NUM CASTLES "+originalCastles;
-      for (int i: myCastleID) t += " "+i;
-      log(t);*/
-    }
-    if (myCastleID.size() > originalCastles-seenSuccesses.size()) shouldSave = false;
+    if (myCastleID.size() > survivingOtherCastles()) shouldSave = false;
 
     // if (CUR.team == 1) shouldSave = false;
     robots = new Robot2[getVisibleRobots().length];
@@ -1390,11 +1398,11 @@ public class MyRobot extends BCAbstractRobot {
   public Action turn() {
     initVars();
     updateVars();
-    if (me.team == 1) shouldSave = false;
+    // if (me.team == 1) shouldSave = false;
     if (me.turn == 1) log("UNIT: "+CUR.unit);
 
     Action2 A = chooseAction();
-    if (isSuperSecret && A != null && A.type == 4)
+    if (isSuperSecret && A.type == 4)
       if (!(CUR.unit == CASTLE && continuedChain)) {
         nextSignal = new pi(encodeSecretSignal(),2);
         continuedChain = true;

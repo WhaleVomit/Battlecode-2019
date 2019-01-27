@@ -11,7 +11,7 @@ public class Castle extends Building {
 
   void determineCastleLoc() {
     if (Z.me.turn > 3) return;
-    if (Z.me.turn == 1) 
+    if (Z.me.turn == 1)
       for (Robot2 R: Z.robots) if (R.team == Z.me.team) {
         if (!Z.myStructID.contains(R.id)) Z.myStructID.add(R.id);
         if (!Z.myCastleID.contains(R.id)) Z.myCastleID.add(R.id);
@@ -300,7 +300,7 @@ public class Castle extends Building {
     }
     return false;
   }
-  
+
   int nearbyResources() {
 	int res = 0;
 	for(int dx = -5; dx <= 5; dx++) {
@@ -390,6 +390,7 @@ public class Castle extends Building {
     if (shouldPilgrim()) return makePilgrim();
     if (Z.shouldSave || Z.lastSecretAttack >= Z.CUR.turn-30) return null;
     if (Z.me.turn >= 920 && Z.fuel >= 6000-50*(1000-Z.me.turn)) return spamBuild();
+    if (openResources() > closePilgrim()) return Z.tryBuildNoSignal(PILGRIM);
     return safeBuild();
   }
 
