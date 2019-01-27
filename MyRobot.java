@@ -26,7 +26,7 @@ public class MyRobot extends BCAbstractRobot {
   bfsMap bfs; // bfsShort;
 
   // ALL UNITS
-  int lastHealth, castle_talk, lastPatrol, endPosAssigned = MOD, endPos = MOD, lastAction;
+  int lastHealth, castle_talk, lastPatrol, endPosAssigned = MOD, endPos = MOD, lastAction, lastSecretAttack = -MOD;
   pi nextSignal;
   pi[] posRecord = new pi[1001];
   unitCounter U;
@@ -47,7 +47,7 @@ public class MyRobot extends BCAbstractRobot {
   int posLastTurn = MOD;
 
   // CASTLE
-  boolean canRush = false;
+  boolean canRush = false, shouldSave = false;
   int FUEL_RATIO = 100;
   int[] type = new int[4097];
   int lastSignalAttack, lastAttack, numAttacks;
@@ -73,7 +73,7 @@ public class MyRobot extends BCAbstractRobot {
   boolean giveup = false;
 
   // SUPER SECRET STRATEGY
-  boolean continuedChain = false, isSuperSecret = false, isFst = false;
+  boolean continuedChain = false, isSuperSecret = false;
   // has this pilgrim/church already built the next one in line?
   // is this unit part of the super secret strategy?
 
@@ -121,29 +121,41 @@ public class MyRobot extends BCAbstractRobot {
 
   void initVars() {
     // if (me.unit == CASTLE) canRush = true;
-    dirs = new ArrayList<>();
-    for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy)
-      if (dx*dx + dy*dy <= 9) dirs.add(new pi(dx,dy));
-    sortMove(dirs);
-    w = map[0].length; h = map.length;
-    wsim = genwsim(); hsim = genhsim();
+    if (dirs == null) {
+      dirs = new ArrayList<>();
+      for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy)
+        if (dx*dx + dy*dy <= 9) dirs.add(new pi(dx,dy));
+      sortMove(dirs);
 
-    if (me.unit == CRUSADER) bfs = new bfsMap(this,9);
-    else bfs = new bfsMap(this,4);
+    }
+    if (w == 0) {
+      w = map[0].length; h = map.length;
+      wsim = genwsim(); hsim = genhsim();
+    }
+    if (bfs == null) {
+      if (me.unit == CRUSADER) bfs = new bfsMap(this,9);
+      else bfs = new bfsMap(this,4);
+    }
+    if (robotMap == null) {
+      robotMap = new Robot2[h][w];
+      robotMapID = new int[h][w];
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
+        robotMapID[i][j] = -1;
 
-    robotMap = new Robot2[h][w];
-    robotMapID = new int[h][w];
-    for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
-      robotMapID[i][j] = -1;
-
-    lastTurn = new int[h][w];
-    for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) lastTurn[i][j] = -MOD;
+      lastTurn = new int[h][w];
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) lastTurn[i][j] = -MOD;
+    }
     if (me.unit == PILGRIM) {
-      danger = new int[h][w];
-      safe = new safeMap(this,4);
+      if (danger == null) {
+        danger = new int[h][w];
+        safe = new safeMap(this,4);
+      }
     } else {
-      enemyDist = new int[h][w][2];
-      for(int i = 0; i < h; i++) for(int j = 0; j < w; j++) for(int k = 0; k < 2; k++) enemyDist[i][j][k] = MOD;
+      if (enemyDist == null) {
+        enemyDist = new int[h][w][2];
+        for (int i = 0; i < h; i++) for(int j = 0; j < w; j++) for(int k = 0; k < 2; k++)
+          enemyDist[i][j][k] = MOD;
+      }
     }
   }
 
@@ -424,7 +436,7 @@ public class MyRobot extends BCAbstractRobot {
             int D = I*I+J*J;
             if (D <= d && inMap(j+J,i+I)) {
               if (D <= MAX_ATTACK_R[R.unit]) danger[i+I][j+J] = 2;
-              else danger[i+I][j+J] = 1;
+              else danger[i+I][j+J] = Math.max(danger[i+I][j+J],1);
             }
           }
         } else if (teamRobot(j,i,1-CUR.team) && robotMap[i][j].isStructure()) {
@@ -816,7 +828,9 @@ public class MyRobot extends BCAbstractRobot {
     return A;
   }
   boolean shouldStopChain() {
-    return countNearbyChurches(destination) >= 10 || fuel <= 300+15*potentialPreachers() || karbonite <= 150;
+    if (countNearbyChurches(destination) >= 10 || fuel <= 300+15*potentialPreachers() || karbonite <= 150) return true;
+    if (euclidDist(destination) <= 25 && countNearbyChurches(destination) > Math.max(5,U.closeEnemyAttackers())) return true;
+    return false;
   }
   int churchSquare(int x, int y) {
     int ret = 0;
@@ -954,7 +968,7 @@ public class MyRobot extends BCAbstractRobot {
   // COMMUNICATION
 
   boolean canSee(Robot2 R) {
-    return VISION_R[R.unit] <= euclidDist(R);
+    return euclidDist(R) <= VISION_R[R.unit];
   }
 
   int needRadius(Robot2 R) {
@@ -1066,15 +1080,16 @@ public class MyRobot extends BCAbstractRobot {
     return destination+50000;
   }
 	void checkSecretUnit() { // determine if this is a super secret unit
-		if (isSuperSecret || CUR.team == 0) return;
+		if (isSuperSecret) return;
 
-    if (CUR.unit == CASTLE) {
-      int needKarbonite = (30+50+10)*20;
-      int needFuel = (50+200+50)*20;
-      if (karbonite > needKarbonite && fuel > needFuel && CUR.id == min(myCastleID)) {
+    if (CUR.unit == CASTLE && lastSecretAttack <= CUR.turn-100) {
+      int needKarbonite = (30+50+10)*20; // 1800
+      int needFuel = (50+200+50)*20; // 6000
+      if ((karbonite > needKarbonite && fuel > needFuel) || (karbonite > needKarbonite/2 && fuel > needFuel/2 && CUR.turn > 900)) {
         if (wsim) destination = 64*(w-1-CUR.x)+CUR.y;
         else destination = 64*CUR.x+(h-1-CUR.y);
-        isSuperSecret = true; isFst = true;
+        isSuperSecret = true;
+        lastSecretAttack = CUR.turn; castle_talk = 254;
       }
     } else {
       if (CUR.turn != 1) return;
@@ -1082,14 +1097,12 @@ public class MyRobot extends BCAbstractRobot {
   			isSuperSecret = true;
   			destination = decodeSecretSignal(R.signal);
         int x = fdiv(destination,64), y = destination%64;
-        if (R.unit == CASTLE && CUR.unit == PILGRIM) isFst = true;
         addStruct(makeRobot(CASTLE,1-CUR.team,x,y));
   		}
     }
 
 		if (!isSuperSecret) return;
     log("KARBONITE: "+karbonite+" FUEL: "+fuel+" TURN: "+CUR.turn+" UNIT: "+CUR.unit+" IS SUPER SECRET! "+fdiv(destination,64)+" "+(destination%64));
-		sm = new secretMap(this);
 	}
 
   void checkValid(ArrayList<Integer> A) {
@@ -1101,6 +1114,7 @@ public class MyRobot extends BCAbstractRobot {
 
   // TURN
   void updateVars() {
+    if (fuel > 2000) shouldSave = true;
     ORI = new Robot2(me); CUR = new Robot2(me);
     robots = new Robot2[getVisibleRobots().length];
     for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
@@ -1110,6 +1124,14 @@ public class MyRobot extends BCAbstractRobot {
           producedByCastle = true;
     }
 
+    for (int i = 0; i < robots.length; ++i) if (robots[i].team == CUR.team && myCastleID.contains(robots[i].id))
+      if (robots[i].castle_talk == 254) {
+        log("SECRET ATTACK!!!!");
+        lastSecretAttack = CUR.turn; // update secret attacks
+        shouldSave = false;
+      }
+
+    if (CUR.unit == CASTLE && lastSecretAttack <= CUR.turn-150) isSuperSecret = false;
     posRecord[me.turn] = new pi(me.x,me.y);
     for (int i = 1; i <= 4096; ++i) lastPos[i] = null;
     for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
@@ -1139,7 +1161,10 @@ public class MyRobot extends BCAbstractRobot {
     rem(myCastle); rem(otherCastle); rem(myChurch); rem(otherChurch);
     if (CUR.unit == CASTLE) { checkValid(myStructID); checkValid(myCastleID); }
     bfs.upd(); // if (CUR.unit == CRUSADER) bfsShort.upd();
-    if (isSuperSecret) sm.upd();
+    if (isSuperSecret) {
+      if (sm == null) sm = new secretMap(this);
+      sm.upd();
+    }
     castle_talk = -1; nextSignal = null;
     U = new unitCounter(this);
     if (CUR.unit == PILGRIM) genDanger();
@@ -1206,7 +1231,7 @@ public class MyRobot extends BCAbstractRobot {
     lastHealth = CUR.health;
     if (castle_talk == -1) {
       if (CUR.unit == CASTLE) {
-        castle_talk = Math.min(U.closeAttackers(),254);
+        castle_talk = Math.min(U.closeAttackers(),253);
       } else {
         if (CUR.turn == 1) castle_talk = CUR.unit;
         else {
@@ -1222,7 +1247,7 @@ public class MyRobot extends BCAbstractRobot {
   }
 
   public Action turn() {
-    if (me.turn == 1) initVars();
+    initVars();
     updateVars();
     if (me.turn == 1) log("UNIT: "+CUR.unit);
 

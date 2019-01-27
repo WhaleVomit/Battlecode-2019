@@ -71,6 +71,7 @@ public class Pilgrim extends Movable {
 
   Action2 react() {
     Robot2 R = Z.closestNotPilgrim(Z.CUR,1-Z.CUR.team);
+    // Z.log("PILGRIM ENEMY "+Z.CUR.x+" "+Z.CUR.y+" "+Z.euclidDist(R)+" "+Z.danger[Z.CUR.y][Z.CUR.x]);
     if (Z.danger[Z.CUR.y][Z.CUR.x] > 0) {
       Z.goHome = true;
       Action2 A = tryGive(); if (A != null) return A;
@@ -80,6 +81,7 @@ public class Pilgrim extends Movable {
       Z.lastAction = Z.CUR.turn; Z.giveup = false;
       return Z.tryBuild(CHURCH);
     }
+    return null;
   }
 
   Action2 considerResourceLoc() {
@@ -165,7 +167,7 @@ public class Pilgrim extends Movable {
     }
     Action2 A = react(); if (A != null) return A;
     if (!Z.giveup) {
-      if (Z.lastAction <= Z.CUR.turn-100) Z.giveup = true;
+      if (Z.lastAction <= Z.CUR.turn-50) Z.giveup = true;
       if (Z.lastAction <= Z.CUR.turn-25 && isolated()) Z.giveup = true;
     }
     A = moveTowardResource(); if (A != null) return A;

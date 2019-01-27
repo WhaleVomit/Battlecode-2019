@@ -200,6 +200,7 @@ public class Castle extends Building {
   void dumpRound() {
       Z.log("================ ROUND " + Z.CUR.turn + " ================ ");
       if (Z.CUR.turn == 3) Z.log("H: "+Z.h+" W: "+Z.w);
+      Z.log("SHOULD SAVE: "+Z.shouldSave);
       Z.log("TIME: "+Z.me.time);
       Z.log("KARBONITE: "+Z.karbonite);
       Z.log("FUEL: "+Z.fuel);
@@ -377,12 +378,12 @@ public class Castle extends Building {
   Action2 castleBuild() {
     // if (Z.CUR.team == 1) return Z.tryBuild(CRUSADER);
     if (Z.CUR.turn == 1) return null;
-    if (Z.CUR.turn > 400 && Z.CUR.team == 1) return null;
-
     Action2 A = panicBuild(); if (A != null) return A;
     if (!shouldBuild && (Z.karbonite < 80 || Z.fuel < 250)) return null;
+    if (Z.U.closeAttackers() < 20 && Z.fuel > 1800) return safeBuild();
     if (shouldPilgrim()) return makePilgrim();
-    if (Z.me.turn >= 900 && Z.fuel >= 15000) return spamBuild();
+    if (Z.shouldSave || Z.lastSecretAttack >= Z.CUR.turn-30) return null;
+    if (Z.me.turn >= 920 && Z.fuel >= 6000) return spamBuild();
     return safeBuild();
   }
 

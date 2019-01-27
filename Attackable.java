@@ -162,9 +162,21 @@ public class Attackable extends Movable {
     }
 
     public Action2 react() {
-        Action2 A = dealWithPreacher();  if (A != null) return A;
-        A = tryAttack(); if (A != null) return A;
-        return position();
+        Action2 A = dealWithPreacher();
+        if (A != null) {
+          Z.log("DEAL WITH PREACHER"+Z.CUR.x+" "+Z.CUR.y);
+          return A;
+        }
+        A = tryAttack(); if (A != null) {
+          // Z.log("TRY ATTACK "+Z.CUR.x+" "+Z.CUR.y);
+          return A;
+        }
+        A = position();
+        if (A != null) {
+          // Z.log("POSITION "+Z.CUR.x+" "+Z.CUR.y);
+          return A;
+        }
+        return null;
     }
 
     public int patrolVal(int X, int Y, int x, int y) {
@@ -256,7 +268,7 @@ public class Attackable extends Movable {
 			if (R.team == Z.CUR.team && (R.unit == CASTLE || R.unit == CHURCH) && R.signal >= 40000 && R.signal < 50000 && Z.endPosAssigned == MOD) { // patrol
 					int tmp = R.signal-40000;
 					Z.endPosAssigned = 64*Z.fdiv(tmp,64) + (tmp%64);
-					Z.log("recieved instructions to patrol " + Z.coordinates(Z.endPosAssigned));
+					Z.log("received instructions to patrol " + Z.coordinates(Z.endPosAssigned));
 			}
 		}
 	}
@@ -269,7 +281,7 @@ public class Attackable extends Movable {
 
     Action2 runDefault() {
       getPatrolLoc();
-      if(Z.CUR.turn == 1) {
+      if (Z.CUR.turn == 1) {
         Z.nextSignal = new pi(Z.CUR.unit, 2);
         return tryAttack();
       } else {
