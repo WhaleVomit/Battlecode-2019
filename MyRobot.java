@@ -12,6 +12,7 @@ public class MyRobot extends BCAbstractRobot {
   Robot2 ORI, CUR;
   Robot2[] robots;
   pi[] lastPos = new pi[4097];
+  int[] hits = new int[4097];
   Robot2[][] robotMap; // stores last robot seen in pos
   int[][] robotMapID, lastTurn; // stores last id seen in pos, last turn seen
 
@@ -1303,45 +1304,45 @@ public class MyRobot extends BCAbstractRobot {
 
   public Action2 chooseAction() {
     Action2 A = null;
-      switch (CUR.unit) {
-          case CASTLE: {
-              Castle C = new Castle(this);
-              A = C.run();
-              break;
-          }
-          case CHURCH: {
-              Church C = new Church(this);
-              A = C.run();
-              break;
-          }
-          case PILGRIM: {
-              Pilgrim C = new Pilgrim(this);
-              A = C.run();
-              break;
-          }
-          case CRUSADER: {
-              Crusader C = new Crusader(this);
-              A = C.run();
-              break;
-          }
-          case PROPHET: {
-              Prophet C = new Prophet(this);
-              A = C.run();
-              break;
-          }
-          case PREACHER: {
-              Preacher C = new Preacher(this);
-              A = C.run();
-              break;
-          }
-      }
-      if (A == null) A = new Action2();
-      if (A.type == 0) {
-          robotMap[CUR.y][CUR.x] = null; robotMapID[CUR.y][CUR.x] = 0;
-          CUR.x += A.dx; CUR.y += A.dy;
-          robotMap[CUR.y][CUR.x] = CUR; robotMapID[CUR.y][CUR.x] = CUR.id;
-      }
-      return A;
+    switch (CUR.unit) {
+        case CASTLE: {
+            Castle C = new Castle(this);
+            A = C.run();
+            break;
+        }
+        case CHURCH: {
+            Church C = new Church(this);
+            A = C.run();
+            break;
+        }
+        case PILGRIM: {
+            Pilgrim C = new Pilgrim(this);
+            A = C.run();
+            break;
+        }
+        case CRUSADER: {
+            Crusader C = new Crusader(this);
+            A = C.run();
+            break;
+        }
+        case PROPHET: {
+            Prophet C = new Prophet(this);
+            A = C.run();
+            break;
+        }
+        case PREACHER: {
+            Preacher C = new Preacher(this);
+            A = C.run();
+            break;
+        }
+    }
+    if (A == null) A = new Action2();
+    if (A.type == 0) {
+        robotMap[CUR.y][CUR.x] = null; robotMapID[CUR.y][CUR.x] = 0;
+        CUR.x += A.dx; CUR.y += A.dy;
+        robotMap[CUR.y][CUR.x] = CUR; robotMapID[CUR.y][CUR.x] = CUR.id;
+    }
+    return A;
   }
   boolean seeEnemy() {
     boolean b = false;
@@ -1386,9 +1387,11 @@ public class MyRobot extends BCAbstractRobot {
       }
     warnOthers(A); startAttack(); finish();
     // if (A.type == 3 && CUR.team == 0) A = null;
-    if (A != null && A.type == 4 && isSuperSecret) {
+    if (A.type == 4 && isSuperSecret) {
       log("SECRET BUILD "+A.unit+" "+A.dx+" "+A.dy);
     }
+    if (A.type == 3 && CUR.unit != PREACHER)
+      hits[robotMap[CUR.y+A.dy][CUR.x+A.dx].id] ++;
     return conv(A);
   }
 }
