@@ -27,6 +27,10 @@ public class Church extends Building {
   	}
 
     Action2 runSuperSecret() {
+      /*if (Math.random() < 0.2) {
+        Z.log("TEST CHURCH TLE "+Z.CUR.x+" "+Z.CUR.y);
+        return new Action2();
+      }*/
       boolean buildPilgrim = true;
       if (Z.continuedChain) buildPilgrim = false;
       if (Z.shouldStopChain()) buildPilgrim = false;
@@ -41,7 +45,7 @@ public class Church extends Building {
     public Action2 run() {
       if (Z.CUR.turn == 1) initPatrol();
 	    updatePatrolVars();
-      if (Z.isSuperSecret && Z.CUR.turn <= 3) {
+      if (Z.isSuperSecret && (Z.CUR.turn <= 3 || !Z.continuedChain)) {
         Action2 A = runSuperSecret();
         if (A != null) return A;
       }
