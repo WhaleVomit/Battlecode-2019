@@ -47,6 +47,7 @@ public class Church extends Building {
     public Action2 run() {
       if (Z.CUR.turn == 1) initPatrol();
 	    updatePatrolVars();
+	  if(Z.shouldSpam) return Z.tryBuildNoSignal(PILGRIM);
       if (Z.isSuperSecret && (Z.CUR.turn <= 3 || !Z.continuedChain)) {
         Action2 A = runSuperSecret();
         if (A != null) return A;
