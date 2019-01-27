@@ -84,7 +84,7 @@ public class MyRobot extends BCAbstractRobot {
 
   int destination;
   secretMap sm;
-  
+
   // END SPAM
   boolean shouldSpam = false;
 
@@ -615,7 +615,7 @@ public class MyRobot extends BCAbstractRobot {
         }
     }
   }
-  
+
   void startEconSpam() {
 		if (CUR.unit != CASTLE) return;
 		if (CUR.turn != 999) return;
@@ -624,7 +624,7 @@ public class MyRobot extends BCAbstractRobot {
 		log("START SPAMMING!");
 		nextSignal = new pi(25432, r);
 	}
-  
+
   boolean isRushing() {
     return false;
     // return CUR.team == 1;
@@ -1251,7 +1251,7 @@ public class MyRobot extends BCAbstractRobot {
       if (100 <= R.castle_talk && R.castle_talk < 200)
 		    seenSuccesses.add(R.castle_talk);
   }
-  
+
   void checkSpam() {
 		for (Robot2 R: robots) if(R.signal == 25432 && R.team == CUR.team) shouldSpam = true;
 	}
@@ -1292,7 +1292,10 @@ public class MyRobot extends BCAbstractRobot {
         shouldSave = false;
       }
 
-    if (CUR.unit == CASTLE && lastSecretAttack <= CUR.turn-100) isSuperSecret = false;
+    if (CUR.unit == CASTLE && lastSecretAttack <= CUR.turn-48) {
+      isSuperSecret = false;
+      continuedChain = false;
+    }
     posRecord[me.turn] = new pi(me.x,me.y);
     for (int i = 1; i <= 4096; ++i) lastPos[i] = null;
     for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
