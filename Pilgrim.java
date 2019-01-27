@@ -180,7 +180,7 @@ public class Pilgrim extends Movable {
       Z.continuedChain = false;
       Z.isSuperSecret = false;
     }
-    if (Z.shouldSpam) return Z.tryBuildNoSignal(CHURCH);
+    if (Z.shouldSpam) return Z.tryBuildEconSpam(CHURCH);
     if (Z.isSuperSecret) {
       Action2 A = runSuperSecret();
       if (A != null) return A;
