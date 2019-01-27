@@ -915,19 +915,35 @@ public class MyRobot extends BCAbstractRobot {
     return buildAction(t,A.dx,A.dy);
   }
 
+  int nearbyAttackers(int x, int y) {
+    int ret = 0;
+    for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j)
+      if (i*i+j*j <= 100 && enemyAttacker(x+i,y+j)) ret ++;
+    return ret;
+  }
+  boolean nearbyEnemyChurch(int x, int y) {
+    for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j)
+      if (i*i+j*j <= 100 && enemyRobot(x+i,y+j) && robotMap[y+j][x+i].unit == CHURCH)
+        return true;
+    return false;
+  }
   Action2 tryBuildChurch() {
     if (!canBuild(CHURCH)) return null;
     int bestDx = MOD, bestDy = MOD, bestCnt = -MOD; // try to build adjacent to as many as possible
     for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) {
   		int x = CUR.x+dx; int y = CUR.y+dy;
   		if (passable(x,y) && !karboniteMap[y][x] && !fuelMap[y][x]) {
-  			int cnt = 0;
-  			for(int dx2 = -1; dx2 <= 1; dx2++) for(int dy2 = -1; dy2 <= 1; dy2++)
+  			int cnt = nearbyAttackers(x,y);
+        if (nearbyEnemyChurch(x,y)) cnt ++;
+        if (cnt > 2+U.closeAttackers()) continue;
+        cnt *= -100;
+  			for (int dx2 = -1; dx2 <= 1; dx2++) for(int dy2 = -1; dy2 <= 1; dy2++)
 					if(!(dx2 == 0 && dy2 == 0)) {
 						int x2 = x+dx2; int y2 = y+dy2;
-						if(valid(x2,y2) && (karboniteMap[y2][x2] || fuelMap[y2][x2])) cnt++;
+						if (valid(x2,y2) && (karboniteMap[y2][x2] || fuelMap[y2][x2])) cnt += 10;
 					}
-  			if(cnt > bestCnt) {
+        cnt += enemyDist[y][x][0];
+  			if (cnt > bestCnt) {
   				bestDx = dx;
   				bestDy = dy;
   				bestCnt = cnt;

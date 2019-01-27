@@ -27,10 +27,13 @@ public class Building extends Attackable {
     return ret;
   }
 
-  boolean reallyClosePreacher() {
+  boolean reallyClose() {
     for (int i = -7; i <= 7; ++i) for (int j = -7; j <= 7; ++j) if (i*i+j*j <= 49) {
       int x = Z.CUR.x+i, y = Z.CUR.y+j;
-      if (Z.enemyRobot(x,y) && Z.robotMap[y][x].unit == PREACHER) return true;
+      if (Z.enemyRobot(x,y)) {
+        if (Z.robotMap[y][x].unit == PREACHER) return true;
+        if (Z.robotMap[y][x].isStructure()) return true;
+      }
     }
     return false;
   }
@@ -47,19 +50,14 @@ public class Building extends Attackable {
       else if (Z.U.closeEnemy[CHURCH] > 0 && Z.U.closeEnemy[PROPHET] == 0) res = PREACHER;
       else res = PROPHET;
   	}
-  	if (res == -1) return MOD;
+    if (reallyClose()) res = PREACHER;
+    return res;
 
-  	int mx = -1;
+  	/*int mx = -1;
   	if (Z.canBuild(CRUSADER)) mx = CRUSADER;
   	if (Z.canBuild(PROPHET)) mx = PROPHET;
   	if (Z.canBuild(PREACHER)) mx = PREACHER;
-  	if (mx == -1) return MOD;
-
-    if (reallyClosePreacher()) {
-      if (mx < PREACHER) return MOD;
-      return mx;
-    }
-  	return Math.min(mx, res);
+  	if (mx == -1) return MOD;*/
 
     /*int crus = 2*Z.U.closeEnemy[CRUSADER] - Z.U.closeUnits[CRUSADER]; // if(!Z.canBuild(CRUSADER) || cnt[PREACHER] >= 3) crus = 0; cnt[PREACHER] + cnt[CASTLE]
     int proph = 2*Z.U.closeEnemy[PREACHER] + 2*Z.U.closeEnemy[CRUSADER] + 2*Z.U.closeEnemy[PROPHET]; if(!Z.canBuild(PROPHET)) proph = 0;
