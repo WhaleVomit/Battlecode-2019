@@ -789,13 +789,16 @@ public class MyRobot extends BCAbstractRobot {
     }
     return ret;
   }
-  int potentialPreachers() {
-    int ret = activePreachers();
+  int newPreachers() {
+    int ret = 0;
     for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) if (i*i+j*j <= 100) {
       int x = CUR.x+i, y = CUR.y+j;
       if (teamRobot(x,y,CUR.team) && mostDangerousPreacher(robotMap[y][x]) != MOD) ret ++;
     }
     return ret;
+  }
+  int potentialPreachers() {
+    return activePreachers()+newPreachers();
   }
   int countNearbyChurches(int pos) {
   	int x = fdiv(pos,64); int y = pos%64;
@@ -837,7 +840,8 @@ public class MyRobot extends BCAbstractRobot {
     return A;
   }
   boolean shouldStopChain() {
-    if (countNearbyChurches(destination) >= 10 || fuel <= 300+15*potentialPreachers() || karbonite <= 150) return true;
+    int a = activePreachers(), n = newPreachers();
+    if (countNearbyChurches(destination) >= 10 || fuel <= 300+50*n+(a+n)*15 || karbonite <= 30*(n+5)) return true;
     if (euclidDist(destination) <= 25 && countNearbyChurches(destination) > Math.max(5,U.closeEnemyAttackers())) return true;
     return false;
   }
