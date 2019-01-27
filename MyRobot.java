@@ -58,6 +58,7 @@ public class MyRobot extends BCAbstractRobot {
   Map<Integer,Integer> castleY = new HashMap<>();
   pi assignedPilgrimPos;
   boolean[][] assigned;
+  int myPilgrim = 0;
 
   // BUILDING
   int patrolcount;
@@ -916,6 +917,7 @@ public class MyRobot extends BCAbstractRobot {
   }
   Action2 tryBuild(int t) {
       if (!canBuild(t)) return null;
+      if (t == PILGRIM) myPilgrim++;
       if (t == CHURCH) return tryBuildChurch();
       return buildLeastDamage(t);
   }
