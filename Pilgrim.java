@@ -186,12 +186,14 @@ public class Pilgrim extends Movable {
     }
     if (Z.shouldSpam) {
       if (Z.lastSpam >= 9 || Z.CUR.turn <= 9) return Z.tryBuildEconSpam(CHURCH);
+      Z.genDanger();
       return Z.safe.moveReallySparse();
     }
     if (Z.isSuperSecret) {
       Action2 A = runSuperSecret();
       if (A != null) return A;
     }
+    Z.genDanger();
     Action2 A = react(); if (A != null) return A;
     if (!Z.giveup) {
       if (Z.lastAction <= Z.CUR.turn-50) Z.giveup = true;

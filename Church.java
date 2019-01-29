@@ -13,14 +13,9 @@ public class Church extends Building {
   	}
 
     Action2 runSuperSecret() {
-      /*if (Math.random() < 0.2) {
-        Z.log("TEST CHURCH TLE "+Z.CUR.x+" "+Z.CUR.y);
-        return new Action2();
-      }*/
       boolean buildPilgrim = true;
       if (Z.continuedChain) buildPilgrim = false;
       if (Z.shouldStopChain()) buildPilgrim = false;
-      // if (Z.numOpen(64*Z.CUR.x+Z.CUR.y) <= 1) buildPilgrim = false;
 
       if (buildPilgrim) return Z.tryBuildSecret(PILGRIM);
       int t = decideSuperSecret();

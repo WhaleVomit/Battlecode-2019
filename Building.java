@@ -185,7 +185,7 @@ public class Building extends Attackable {
 		for (Robot2 R: Z.robots) if (R.team == Z.CUR.team && IS_ATTACKER[Z.type[R.id]])
 			if (Z.atkToPatrol[R.id] != -1) isOccupiedPatrol[Z.atkToPatrol[R.id]] = true;
 
-		if(Z.atkToPatrolPrev != null) {
+		if (Z.atkToPatrolPrev != null) {
 			// figure out who died
 			ArrayList<Integer> dead = new ArrayList<Integer>();
 			for(int i = 0; i < 4097; i++) {
@@ -252,7 +252,6 @@ public class Building extends Attackable {
     if (R != null) Z.atkToPatrol[R.id] = Z.assignedAttackerPos; // Z.log(R.id+" IS PATROLLER "+Z.coordinates(Z.patrolPos[Z.atkToPatrol[R.id]]));
     Z.assignedAttackerPos = -1;
   }
-
 
   Action2 tryBuildEscort() {
     int t = CRUSADER; if (!Z.canBuild(t)) return null;
