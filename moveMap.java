@@ -145,7 +145,19 @@ public abstract class moveMap {
     }
     return bestMove;
   }
-
+  Action2 moveReallySparse() {
+    int bestDist = MOD; Action2 bestMove = null;
+    for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
+      int x = Z.CUR.x+i, y = Z.CUR.y+j;
+      if (ok(x,y) && Z.numOpen(x,y) > 4) {
+        if (dist[y][x] < bestDist) {
+          bestDist = dist[y][x];
+          bestMove = move(x,y);
+        }
+      }
+    }
+    return bestMove;
+  }
   int giveDist(int t) {
     if (t == MOD) return MOD;
     int x = Z.fdiv(t,64), y = t%64;

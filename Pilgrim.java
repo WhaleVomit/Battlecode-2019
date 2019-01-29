@@ -184,7 +184,10 @@ public class Pilgrim extends Movable {
       Z.continuedChain = false;
       Z.isSuperSecret = false;
     }
-    if (Z.shouldSpam) return Z.tryBuildEconSpam(CHURCH);
+    if (Z.shouldSpam) {
+      if (Z.numOpen(Z.CUR.x,Z.CUR.y) < 2) return Z.safe.moveReallySparse();
+      return Z.tryBuildEconSpam(CHURCH);
+    }
     if (Z.isSuperSecret) {
       Action2 A = runSuperSecret();
       if (A != null) return A;
