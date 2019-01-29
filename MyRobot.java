@@ -38,7 +38,7 @@ public class MyRobot extends BCAbstractRobot {
   boolean producedByCastle;
 
   // NOT PILGRIM
-  boolean updEnemy;
+  boolean updEnemy = true;
   int[][][] enemyDist;
 
   // ATTACKERS
@@ -164,12 +164,6 @@ public class MyRobot extends BCAbstractRobot {
       if (danger == null) {
         danger = new int[h][w];
         safe = new safeMap(this,4);
-      }
-    } else {
-      if (enemyDist == null) {
-        enemyDist = new int[h][w][2];
-        for (int i = 0; i < h; i++) for(int j = 0; j < w; j++) for(int k = 0; k < 2; k++)
-        enemyDist[i][j][k] = MOD;
       }
     }
   }
@@ -647,18 +641,6 @@ public class MyRobot extends BCAbstractRobot {
     }
   }
 
-  boolean isRushing() {
-    return false;
-    // return CUR.team == 1;
-    // int x = bfs.closestStruct(true);
-    // return canRush && CUR.unit != PILGRIM && CUR.turn <= 30 && enemyDist[x%64][fdiv(x,64)][0] <= 25;
-  }
-
-  void updateAttackMode() {
-    if (CUR.unit == CASTLE && enemyDist[CUR.y][CUR.x][0] > 25) canRush = false;
-    if (isRushing() && U.closeAttackers() >= 3) attackMode = true;
-    // log(CUR.getInfo()+toString(myCastle)+" "+toString(otherCastle));
-  }
   int compress(int i) {
     int x = fdiv(i, 64), y = i % 64;
     x = fdiv(x, 4); y = fdiv(y, 4);// approximating location
@@ -1335,38 +1317,34 @@ public class MyRobot extends BCAbstractRobot {
   void updateVars() {
     ORI = new Robot2(me); CUR = new Robot2(me);
     castle_talk = -1; nextSignal = null;
-    if (fuel > 2000) shouldSave = true;
-    if (myCastleID.size() > survivingOtherCastles()) shouldSave = false;
 
     // if (CUR.team == 1) shouldSave = false;
     robots = new Robot2[getVisibleRobots().length];
     for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
     if (CUR.turn == 1) {
       for (int i = 0; i < robots.length; ++i)
-      if (robots[i].team == CUR.team && robots[i].unit == CASTLE && adjacent(CUR,robots[i]))
+        if (robots[i].team == CUR.team && robots[i].unit == CASTLE && adjacent(CUR,robots[i]))
       producedByCastle = true;
     }
 
-    for (int i = 0; i < robots.length; ++i) if (robots[i].team == CUR.team && myCastleID.contains(robots[i].id))
-    if (robots[i].castle_talk == 254) {
-      // log("SECRET ATTACK!!!!");
-      lastSecretAttack = CUR.turn; // update secret attacks
-      shouldSave = false;
-    }
+    for (int i = 0; i < robots.length; ++i)
+      if (robots[i].team == CUR.team && myCastleID.contains(robots[i].id))
+        if (robots[i].castle_talk == 254) {
+          // log("SECRET ATTACK!!!!");
+          lastSecretAttack = CUR.turn; // update secret attacks
+          shouldSave = false;
+        }
 
-    if (CUR.unit == CASTLE && lastSecretAttack <= CUR.turn-48) {
-      isSuperSecret = false;
-      continuedChain = false;
-    }
     posRecord[me.turn] = new pi(me.x,me.y);
     for (int i = 1; i <= 4096; ++i) lastPos[i] = null;
     for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
-    if (robotMapID[i][j] > 0 && robotMapID[i][j] < MOD)
-    lastPos[robotMapID[i][j]] = new pi(j,i);
+      if (robotMapID[i][j] > 0 && robotMapID[i][j] < MOD)
+        lastPos[robotMapID[i][j]] = new pi(j,i);
 
     checkSignal(); // info might not be accurate: some troops may be dead already
     checkSecretUnit();
     checkSpam();
+
     for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
       int t = getVisibleRobotMap()[i][j];
       if (t != -1) {
@@ -1387,19 +1365,25 @@ public class MyRobot extends BCAbstractRobot {
     }
 
     rem(myCastle); rem(otherCastle); rem(myChurch); rem(otherChurch);
-    if (CUR.unit == CASTLE) { checkValid(myStructID); checkValid(myCastleID); }
+
+    if (CUR.unit == CASTLE) {
+      if (fuel > 2000) shouldSave = true;
+      if (myCastleID.size() > survivingOtherCastles()) shouldSave = false;
+      if (lastSecretAttack <= CUR.turn-48) {
+        isSuperSecret = false;
+        continuedChain = false;
+      }
+      checkValid(myStructID); checkValid(myCastleID);
+    }
+
     bfs.upd(); // if (CUR.unit == CRUSADER) bfsShort.upd();
     if (isSuperSecret) {
       if (sm == null) sm = new secretMap(this);
       sm.upd();
     }
     U = new unitCounter(this);
-    if (CUR.unit == PILGRIM) genDanger();
     genEnemyDist();
-    updateAttackMode();
     if (CUR.unit == CASTLE) initCastle = Math.max(initCastle,U.totUnits[CASTLE]);
-    //atFront--; atFront = Math.max(atFront, 0);
-    //if(seenAllyDie()) atFront = 100;
     if (CUR.turn > 5) {
       signalSuccessfulAttack();
       updateSuccessfulAttacks();
@@ -1524,6 +1508,7 @@ public class MyRobot extends BCAbstractRobot {
 		if(runSpam()) return conv(build);
     initVars();
     updateVars();
+    if (me.team == 1) attackMode = true;
     // if (me.team == 1) shouldSave = false;
     // if (me.turn == 1) log("UNIT: "+CUR.unit);
 
