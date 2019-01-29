@@ -89,6 +89,7 @@ public class MyRobot extends BCAbstractRobot {
   secretMap sm;
 
   // END SPAM
+  Action2 build;
   boolean shouldSpam = false;
 
   void sortClose(ArrayList<pi> dirs) {
@@ -1476,8 +1477,51 @@ public class MyRobot extends BCAbstractRobot {
     if (nextSignal != null) signal(nextSignal.f,nextSignal.s);
     remAtkToPatrolPrev();
   }
+  
+  boolean checkOccupiedSpam(int x, int y) {
+		for(Robot2 r: robots) if(r.x == x && r.y == y) return true;
+		return false;
+	}
+  
+  boolean runSpam() {
+		ORI = new Robot2(me); CUR = new Robot2(me);
+		if(me.unit != CHURCH && me.unit != PILGRIM) return false;
+		if(me.turn != 1) return false;
+		robots = new Robot2[getVisibleRobots().length];
+		for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
+		checkSpam(); if(!shouldSpam) return false;
+		for (int i = 0; i < robots.length; ++i) {
+      if (robots[i].team == CUR.team && robots[i].unit == CASTLE && adjacent(CUR,robots[i])) {
+				producedByCastle = true;
+				return false;
+			}
+		}
+		
+		// just build in a random direction
+		if(fuel < 2) return false;
+		signal(25432, 2);
+		if(me.unit == CHURCH) {
+			if(karbonite < CONSTRUCTION_K[PILGRIM] || fuel-2 < CONSTRUCTION_F[PILGRIM]) return false;
+		} else {
+			if(karbonite < CONSTRUCTION_K[CHURCH] || fuel-2 < CONSTRUCTION_F[CHURCH]) return false;
+		}
+		
+		boolean done = false;
+		for(int dx = -1; dx <= 1; dx++) {
+			for(int dy = -1; dy <= 1; dy++) {
+				if(dx == 0 && dy == 0) continue;
+				if(!valid(me.x+dx, me.y+dy)) continue;
+				if(checkOccupiedSpam(me.x+dx, me.y+dy)) continue;
+				done = true;
+				build = buildAction(3-me.unit, dx, dy);
+				break;
+			}
+		}
+		return done;
+	}
 
   public Action turn() {
+		if(runSpam()) return conv(build);
     initVars();
     updateVars();
     // if (me.team == 1) shouldSave = false;
