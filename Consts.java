@@ -1,3 +1,4 @@
+
 package bc19;
 
 import java.util.*;
@@ -42,5 +43,5 @@ public class Consts {
     public static final int[] MAX_ATTACK_R = {64, -1, -1, 16, 64, 16};
     public static final int[] ATTACK_F_COST = {10, -1, -1, 10, 25, 15};
 
-    public static final int churchThreshold = 3; // min distance from nearest struct
+    public static final int churchThreshold = 2; // min distance from nearest struct
 }

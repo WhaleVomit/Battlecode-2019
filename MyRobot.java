@@ -59,7 +59,8 @@ public class MyRobot extends BCAbstractRobot {
   boolean[] badResource = new boolean[4096];
   Map<Integer,Integer> castleX = new HashMap<>();
   Map<Integer,Integer> castleY = new HashMap<>();
-  pi assignedPilgrimPos;
+  pi assignedPilgrimPos, escortPos;
+  boolean[][] sentEscort = new boolean[64][64];
   boolean[][] assigned;
   int myPilgrim = 0;
 
@@ -876,6 +877,13 @@ public class MyRobot extends BCAbstractRobot {
 	    }
       return false;
   }
+  boolean firstHit(Robot2 R) {
+    for (int i = -8; i <= 8; ++i) for (int j = -8; j <= 8; ++j) {
+      int d = i*i+j*j;
+      if (d >= MIN_ATTACK_R[R.unit] && d <= MAX_ATTACK_R[R.unit] && enemyRobot(R.x+i,R.y+i)) return true;
+    }
+    return false;
+  }
   Action2 buildLeastDamage(int t) { // first minimize damage, try to build closer to enemy
     int bestVal = 2*MOD; Action2 A = null;
     for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
@@ -884,6 +892,8 @@ public class MyRobot extends BCAbstractRobot {
         int val = enemyDist[y][x][0];
         val = Math.max(val,5-val);
         val += 100*totDamage(x,y);
+        Robot2 R = makeRobot(t,CUR.team,x,y);
+        if (firstHit(R)) val -= MOD;
         if (val < bestVal) {
           bestVal = val;
           A = buildAction(t, dx, dy);

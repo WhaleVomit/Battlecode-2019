@@ -249,23 +249,6 @@ public class Castle extends Building {
   	return res;
   }
 
-  Action2 makePilgrim() {
-    double a = Z.karbonite, b = (Z.fuel-Z.FUEL_RATIO*Z.U.totAttackers())/5.0;
-    boolean assigned = false;
-
-    if (Z.myPilgrim >= nearbyResources() || Z.CUR.turn >= 50) {
-      assigned = tryAssignAggressive();
-    } else {
-      if (Z.CUR.turn <= 30 || 2*numKarb <= numFuel) assigned = tryAssignKarb();
-      else if (2*numFuel <= numKarb) assigned = tryAssignFuel();
-      else if (a < b) assigned = tryAssignKarb();
-      else assigned = tryAssignFuel();
-    }
-
-    if (!assigned) return null; // assignRand();
-    return Z.tryBuild(PILGRIM);
-  }
-
 
   Action2 makeClosePilgrim() {
     double a = Z.karbonite, b = (Z.fuel-Z.FUEL_RATIO*Z.U.totAttackers())/5.0;
@@ -297,6 +280,25 @@ public class Castle extends Building {
     return Z.tryBuild(PILGRIM);
   }
 
+  Action2 makePilgrim() {
+    double a = Z.karbonite, b = (Z.fuel-Z.FUEL_RATIO*Z.U.totAttackers())/5.0;
+    boolean assigned = false;
+
+    if (Z.CUR.turn <= 30) { // take karbonite, expand
+      if (closeKarb() > closePilgrim()) assigned = tryAssignKarb();
+      else assigned = tryAssignAggressive();
+    } else {
+      if (closeResources() > closePilgrim()) return makeClosePilgrim();
+      if (2*numKarb <= numFuel) assigned = tryAssignKarb();
+      else if (2*numFuel <= numKarb) assigned = tryAssignFuel();
+      else if (a < b) assigned = tryAssignKarb();
+      else assigned = tryAssignFuel();
+    }
+    if (!assigned) return null; // assignRand();
+    return Z.tryBuild(PILGRIM);
+  }
+
+
   Robot2 newPilgrim() { // closest pilgrim with signal PILGRIM, within distance 3
     int bestDist = MOD; Robot2 P = null;
     for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy) {
@@ -313,6 +315,32 @@ public class Castle extends Building {
     return P;
   }
 
+  void checkEscort(int t) {
+    int x = Z.fdiv(t,64), y = t%64;
+    for (int i = -5; i <= 5; ++i) for (int j = -5; j <= 5; ++j) if (i*i+j*j <= 25) {
+      int X = x+i, Y = y+j;
+      if (Z.valid(X,Y) && Z.sentEscort[X][Y]) return;
+    }
+    if (Z.hsim) {
+      if (Math.abs(2*y+1-Z.h) > 16) return;
+    } else {
+      if (Math.abs(2*x+1-Z.w) > 16) return;
+    }
+    int bestDist = MOD;
+    for (int i = -4; i <= 4; ++i) for (int j = -4; j <= 4; ++j) if (i*i+j*j <= 16) {
+      int X = x+i, Y = y+j;
+      if (Z.valid(X,Y) && !Z.containsResource(X,Y)) {
+        int d;
+        if (Z.hsim) d = Math.abs(2*Y+1-Z.h);
+        else d = Math.abs(2*X+1-Z.w);
+        if (d < bestDist) {
+          bestDist = d;
+          Z.escortPos = new pi(X,Y);
+        }
+      }
+    }
+  }
+
   void updatePilgrimID() {
     if (Z.assignedPilgrimPos == null) return;
     Robot2 R = newPilgrim();
@@ -324,9 +352,11 @@ public class Castle extends Building {
     if (Z.assignedPilgrimPos.f == 0) {
       Z.pilToKarb[R.id] = Z.assignedPilgrimPos.s;
       Z.log(R.id+" IS KARB PILGRIM "+Z.pilToKarb[R.id]);
+      checkEscort(Z.karbPos[Z.pilToKarb[R.id]]);
     } else {
       Z.pilToFuel[R.id] = Z.assignedPilgrimPos.s;
       Z.log(R.id+" IS FUEL PILGRIM "+Z.pilToFuel[R.id]);
+      checkEscort(Z.fuelPos[Z.pilToFuel[R.id]]);
     }
 
     Z.assignedPilgrimPos = null;
@@ -353,12 +383,13 @@ public class Castle extends Building {
     // if (Z.CUR.team == 1) return Z.tryBuild(CRUSADER);
     if (Z.CUR.turn == 1) return null;
     Action2 A = panicBuild(); if (A != null) return A;
+    if (Z.escortPos != null) return tryBuildEscort();
     if (!shouldBuild && (Z.karbonite < 80 || Z.fuel < 250)) return null;
     if (Z.U.closeAttackers() < 20 && Z.karbonite > 150 && Z.fuel > 1800) return safeBuild();
     if (shouldPilgrim()) return makePilgrim();
     if (Z.shouldSave || Z.lastSecretAttack >= Z.CUR.turn-30) return null;
     if (Z.me.turn >= 920 && Z.fuel >= 6000-50*(1000-Z.me.turn)) return spamBuild();
-    if (Z.canBuild(PILGRIM) && openResources() > closePilgrim()) return makeClosePilgrim();
+    if (Z.canBuild(PILGRIM) && closeResources() > closePilgrim()) return makePilgrim();
     return safeBuild();
   }
 

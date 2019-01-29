@@ -9,10 +9,31 @@ public class Building extends Attackable {
 
   public Building(MyRobot z) { super(z); }
 
-  int openResources() {
+  int closeResources() {
     int ret = 0;
     for (int i = -5; i <= 5; ++i) for (int j = -5; j <= 5; ++j)
       if (Z.containsResource(Z.CUR.x+i,Z.CUR.y+j)) ret ++;
+    return ret;
+  }
+  int seenResources() {
+    int ret = 0;
+    for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) if (i*i+j*j <= 100)
+      if (Z.containsResource(Z.CUR.x+i,Z.CUR.y+j)) ret ++;
+    return ret;
+  }
+  int seenPilgrim() {
+    int ret = 0;
+    for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) if (i*i+j*j <= 100)
+      if (Z.teamRobot(Z.CUR.x+i,Z.CUR.y+j,Z.CUR.team) &&
+        Z.robotMap[Z.CUR.y+j][Z.CUR.x+i].unit == PILGRIM) ret ++;
+    return ret;
+  }
+  int closeKarb() {
+    int ret = 0;
+    for (int i = -5; i <= 5; ++i) for (int j = -5; j <= 5; ++j) {
+      int x = Z.CUR.x+i, y = Z.CUR.y+j;
+      if (Z.valid(x,y) && Z.karboniteMap[y][x]) ret ++;
+    }
     return ret;
   }
   int closePilgrim() {
@@ -139,13 +160,13 @@ public class Building extends Attackable {
   }
   void initPatrol() {
 	  Z.patrolcount = 0;
-	  for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) {
+	  for (int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) {
       if (Z.patrolVal(x,y,Z.CUR.x,Z.CUR.y) >= 123456) continue;
 		  Z.patrolcount++;
 	  }
 
 	  Z.sortedPatrol = new int[Z.patrolcount];
-	  Z.atkToPatrol = new int[4097]; for(int i = 0; i < 4097; i++) Z.atkToPatrol[i] = -1;
+	  Z.atkToPatrol = new int[4097]; for (int i = 0; i < 4097; i++) Z.atkToPatrol[i] = -1;
 	  Z.patrolPos = new int[Z.patrolcount];
 
 	  Z.patrolcount = 0;
@@ -230,6 +251,15 @@ public class Building extends Attackable {
     Robot2 R = newAttacker();
     if (R != null) Z.atkToPatrol[R.id] = Z.assignedAttackerPos; // Z.log(R.id+" IS PATROLLER "+Z.coordinates(Z.patrolPos[Z.atkToPatrol[R.id]]));
     Z.assignedAttackerPos = -1;
+  }
+
+
+  Action2 tryBuildEscort() {
+    int t = CRUSADER; if (!Z.canBuild(t)) return null;
+    Z.nextSignal = new pi(64*Z.escortPos.f+Z.escortPos.s+40000, 2);
+    Z.sentEscort[Z.escortPos.f][Z.escortPos.s] = true;
+    Z.escortPos = null;
+    return Z.tryBuild(t);
   }
 
   Action2 tryBuildAttacker(int t) {
