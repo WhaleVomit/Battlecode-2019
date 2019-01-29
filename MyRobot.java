@@ -637,7 +637,7 @@ public class MyRobot extends BCAbstractRobot {
 
   void startEconSpam() {
     if (CUR.unit != CASTLE) return;
-    if (CUR.turn != 999) return;
+    if (CUR.turn != 995) return;
     int r = w*w+h*h-7;
     if (r <= fuel*fuel && CUR.id == min(myCastleID)) nextSignal = new pi(25432, r);
   }
