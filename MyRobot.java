@@ -845,7 +845,8 @@ public class MyRobot extends BCAbstractRobot {
 
   // BUILD
   boolean canBuild(int t) {
-    if (!(fuel >= CONSTRUCTION_F[t] && karbonite >= CONSTRUCTION_K[t])) return false;
+    int F = CONSTRUCTION_F[t]; if (t == PILGRIM) F += 2;
+    if (!(fuel >= F && karbonite >= CONSTRUCTION_K[t])) return false;
     for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
       int x = CUR.x+dx, y = CUR.y+dy;
       if (t == CHURCH && containsResource(x,y)) continue;
@@ -1373,6 +1374,7 @@ public class MyRobot extends BCAbstractRobot {
     }
     U = new unitCounter(this);
     genEnemyDist();
+    if (CUR.unit == PILGRIM) genDanger();
     if (CUR.turn > 5) {
       signalSuccessfulAttack();
       updateSuccessfulAttacks();
@@ -1449,12 +1451,12 @@ public class MyRobot extends BCAbstractRobot {
     if (nextSignal != null) signal(nextSignal.f,nextSignal.s);
     remAtkToPatrolPrev();
   }
-  
+
   boolean checkOccupiedSpam(int x, int y) {
 		for(Robot2 r: robots) if(r.x == x && r.y == y) return true;
 		return false;
 	}
-  
+
   boolean runSpam() {
 		ORI = new Robot2(me); CUR = new Robot2(me);
 		if(me.unit != CHURCH && me.unit != PILGRIM) return false;
@@ -1468,7 +1470,7 @@ public class MyRobot extends BCAbstractRobot {
 				return false;
 			}
 		}
-		
+
 		// just build in a random direction
 		if(fuel < 2) return false;
 		signal(25432, 2);
@@ -1477,7 +1479,7 @@ public class MyRobot extends BCAbstractRobot {
 		} else {
 			if(karbonite < CONSTRUCTION_K[CHURCH] || fuel-2 < CONSTRUCTION_F[CHURCH]) return false;
 		}
-		
+
 		boolean done = false;
 		for(int dx = -1; dx <= 1; dx++) {
 			for(int dy = -1; dy <= 1; dy++) {
@@ -1493,8 +1495,8 @@ public class MyRobot extends BCAbstractRobot {
 	}
 
   public Action turn() {
-		if(runSpam()) return conv(build);
-    initVars();
+		if (runSpam()) return conv(build);
+    if (me.turn == 1) initVars();
     updateVars();
     // log("TIME "+me.turn+" "+me.time);
     // if (me.team == 1) return null;
