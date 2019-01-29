@@ -31,7 +31,7 @@ public class MyRobot extends BCAbstractRobot {
   pi nextSignal;
   pi[] posRecord = new pi[1001];
   unitCounter U;
-  int initCastle, totResource;
+  int initCastle, totResource, lastSpam = -MOD;
 
   // MOVABLE
   boolean goHome;
@@ -72,6 +72,7 @@ public class MyRobot extends BCAbstractRobot {
   int assignedAttackerPos = -1;
 
   // PILGRIM
+  int sparseGoal = MOD;
   int[][] danger; safeMap safe;
   int resource = -1; // karbonite or fuel
   pi resourceLoc;
@@ -637,9 +638,12 @@ public class MyRobot extends BCAbstractRobot {
 
   void startEconSpam() {
     if (CUR.unit != CASTLE) return;
-    if (CUR.turn != 995) return;
+    if (CUR.turn != 989) return;
     int r = w*w+h*h-7;
-    if (r <= fuel*fuel && CUR.id == min(myCastleID)) nextSignal = new pi(25432, r);
+    if (r <= fuel*fuel && CUR.id == min(myCastleID)) {
+      nextSignal = new pi(25432, r);
+      log("START ECON SPAM");
+    }
   }
 
   boolean isRushing() {
@@ -1007,7 +1011,10 @@ public class MyRobot extends BCAbstractRobot {
   Action2 tryBuildEconSpam(int t) {
     if (!canBuild(t)) return null;
     for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy)
-    if (passable(CUR.x + dx, CUR.y + dy)) return buildAction(t, dx, dy);
+      if (passable(CUR.x + dx, CUR.y + dy)) {
+        nextSignal = new pi(25432,2);
+        return buildAction(t, dx, dy);
+      }
     return null;
   }
 
@@ -1265,6 +1272,7 @@ public class MyRobot extends BCAbstractRobot {
       }
     }
 
+    // isSuperSecret = false;
     if (!isSuperSecret) return;
     recalcDestination();
     // log("KARBONITE: "+karbonite+" FUEL: "+fuel+" TURN: "+CUR.turn+" UNIT: "+CUR.unit+" IS SUPER SECRET! "+fdiv(destination,64)+" "+(destination%64));
@@ -1298,9 +1306,15 @@ public class MyRobot extends BCAbstractRobot {
   }
 
   void checkSpam() {
+    if (lastSpam != -MOD) {
+      lastSpam ++;
+      return;
+    }
     for (Robot2 R: robots)
-    if (R.signal == 25432 && R.signal_radius == w*w+h*h-7)
-    shouldSpam = true;
+      if (R.signal == 25432 && (R.team == CUR.team || R.signal_radius == w*w+h*h-7)) {
+        shouldSpam = true;
+        lastSpam = 0;
+      }
   }
 
   int survivingOtherCastles() {

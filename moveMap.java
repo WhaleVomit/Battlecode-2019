@@ -146,17 +146,22 @@ public abstract class moveMap {
     return bestMove;
   }
   Action2 moveReallySparse() {
-    int bestDist = MOD; Action2 bestMove = null;
-    for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
-      int x = Z.CUR.x+i, y = Z.CUR.y+j;
-      if (ok(x,y) && Z.numOpen(x,y) > 4) {
-        if (dist[y][x] < bestDist) {
-          bestDist = dist[y][x];
-          bestMove = move(x,y);
+    int maxDist = Math.max(1,7-Z.lastSpam);
+    if (dist(Z.sparseGoal) > maxDist) {
+      int t = closestStruct(true);
+      int bestDist = -MOD; Action2 bestMove = null;
+      for (int i = -20; i <= 20; ++i) for (int j = -20; j <= 20; ++j) {
+        int x = Z.CUR.x+i, y = Z.CUR.y+j;
+        if (ok(x,y) && Z.numOpen(x,y) >= 5 && dist[y][x] <= maxDist) {
+          int d = Z.euclidDist(x,y,Z.fdiv(t,64),t%64);
+          if (d > bestDist) {
+            bestDist = d;
+            Z.sparseGoal = 64*x+y;
+          }
         }
       }
     }
-    return bestMove;
+    return move(Z.sparseGoal);
   }
   int giveDist(int t) {
     if (t == MOD) return MOD;
