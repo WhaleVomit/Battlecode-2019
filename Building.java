@@ -15,7 +15,6 @@ public class Building extends Attackable {
       if (Z.containsResource(Z.CUR.x+i,Z.CUR.y+j)) ret ++;
     return ret;
   }
-
   int closePilgrim() {
     int ret = 0;
     for (int i = -5; i <= 5; ++i) for (int j = -5; j <= 5; ++j)
@@ -23,17 +22,14 @@ public class Building extends Attackable {
         Z.robotMap[Z.CUR.y+j][Z.CUR.x+i].unit == PILGRIM) ret ++;
     return ret;
   }
-
   int needAttackFuel() {
     return 10*Z.U.closeUnits[CRUSADER]+25*Z.U.closeUnits[PROPHET]+15*Z.U.closeUnits[PREACHER];
   }
-
   boolean enoughFuel() {
     if (Z.fuel < 2*needAttackFuel()+75) return false;
     if (Z.fuel < 200 && Z.CUR.unit == CASTLE) return false;
     return true;
   }
-
   int reallyCloseAttackers() {
     int ret = 0;
     for (int i = -5; i <= 5; ++i) for (int j = -5; j <= 5; ++j)
@@ -41,7 +37,6 @@ public class Building extends Attackable {
         ret ++;
     return ret;
   }
-
   boolean reallyClose() {
     for (int i = -7; i <= 7; ++i) for (int j = -7; j <= 7; ++j) if (i*i+j*j <= 49) {
       int x = Z.CUR.x+i, y = Z.CUR.y+j;
@@ -83,7 +78,6 @@ public class Building extends Attackable {
     if (preach > 0) return PREACHER;
     return MOD;*/
   }
-
   Action2 safeBuild() {
     // if (Z.CUR.team == 1) return tryBuildAttacker(PREACHER);
 	  int numDefenders = Z.U.closeUnits[CRUSADER]+Z.U.closeUnits[PREACHER]+Z.U.closeUnits[PROPHET];
@@ -99,11 +93,9 @@ public class Building extends Attackable {
 
     return tryBuildAttacker(Z.U.decideUnit());
   }
-
   Action2 spamBuild() {
 	  return tryBuildAttacker(CRUSADER);
   }
-
   Action2 panicBuild() {
     if (Z.CUR.unit == CASTLE) {
       if (Z.U.closeEnemyAttackers() == 0) return null;
@@ -121,7 +113,6 @@ public class Building extends Attackable {
   boolean near(int pos) {
 		return Z.euclidDist(pos) <= 15;
 	}
-
   boolean betterPatrol(int pos1, int pos2) { // true if pos1 is better than pos2
 		if(near(pos1) && !near(pos2)) return true;
 		else if(!near(pos1) && near(pos2)) return false;
@@ -133,7 +124,6 @@ public class Building extends Attackable {
 		}
 	  return Z.bfs.dist(pos1) < Z.bfs.dist(pos2);
   }
-
   void sortPatrol() {
 	  ArrayList<Integer> temp = new ArrayList<>();
   	for(int i = 0; i < Z.patrolcount; i++) temp.add(Z.sortedPatrol[i]);
@@ -147,14 +137,11 @@ public class Building extends Attackable {
       });
     for(int i = 0; i < Z.patrolcount; i++) Z.sortedPatrol[i] = temp.get(i);
   }
-
   void initPatrol() {
 	  Z.patrolcount = 0;
-	  for(int x = 0; x < Z.w; x++) {
-		  for(int y = 0; y < Z.h; y++) {
-			  if(Z.adjStruct(x,y) || Z.containsResource(x,y) || (x+y)%2 == 1) continue;
-			  Z.patrolcount++;
-		  }
+	  for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) {
+      if (Z.patrolVal(x,y,Z.CUR.x,Z.CUR.y) >= 123456) continue;
+		  Z.patrolcount++;
 	  }
 
 	  Z.sortedPatrol = new int[Z.patrolcount];
@@ -162,25 +149,20 @@ public class Building extends Attackable {
 	  Z.patrolPos = new int[Z.patrolcount];
 
 	  Z.patrolcount = 0;
-	  for(int x = 0; x < Z.w; x++) {
-		  for(int y = 0; y < Z.h; y++) {
-			  if(Z.adjStruct(x,y) || Z.containsResource(x,y) || (x+y)%2 == 1) continue;
-			  Z.sortedPatrol[Z.patrolcount] = Z.patrolcount;
-			  Z.patrolPos[Z.patrolcount] = 64*x + y;
-			  Z.patrolcount ++;
-		  }
+	  for (int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) {
+      if (Z.patrolVal(x,y,Z.CUR.x,Z.CUR.y) >= 123456) continue;
+		  Z.sortedPatrol[Z.patrolcount] = Z.patrolcount;
+		  Z.patrolPos[Z.patrolcount] = 64*x + y;
+		  Z.patrolcount ++;
 	  }
+
 	  sortPatrol();
 	  Z.badPatrol = new int[Z.h][Z.w];
   }
-
   void updatePatrolVars() {
 		isOccupiedPatrol = new boolean[Z.patrolcount];
-		for (Robot2 R: Z.robots) {
-      if (R.team == Z.CUR.team && IS_ATTACKER[Z.type[R.id]]) {
-				if (Z.atkToPatrol[R.id] != -1) isOccupiedPatrol[Z.atkToPatrol[R.id]] = true;
-      }
-		}
+		for (Robot2 R: Z.robots) if (R.team == Z.CUR.team && IS_ATTACKER[Z.type[R.id]])
+			if (Z.atkToPatrol[R.id] != -1) isOccupiedPatrol[Z.atkToPatrol[R.id]] = true;
 
 		if(Z.atkToPatrolPrev != null) {
 			// figure out who died
@@ -197,20 +179,18 @@ public class Building extends Attackable {
 				int pos = Z.patrolPos[Z.atkToPatrol[id]];
 				int x = Z.fdiv(pos,64); int y = pos%64;
 				//Z.log("DONT PATROL NEAR: " + Z.coordinates(pos) + ", " + id + " HAS DIED HERE");
-				for(int dx = -3; dx <= 3; dx++) {
-					for(int dy = -3; dy <= 3; dy++) if(dx*dx + dy*dy <= 9) {
-						if(Z.valid(x+dx, y+dy)) Z.badPatrol[y+dy][x+dx] = 300;
-					}
-				}
-			}
+				for (int dx = -3; dx <= 3; dx++) for (int dy = -3; dy <= 3; dy++)
+          if (dx*dx + dy*dy <= 9) {
+            int X = x+dx, Y = y+dy;
+					  if(Z.valid(X,Y)) Z.badPatrol[Y][X] = 300;
+				  }
+      }
 
-			for(int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++) {
-				if(Z.badPatrol[y][x] != 0) Z.badPatrol[y][x]--;
-			}
+			for (int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++)
+				if (Z.badPatrol[y][x] != 0) Z.badPatrol[y][x]--;
 
-			for (int i = 0; i < 4097; i++) {
-			if (!isOccupiedPatrol[Z.atkToPatrol[i]]) Z.atkToPatrol[i] = -1;
-		}
+			for (int i = 0; i < 4097; i++)
+			   if (!isOccupiedPatrol[Z.atkToPatrol[i]]) Z.atkToPatrol[i] = -1;
 
 			// sort again
 			sortPatrol();
@@ -222,19 +202,16 @@ public class Building extends Attackable {
     Z.nextSignal = new pi(Z.patrolPos[i]+40000, 2);
     Z.assignedAttackerPos = i;
   }
-
   boolean tryAssignPatrol() {
-		for(int i = 0; i < Z.patrolcount; i++) {
-			if(!isOccupiedPatrol[Z.sortedPatrol[i]]) {
-				assignPatrol(Z.sortedPatrol[i]);
-				return true;
-			}
-		}
-		return false;
+  	for (int i = 0; i < Z.patrolcount; i++)
+  		if (!isOccupiedPatrol[Z.sortedPatrol[i]]) {
+  			assignPatrol(Z.sortedPatrol[i]);
+  			return true;
+  		}
+  	return false;
   }
-
   Robot2 newAttacker() {
-		int bestDist = MOD; Robot2 P = null;
+    int bestDist = MOD; Robot2 P = null;
     for (int dx = -4; dx <= 4; ++dx) for (int dy = -4; dy <= 4; ++dy) {
       int d = dx*dx+dy*dy; if (d > bestDist) continue;
       int x = Z.me.x+dx, y = Z.me.y+dy;
@@ -247,19 +224,11 @@ public class Building extends Attackable {
       }
     }
     return P;
-	}
-
+  }
   void updateAttackerID() {
     if (Z.assignedAttackerPos == -1) return;
     Robot2 R = newAttacker();
-    if (R == null) {
-      //Z.log("NO ATTACKER? " + Z.CUR.x + " " + Z.CUR.y);
-      Z.assignedAttackerPos = -1;
-      return;
-    }
-    Z.atkToPatrol[R.id] = Z.assignedAttackerPos;
-    //Z.log(R.id+" IS PATROLLER "+Z.coordinates(Z.patrolPos[Z.atkToPatrol[R.id]]));
-
+    if (R != null) Z.atkToPatrol[R.id] = Z.assignedAttackerPos; // Z.log(R.id+" IS PATROLLER "+Z.coordinates(Z.patrolPos[Z.atkToPatrol[R.id]]));
     Z.assignedAttackerPos = -1;
   }
 

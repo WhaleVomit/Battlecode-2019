@@ -18,7 +18,6 @@ public abstract class moveMap {
     dirs = new ArrayList<>();
     for (pi p: Z.dirs) if (p.f*p.f+p.s*p.s <= mx) dirs.add(p);
   }
-
   abstract boolean ok(int x, int y);
 
   void dumpVars() {
@@ -32,7 +31,6 @@ public abstract class moveMap {
       }
     }
   }
-
   void upd() {
     for (int y = 0; y < Z.h; ++y) for (int x = 0; x < Z.w; ++x)
       dist[y][x] = next[y][x] = close[y][x] = MOD;
@@ -133,5 +131,29 @@ public abstract class moveMap {
     int x = closestStruct(false);
     if (x == MOD) return moveUnseen();
     return move(x);
+  }
+  Action2 moveCloseSparse() {
+    int bestDist = MOD; Action2 bestMove = null;
+    for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j) {
+      int x = Z.CUR.x+i, y = Z.CUR.y+j;
+      if (ok(x,y) && Z.numOpen(x,y) > 2) {
+        if (dist[y][x] < bestDist) {
+          bestDist = dist[y][x];
+          bestMove = move(x,y);
+        }
+      }
+    }
+    return bestMove;
+  }
+
+  int giveDist(int t) {
+    if (t == MOD) return MOD;
+    int x = Z.fdiv(t,64), y = t%64;
+    int ret = MOD;
+    for (int i = x-1; i <= x+1; ++i) for (int j = y-1; j <= y+1; ++j) {
+      if (i == x && j == y) continue;
+      if (Z.valid(i,j)) ret = Math.min(ret,dist[y][x]);
+    }
+    return ret;
   }
 }

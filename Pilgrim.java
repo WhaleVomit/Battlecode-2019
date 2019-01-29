@@ -27,7 +27,8 @@ public class Pilgrim extends Movable {
 
   boolean shouldBuildChurch() { // has to be on resource square with no resource next to it
     if (!Z.containsResource(Z.CUR.x,Z.CUR.y)) return false;
-    if (Z.bfs.distHome() < churchThreshold) return false;
+    int t = Z.bfs.closestStruct(true);
+    if (Z.bfs.giveDist(t) <= churchThreshold || Z.euclidDist(t) <= 16) return false;
     Z.castle_talk = 30;
     return Z.canBuild(CHURCH);
   }
@@ -74,7 +75,7 @@ public class Pilgrim extends Movable {
     // Z.log("PILGRIM ENEMY "+Z.CUR.x+" "+Z.CUR.y+" "+Z.euclidDist(R)+" "+Z.danger[Z.CUR.y][Z.CUR.x]);
     if (Z.danger[Z.CUR.y][Z.CUR.x] > 0) {
       Z.goHome = true;
-      Action2 A = tryGive(); if (A != null) return A;
+      Action2 A = giveHomeNoMove(); if (A != null) return A;
       return moveAway(R);
     }
     if (shouldBuildChurch()) {
@@ -115,7 +116,7 @@ public class Pilgrim extends Movable {
     if (Z.CUR.karbonite > 16 || Z.CUR.fuel > 80) Z.goHome = true;
     if (Z.bfs.distHome() >= 15) Z.goHome = Z.CUR.karbonite == 20 && Z.CUR.fuel == 100;
     // if (Z.giveup) Z.log("GIVE UP "+Z.CUR.coordinates()+" "+distKarb+" "+distFuel+" "+Z.goHome);
-    if (Z.goHome) return goHome();
+    if (Z.goHome) return giveHome();
 
     if (!Z.giveup) {
       Action2 A = considerResourceLoc(); if (A != null) return A;
@@ -137,7 +138,10 @@ public class Pilgrim extends Movable {
         if (closeToStruct(bestKarb) && (distKarb <= distFuel || !closeToStruct(bestFuel))) return Z.safe.move(bestKarb);
         return Z.safe.move(bestFuel);
       }
-      if (Z.euclidDist(Z.bfs.closestStruct(true)) > 64) return Z.safe.moveYourStruct();
+      int t = Z.bfs.closestStruct(true);
+      if (Z.euclidDist(t) > 100) return Z.safe.moveYourStruct();
+      if (Z.euclidDist(t) <= 2) return moveAway(t);
+      if (Z.numOpen(Z.CUR.x,Z.CUR.y) < 2) return Z.safe.moveCloseSparse();
       return null;
     }
   }

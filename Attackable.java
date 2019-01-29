@@ -180,38 +180,14 @@ public class Attackable extends Movable {
     }
 
     public Action2 react() {
-        Action2 A = dealWithPreacher();
-        if (A != null) {
-          //Z.log("DEAL WITH PREACHER"+Z.CUR.x+" "+Z.CUR.y);
-          return A;
-        }
-        A = tryAttack(); if (A != null) {
-          // Z.log("TRY ATTACK "+Z.CUR.x+" "+Z.CUR.y);
-          return A;
-        }
-        A = position();
-        if (A != null) {
-          // Z.log("POSITION "+Z.CUR.x+" "+Z.CUR.y);
-          return A;
-        }
+        Action2 A = dealWithPreacher(); if (A != null) return A;
+        A = tryAttack(); if (A != null) return A;
+        A = position(); if (A != null) return A;
         return null;
     }
 
-    public int patrolVal(int X, int Y, int x, int y) {
-  		int big = 123456, val = 0;
-  		if (Z.euclidDist(X,Y,x,y) < 4) return val += big; // avoid congestion
-  		if (Z.enemyDist[Y][X][0] <= Math.min(14,Z.enemyDist[y][x][0])) return val += 2*big;
-      if (((X == Z.CUR.x && Y == Z.CUR.y) || Z.robotMapID[Y][X] <= 0) && (X+Y) % 2 == 0) {
-          val += Math.abs(X-x)+Math.abs(Y-y)+2*Math.abs(Z.enemyDist[y][x][0]-Z.enemyDist[Y][X][0]-1);
-          if (Z.karboniteMap[Y][X] || Z.fuelMap[Y][X]) val += big;
-          return val;
-      }
-      return MOD;
-    }
-
-    public Action2 patrol() {
+    Action2 patrol() {
       if(Z.bfs.dist(Z.endPosAssigned) != MOD) return Z.bfs.move(Z.endPosAssigned);
-
   	  int t = Z.bfs.closestStruct(true); if (t == MOD) return null;
   	  int x = Z.fdiv(t,64), y = t%64;
 
@@ -221,21 +197,19 @@ public class Attackable extends Movable {
       if (Z.bfs.dist(Z.endPos) == MOD) Z.endPos = MOD;
       if (Z.endPos != MOD) {
     		int ex = Z.fdiv(Z.endPos,64); int ey = Z.endPos%64;
-        // Z.log("PREV POS "+ex+" "+ey+" "+Z.w+" "+Z.h);
     		if (Z.enemyDist[ey][ex][0] <= 14) Z.endPos = MOD;
-    		//if(patrolVal(ex,ey,x,y) == MOD && !(Z.CUR.x == ex && Z.CUR.y == ey)) Z.endPos = MOD;
       }
 
       // Z.log("DETERMINE POS");
       if (Z.endPos == MOD) {
         int bestVal = MOD;
         for (int X = 0; X < Z.w; ++X) for (int Y = 0; Y < Z.h; ++Y) {
-            int val = patrolVal(X,Y,x,y);
+            int val = Z.patrolValOccupied(X,Y,x,y);
             if (Z.bfs.dist(X,Y) != MOD) bestVal = Math.min(bestVal,val);
         }
         int bestDist = MOD;
         for (int X = 0; X < Z.w; ++X) for (int Y = 0; Y < Z.h; ++Y) {
-            int val = patrolVal(X,Y,x,y);
+            int val = Z.patrolValOccupied(X,Y,x,y);
             if (val <= bestVal+5) {
               int dist = Z.bfs.dist(X,Y);
               if (dist < bestDist) {
@@ -312,7 +286,7 @@ public class Attackable extends Movable {
           return A;
         }
         if (!Z.attackMode) {
-          if (enoughResources()) return goHome();
+          if (enoughResources()) return giveHome();
           return patrol();
         }
         return aggressive();
