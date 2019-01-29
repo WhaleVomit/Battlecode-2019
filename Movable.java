@@ -86,6 +86,9 @@ public class Movable {
     else d = Z.bfs.giveDist(t);
     if (Z.euclidDist(t) <= 2 || (Z.euclidDist(t) <= 36 && d > churchThreshold)) {
       Action2 A = tryGive();
+      /*if (Z.euclidDist(t) > 2 && A != null) {
+        Z.log("WHAT GIVE "+t+" "+Z.euclidDist(t)+" "+d+" "+churchThreshold+" "+Z.CUR.x+" "+Z.CUR.y);
+      }*/
       if (A != null) return A;
     }
     return null;

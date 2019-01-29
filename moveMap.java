@@ -152,7 +152,7 @@ public abstract class moveMap {
     int ret = MOD;
     for (int i = x-1; i <= x+1; ++i) for (int j = y-1; j <= y+1; ++j) {
       if (i == x && j == y) continue;
-      if (Z.valid(i,j)) ret = Math.min(ret,dist[y][x]);
+      if (Z.valid(i,j)) ret = Math.min(ret,dist[j][i]);
     }
     return ret;
   }
