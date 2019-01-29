@@ -70,12 +70,13 @@ public class Building extends Attackable {
   }
 
   int decideUnit() {
-  	if (Z.U.closeEnemyUnits() == 0 && (Z.fuel < 250 || Z.karbonite < 80)) return MOD;
+  	// if (Z.U.closeEnemyUnits() == 0 && (Z.fuel < 250 || Z.karbonite < 80)) return MOD;
 
   	int res = MOD;
   	if (Z.U.closeEnemy[CRUSADER]+Z.U.closeEnemy[PREACHER]-Z.U.closeUnits[PREACHER] > 0) res = PREACHER;
     else if (Z.U.closeEnemyAttackers() == 0) {
-      if (reallyCloseAttackers() < 2) res = PROPHET;
+      if (Z.U.closeUnits[PROPHET] < 3) res = PROPHET;
+      else if (Z.U.closeUnits[PREACHER] == 0) res = PREACHER;
     } else {
 	    if ((Z.karbonite < 25 || Z.fuel < 100) && Z.U.closeEnemy[PREACHER]+Z.U.closeEnemy[CASTLE]+Z.U.closeEnemy[CHURCH] == 0) res = CRUSADER;
       else if (Z.U.closeEnemy[CHURCH] > 0 && Z.U.closeEnemy[PROPHET] == 0) res = PREACHER;
@@ -123,11 +124,8 @@ public class Building extends Attackable {
       if (Z.U.totUnits[PILGRIM] == 0) return null;
     }
     if (!enoughFuel()) return new Action2();
-    int w = decideUnit();
-    // Z.log("GOOD UNIT "+w);
-    if (w == MOD) return null;
-    Action2 A = tryBuildAttacker(w);
-    if (A == null) A = new Action2();
+    int w = decideUnit(); if (w == MOD) return null;
+    Action2 A = tryBuildAttacker(w); if (A == null) A = new Action2();
     return A;
   }
 
@@ -211,7 +209,7 @@ public class Building extends Attackable {
 				if (Z.badPatrol[y][x] != 0) Z.badPatrol[y][x]--;
 
 			for (int i = 0; i < 4097; i++)
-			   if (!isOccupiedPatrol[Z.atkToPatrol[i]]) Z.atkToPatrol[i] = -1;
+	      if (!isOccupiedPatrol[Z.atkToPatrol[i]]) Z.atkToPatrol[i] = -1;
 
 			// sort again
 			sortPatrol();

@@ -58,16 +58,16 @@ public class unitCounter {
     return totAttackers() >= 20 && Z.fuel < Z.FUEL_RATIO*totAttackers();
   }
 
-  boolean shouldBeginAttack() {
+  /*boolean shouldBeginAttack() {
     if (Z.CUR.turn != 900) return false;
 	  if (Z.initCastle == totUnits[CASTLE]) return false; // no point in attacking & losing unit value
     if (Z.enemyDist[Z.CUR.y][Z.CUR.x][0] < 10) return false;
     return true;
-    /*
+
     if (Z.lastAttack >= Z.CUR.turn-5 && closeAttackers() >= 0.75*needAttackers())
       return true;
-    return closeAttackers() >= needAttackers() && Z.fuel >= 0.9*Z.FUEL_RATIO*totAttackers();*/
-  }
+    return closeAttackers() >= needAttackers() && Z.fuel >= 0.9*Z.FUEL_RATIO*totAttackers();
+  }*/
 
   int decideUnit() {
 	  if (Z.CUR.unit == CASTLE && Z.me.turn <= 20) return PREACHER; // CRUSADER
