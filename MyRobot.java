@@ -56,6 +56,7 @@ public class MyRobot extends BCAbstractRobot {
 
   int karbcount, fuelcount;
   int[] sortedKarb, sortedFuel, pilToKarb, pilToFuel, karbPos, fuelPos;
+  boolean[] badResource = new boolean[4096];
   Map<Integer,Integer> castleX = new HashMap<>();
   Map<Integer,Integer> castleY = new HashMap<>();
   pi assignedPilgrimPos;
@@ -261,7 +262,8 @@ public class MyRobot extends BCAbstractRobot {
       return euclidDist(A.x,A.y,B.x,B.y);
   }
   int euclidDist(Robot2 A) { return euclidDist(CUR,A); }
-  int euclidDist(int x) { return x == MOD ? MOD : euclidDist(CUR,fdiv(x,64),x%64); }
+  int euclidDist(int x, int y) { return euclidDist(CUR,x,y); }
+  int euclidDist(int x) { return x == MOD ? MOD : euclidDist(fdiv(x,64),x%64); }
   boolean adjacent(Robot2 A, Robot2 B) {
     int e = euclidDist(A,B);
     return e > 0 && e <= 2;
@@ -396,16 +398,21 @@ public class MyRobot extends BCAbstractRobot {
   void addYour(ArrayList<Integer> A, Robot2 R) {
     int p = 64*R.x+R.y;
     if (!yesStruct(R.x,R.y)) return;
-    // log("WHAT "+R.x+" "+R.y+" "+p);
     if (R.id != MOD && !myStructID.contains(R.id)) myStructID.add(R.id);
     if (R.unit == CASTLE && R.id != MOD && !myCastleID.contains(R.id)) myCastleID.add(R.id);
     if (A.contains(p)) return;
+    if (CUR.unit == CASTLE && R.unit == CASTLE)
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
+        if (euclidDist(j,i) > euclidDist(R,j,i)) badResource[64*j+i] = true;
     A.add(p);
     if (robotMapID[R.y][R.x] == -1) { robotMapID[R.y][R.x] = R.id; robotMap[R.y][R.x] = R; }
   }
   void addOther(ArrayList<Integer> A, Robot2 R) {
       int p = 64*R.x+R.y;
       if (!yesStruct(R.x,R.y) || A.contains(p)) return;
+      if (CUR.unit == CASTLE && R.unit == CASTLE)
+        for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
+          if (euclidDist(j,i) > euclidDist(R,j,i) && euclidDist(R,j,i) <= 100) badResource[64*j+i] = true;
       A.add(p); updEnemy = true;
       if (robotMapID[R.y][R.x] == -1) { robotMapID[R.y][R.x] = R.id; robotMap[R.y][R.x] = R; }
   }
@@ -1305,7 +1312,6 @@ public class MyRobot extends BCAbstractRobot {
     ORI = new Robot2(me); CUR = new Robot2(me);
     castle_talk = -1; nextSignal = null;
     if (fuel > 2000) shouldSave = true;
-    shouldSave = false;
     if (myCastleID.size() > survivingOtherCastles()) shouldSave = false;
 
     // if (CUR.team == 1) shouldSave = false;
