@@ -131,31 +131,34 @@ public class MyRobot extends BCAbstractRobot {
 
   void initVars() {
     // if (me.unit == CASTLE) canRush = true;
-    dirs = new ArrayList<>();
-    for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy)
-    if (dx*dx + dy*dy <= 9) dirs.add(new pi(dx,dy));
-    sortMove(dirs);
+    if (dirs == null) {
+      // log("HI");
+      dirs = new ArrayList<>();
+      for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy)
+      if (dx*dx + dy*dy <= 9) dirs.add(new pi(dx,dy));
+      sortMove(dirs);
 
-    w = map[0].length; h = map.length;
-    wsim = genwsim(); hsim = genhsim();
-    totResource = 0;
-    for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
-      if (karboniteMap[i][j] || fuelMap[i][j])
-        totResource ++;
+      w = map[0].length; h = map.length;
+      wsim = genwsim(); hsim = genhsim();
+      totResource = 0;
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
+        if (karboniteMap[i][j] || fuelMap[i][j])
+          totResource ++;
 
-    robotMap = new Robot2[h][w]; robotMapID = new int[h][w];
-    for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
-      robotMapID[i][j] = -1;
+      robotMap = new Robot2[h][w]; robotMapID = new int[h][w];
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
+        robotMapID[i][j] = -1;
 
-    if (me.unit == CRUSADER) bfs = new bfsMap(this,9);
-    else bfs = new bfsMap(this,4);
+      if (me.unit == CRUSADER) bfs = new bfsMap(this,9);
+      else bfs = new bfsMap(this,4);
 
-    lastTurn = new int[h][w];
-    for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) lastTurn[i][j] = -MOD;
+      lastTurn = new int[h][w];
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) lastTurn[i][j] = -MOD;
 
-    if (me.unit == PILGRIM) {
-      danger = new int[h][w];
-      safe = new safeMap(this,4);
+      if (me.unit == PILGRIM) {
+        danger = new int[h][w];
+        safe = new safeMap(this,4);
+      }
     }
   }
 
@@ -1496,7 +1499,7 @@ public class MyRobot extends BCAbstractRobot {
 
   public Action turn() {
 		if (runSpam()) return conv(build);
-    if (me.turn == 1) initVars();
+    initVars();
     updateVars();
     // log("TIME "+me.turn+" "+me.time);
     // if (me.team == 1) return null;
