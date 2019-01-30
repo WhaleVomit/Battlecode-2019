@@ -178,8 +178,19 @@ public class Attackable extends Movable {
       // if (besVal > 0) Z.log("COMBO "+Z.CUR.x+" "+Z.CUR.y);
       return A;
     }
+    
+    int countCloseAttackers() {
+		int res = 0;
+		for(int dx = -5; dx <= 5; dx++) {
+			for(int dy = -5; dy <= 5; dy++) {
+				if(Z.yourAttacker(Z.CUR.x+dx, Z.CUR.y+dy)) res++;
+			}
+		}
+		return res;
+	}
 
     public Action2 react() {
+		if(countCloseAttackers() >= 15) return tryAttack();
         Action2 A = dealWithPreacher(); if (A != null) return A;
         A = tryAttack(); if (A != null) return A;
         A = position(); if (A != null) return A;

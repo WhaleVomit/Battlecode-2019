@@ -130,7 +130,7 @@ public class Building extends Attackable {
   }
 
   boolean near(int pos) {
-		return Z.euclidDist(pos) <= 15;
+		return Z.euclidDist(pos) <= 9;
 	}
   boolean betterPatrol(int pos1, int pos2) { // true if pos1 is better than pos2
 		if(near(pos1) && !near(pos2)) return true;

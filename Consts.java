@@ -8,6 +8,8 @@ public class Consts {
     public static final int MOD = 1000000007;
     public static final int[] DX_EDGE_ONLY = {1, 0, -1, 0}, DY_EDGE_ONLY = {0, 1, 0, -1};
     public static final int[] DX = {1, 1, 0, -1, -1, -1, 0, 1}, DY = {0, 1, 1, 1, 0, -1, -1, -1};
+    public static final int[] smDX = {1, -1, 0, 0, 1, 1, -1, -1};
+    public static final int[] smDY = {0, 0, 1, -1, 1, -1, 1, -1};
 
     public static final int CASTLE = 0;
     public static final int CHURCH = 1;
