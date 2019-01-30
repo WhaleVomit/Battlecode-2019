@@ -30,7 +30,7 @@ public class Church extends Building {
       if (A != null) return A;
     }
     if (Z.patrolcount == 0) initPatrol();
-    updatePatrolVars();
+    updateAttackerID(); updatePatrolVars();
     Action2 A = panicBuild(); if (A != null) return A;
 
     if (Z.isSuperSecret) return null;

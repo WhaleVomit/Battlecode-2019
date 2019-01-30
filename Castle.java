@@ -189,12 +189,12 @@ public class Castle extends Building {
   int getMessage(int x) { return x+2000; }
 
   void assignKarb(int i) {
-    Z.log(Z.CUR.turn+" assigned smth to karbonite at " + Z.coordinates(Z.karbPos[i]));
+    // Z.log(Z.CUR.turn+" assigned smth to karbonite at " + Z.coordinates(Z.karbPos[i]));
     Z.nextSignal = new pi(getMessage(Z.karbPos[i]), 2);
     Z.assignedPilgrimPos = new pi(0,i);
   }
   void assignFuel(int i) {
-    Z.log(Z.CUR.turn+" assigned smth to fuel at " + Z.coordinates(Z.fuelPos[i]));
+    // Z.log(Z.CUR.turn+" assigned smth to fuel at " + Z.coordinates(Z.fuelPos[i]));
     Z.nextSignal = new pi(getMessage(Z.fuelPos[i]), 2);
     Z.assignedPilgrimPos = new pi(1,i);
   }
@@ -418,7 +418,7 @@ public class Castle extends Building {
     if (Z.canBuild(PILGRIM) && closeResources() > closePilgrim()) return makePilgrim();
     if (Z.canBuild(PILGRIM) && Z.CUR.turn > 100) {
       A = fillResources();
-      Z.log("HA "+(A == null));
+      // Z.log("HA "+(A == null));
     }
     if (A != null) return A;
     if (Z.shouldSave || Z.lastSecretAttack >= Z.CUR.turn-30) return null;
@@ -427,8 +427,7 @@ public class Castle extends Building {
 
   Action2 run() {
     if (Z.me.turn == 1) initVars();
-    determineCastleLoc();
-    updatePilgrimID(); updateAttackerID(); updateVars();
+    determineCastleLoc(); updatePilgrimID(); updateAttackerID(); updateVars();
     if (Z.isSuperSecret && !Z.continuedChain) return Z.tryBuildSecret(PILGRIM);
     Action2 A = castleBuild(); if (A != null && A.type != -1) return A;
     return tryAttack();

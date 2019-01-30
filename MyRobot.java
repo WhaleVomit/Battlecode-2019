@@ -65,10 +65,12 @@ public class MyRobot extends BCAbstractRobot {
 
   // BUILDING
   int patrolcount;
-  int[] sortedPatrol, atkToPatrol, patrolPos, atkToPatrolPrev;
+  int[] atkToPatrol, patrolPos, atkToPatrolPrev;
   int[][] badPatrol; // if positive, don't patrol here
   int assignedAttackerPos = -1;
   int enex=-1, eney=-1;
+  double besx = -1, besy = -1;
+  double[] patrolscore = new double[4097];
 
   // PILGRIM
   int sparseGoal = MOD;
@@ -160,7 +162,6 @@ public class MyRobot extends BCAbstractRobot {
         danger = new int[h][w];
         safe = new safeMap(this,4);
       }
-      setClosestEnemy();
     }
   }
 
@@ -1317,6 +1318,10 @@ public class MyRobot extends BCAbstractRobot {
   void setClosestEnemy() {
 		enex = -1;
 		eney = -1;
+		besx = -1;
+		besy = -1;
+		for(int i = 0; i < 4096; i++) patrolscore[i] = MOD;
+		if(CUR.unit == CHURCH) return;
 		if(wsim) {
 			enex = w-1-CUR.x;
 			eney = CUR.y;
@@ -1324,6 +1329,10 @@ public class MyRobot extends BCAbstractRobot {
 			enex = CUR.x;
 			eney = h-1-CUR.y;
 		}
+		besx = CUR.x; besy = CUR.y;
+    double d = realdis(enex,eney,CUR.x,CUR.y);
+    double dx = (enex-CUR.y)/d; double dy = (eney-CUR.y)/d;
+    besx += 1.5*dx; besy += 1.5*dy;
 	}
 
   // TURN
@@ -1398,6 +1407,7 @@ public class MyRobot extends BCAbstractRobot {
       signalSuccessfulAttack();
       updateSuccessfulAttacks();
     }
+    setClosestEnemy();
   }
 
   public Action2 chooseAction() {

@@ -21,6 +21,9 @@ public class unitCounter {
           if (R.unit != -1) Z.type[R.id] = R.unit;
           if (Z.type[R.id] != 0) totUnits[Z.type[R.id]] ++;
         }
+    } else {
+      for (Robot2 R: Z.robots) if (R.team == Z.CUR.team && R.unit != -1)
+        Z.type[R.id] = R.unit;
     }
     closeUnits = new int[6]; closeEnemy = new int[6];
     for (Robot2 R: Z.robots)  if (Z.euclidDist(R) <= VISION_R[Z.CUR.unit]) {
