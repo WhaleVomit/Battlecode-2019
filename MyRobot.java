@@ -935,10 +935,10 @@ public class MyRobot extends BCAbstractRobot {
       return buildLeastDamage(t);
     }
     if (euclidDist(destination) <= 36) return buildClose(t);
-    Action2 A = sm.moveFake(destination); if (A == null) return null;
-    if (CUR.turn > 1 && (isAttacked(CUR.x+A.dx,CUR.y+A.dy) || seeEnemyStruct()))
+    pi A = nextFuzzy(destination); if (A.f == MOD) return null;
+    if (CUR.turn > 1 && (isAttacked(CUR.x+A.f,CUR.y+A.s) || seeEnemyStruct()))
       return buildLeastDamage(t); // if first in chain, don't let the next get attacked
-    return buildAction(t,A.dx,A.dy);
+    return buildAction(t,A.f,A.s);
   }
 
   int nearbyAttackers(int x, int y) {
@@ -1513,9 +1513,72 @@ public class MyRobot extends BCAbstractRobot {
 		}
 		return done;
 	}
+	
+	pi nextFuzzy(int des) {
+		int x = fdiv(des,64); int y = des%64;
+		int bestDist = MOD; pi bestNext = new pi(MOD, MOD);
+		for(int dx = -1; dx <= 1; dx++) {
+			for(int dy = -1; dy <= 1; dy++) {
+				if(dx == 0 && dy == 0) continue;
+				if(!valid(me.x+dx, me.y+dy)) continue;
+				if(checkOccupiedSpam(me.x+dx, me.y+dy)) continue;
+				if(euclidDist(me.x+dx,me.y+dy, x,y) < bestDist) {
+					bestDist = euclidDist(me.x+dx,me.y+dy, x,y);
+					bestNext = new pi(dx,dy);
+				}
+			}
+		}
+		return bestNext;
+	}
+	
+	boolean runSecret() {
+		w = map[0].length; h = map.length;
+		ORI = new Robot2(me); CUR = new Robot2(me);
+		if(CUR.unit != CHURCH && CUR.unit != PILGRIM) return false;
+		if(CUR.turn != 1) return false;
+		if(continuedChain) return false;
+		robots = new Robot2[getVisibleRobots().length];
+		for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
+		checkSecretUnit();
+		if(!isSuperSecret) return false;
+		for (int i = 0; i < robots.length; ++i) {
+      if (robots[i].team == CUR.team && robots[i].unit == CASTLE && adjacent(CUR,robots[i])) {
+				producedByCastle = true;
+				return false;
+			}
+		}
+		
+		for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
+      int t = getVisibleRobotMap()[i][j]; if (t == -1) continue;
+      lastTurn[i][j] = CUR.turn;
+      robotMapID[i][j] = t;
+      if (robotMapID[i][j] == 0) robotMap[i][j] = null;
+      else {
+        Robot2 R = getRobot2(t);
+        if (lastPos[t] != null && robotMapID[lastPos[t].s][lastPos[t].f] == t) {
+          robotMapID[lastPos[t].s][lastPos[t].f] = -1;
+          robotMap[lastPos[t].s][lastPos[t].f] = null;
+          robotMapID[i][j] = t;
+        }
+        lastPos[t] = new pi(j,i); robotMap[i][j] = R;
+        addStruct(R);
+      }
+    }
+    if(CUR.unit == PILGRIM) {
+			if(shouldStopChain()) return false;
+			build = tryBuildSecret(CHURCH);
+			return true;
+		} else {
+			if(shouldStopChain()) return false;
+			Church temp = new Church(this);
+			build = temp.runSuperSecret();
+			return true;
+		}
+	}
 
   public Action turn() {
 		if (runSpam()) return conv(build);
+		if (runSecret()) return conv(build);
     initVars();
     updateVars();
     // log("TIME "+me.turn+" "+me.time);
