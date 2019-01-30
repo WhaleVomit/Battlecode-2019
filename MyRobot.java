@@ -68,6 +68,7 @@ public class MyRobot extends BCAbstractRobot {
   int[] sortedPatrol, atkToPatrol, patrolPos, atkToPatrolPrev;
   int[][] badPatrol; // if positive, don't patrol here
   int assignedAttackerPos = -1;
+  int enex=-1, eney=-1;
 
   // PILGRIM
   int sparseGoal = MOD;
@@ -159,6 +160,7 @@ public class MyRobot extends BCAbstractRobot {
         danger = new int[h][w];
         safe = new safeMap(this,4);
       }
+      setClosestEnemy();
     }
   }
 
@@ -255,6 +257,8 @@ public class MyRobot extends BCAbstractRobot {
   int euclidDist(Robot2 A) { return euclidDist(CUR,A); }
   int euclidDist(int x, int y) { return euclidDist(CUR,x,y); }
   int euclidDist(int x) { return x == MOD ? MOD : euclidDist(fdiv(x,64),x%64); }
+  double realdis(double x1, double y1, double x2, double y2) { return Math.sqrt(sq(x1-x2)+sq(y1-y2)); }
+  double realdis(int pos1, int pos2) { return Math.sqrt(euclidDist(pos1,pos2)); }
   boolean adjacent(Robot2 A, Robot2 B) {
     int e = euclidDist(A,B);
     return e > 0 && e <= 2;
@@ -1309,6 +1313,18 @@ public class MyRobot extends BCAbstractRobot {
     }
     return ret;
   }
+  
+  void setClosestEnemy() {
+		enex = -1;
+		eney = -1;
+		if(wsim) {
+			enex = w-1-CUR.x;
+			eney = CUR.y;
+		} else {
+			enex = CUR.x;
+			eney = h-1-CUR.y;
+		}
+	}
 
   // TURN
   void updateVars() {
