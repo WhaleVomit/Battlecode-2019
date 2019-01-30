@@ -1358,7 +1358,7 @@ public class MyRobot extends BCAbstractRobot {
     rem(myCastle); rem(otherCastle); rem(myChurch); rem(otherChurch);
 
     if (CUR.unit == CASTLE) {
-      if (fuel > 2000) shouldSave = true;
+      // if (fuel > 2000) shouldSave = true;
       if (myCastleID.size() > survivingOtherCastles()) shouldSave = false;
       if (lastSecretAttack <= CUR.turn-48) {
         isSuperSecret = false;
