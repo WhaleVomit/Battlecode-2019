@@ -19,7 +19,7 @@ public class secretMap {
     for(int i = 0; i < 8; i++) dirs.add(new pi(smDX[i], smDY[i]));
   }
   public boolean ok(int x, int y) {
-	return Z.passable(x,y);
+	   return Z.passable(x,y);
   }
 
   public void dumpVars() {

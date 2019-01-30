@@ -70,12 +70,13 @@ public class Building extends Attackable {
   }
 
   int decideUnit() {
-  	// if (Z.U.closeEnemyUnits() == 0 && (Z.fuel < 250 || Z.karbonite < 80)) return MOD;
+    if (Z.U.closeEnemyUnits() > 0) Z.seenEnemy = true;
+  	if (!Z.seenEnemy && (Z.fuel < 250 || Z.karbonite < 80)) return MOD;
 
   	int res = MOD;
   	if (Z.U.closeEnemy[CRUSADER]+Z.U.closeEnemy[PREACHER]-Z.U.closeUnits[PREACHER] > 0) res = PREACHER;
     else if (Z.U.closeEnemyAttackers() == 0) {
-      if (Z.U.closeUnits[PROPHET] < 3) res = PROPHET;
+      if (Z.U.closeUnits[PROPHET] < 2) res = PROPHET;
       else if (Z.U.closeUnits[PREACHER] == 0) res = PREACHER;
     } else {
 	    if ((Z.karbonite < 25 || Z.fuel < 100) && Z.U.closeEnemy[PREACHER]+Z.U.closeEnemy[CASTLE]+Z.U.closeEnemy[CHURCH] == 0) res = CRUSADER;
@@ -137,14 +138,14 @@ public class Building extends Attackable {
         double d = Z.realdis(Z.enex,Z.eney,curx,cury);
         double dx = (Z.enex-curx)/d; double dy = (Z.eney-cury)/d;
         besx += 2*dx; besy += 1.5*dy;
-        
+
         return Z.realdis(x,y,besx,besy) -0.3*Z.realdis(x,y,curx,cury) +0.07*Z.realdis(x,y,Z.enex,Z.eney);
 	}
-	
+
 	boolean near(int pos) {
 		return Z.euclidDist(pos) <= 9;
 	}
-	
+
 	int comparePatrol(int pos1, int pos2) {
 		//if(near(pos1) && !near(pos2)) return -1;
 		//else if(!near(pos1) && near(pos2)) return 1;
