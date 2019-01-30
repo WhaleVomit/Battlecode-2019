@@ -1178,9 +1178,9 @@ public class MyRobot extends BCAbstractRobot {
     nearbyAllies.add(robotMapID[CUR.y+dy][CUR.x+dx]);
   }
   void remAtkToPatrolPrev() {
-    if(!IS_STRUCT[CUR.unit]) return;
-    if(atkToPatrolPrev == null) atkToPatrolPrev = new int[4097];
-    for(int i = 0; i < 4097; i++) atkToPatrolPrev[i] = atkToPatrol[i];
+    if (!IS_STRUCT[CUR.unit] || atkToPatrol == null) return;
+    if (atkToPatrolPrev == null) atkToPatrolPrev = new int[4097];
+    for (int i = 0; i < 4097; i++) atkToPatrolPrev[i] = atkToPatrol[i];
   }
 
   boolean isSignalSecret(int sig) {
@@ -1540,7 +1540,9 @@ public class MyRobot extends BCAbstractRobot {
       if (!(CUR.unit == CASTLE && continuedChain)) {
         nextSignal = new pi(encodeSecretSignal(),2);
         continuedChain = true;
+        log(CUR.x+" "+CUR.y+" MAKE SECRET UNIT "+A.type+" "+A.unit+" "+A.dx+" "+A.dy);
       }
+
     warnOthers(A); startEconSpam(); finish(); // startAttack();
     if (A.type == 3 && CUR.unit != PREACHER)
       hits[robotMap[CUR.y+A.dy][CUR.x+A.dx].id] ++;

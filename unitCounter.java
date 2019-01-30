@@ -74,7 +74,8 @@ public class unitCounter {
 
   int decideUnit() {
 	  if (Z.CUR.unit == CASTLE && Z.me.turn <= 20) return PREACHER; // CRUSADER
-    return (Math.random() > 0.8) ? CRUSADER : PROPHET;
+    return PROPHET;
+    // return (Math.random() > 0.8) ? CRUSADER : PROPHET;
     /*if (Z.numAttacks > 0) return PROPHET;
     double a = closeUnits[3], b = closeUnits[4]/2.0, c = closeUnits[5];
     if (closeUnits[3]+closeUnits[4]+closeUnits[5] < 15) {

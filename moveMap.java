@@ -8,7 +8,7 @@ import static bc19.Consts.*;
 public abstract class moveMap {
   MyRobot Z;
   int[][] dist, next, close;
-  ArrayList<pi> dirs;
+  public ArrayList<pi> dirs;
 
   public moveMap(MyRobot Z, int mx) {
     this.Z = Z;
