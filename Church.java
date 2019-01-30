@@ -7,8 +7,7 @@ public class Church extends Building {
 
   int decideSuperSecret() {
     if (Z.euclidDist(Z.CUR.x, Z.CUR.y, Z.fdiv(Z.destination,64), Z.destination%64) > 100) return MOD;
-    int t = Z.mostDangerousPreacher(Z.CUR);
-    if (t == MOD) return PROPHET;
+    int t = Z.mostDangerousPreacher(Z.CUR); if (t == MOD) return MOD;
     return PREACHER;
   }
 
@@ -30,7 +29,7 @@ public class Church extends Building {
       if (A != null) return A;
     }
     if (Z.patrolcount == 0) initPatrol();
-    updatePatrolVars();
+    updateAttackerID(); updatePatrolVars();
     Action2 A = panicBuild(); if (A != null) return A;
 
     if (Z.isSuperSecret) return null;

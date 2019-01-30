@@ -189,12 +189,12 @@ public class Castle extends Building {
   int getMessage(int x) { return x+2000; }
 
   void assignKarb(int i) {
-    Z.log(Z.CUR.turn+" assigned smth to karbonite at " + Z.coordinates(Z.karbPos[i]));
+    // Z.log(Z.CUR.turn+" assigned smth to karbonite at " + Z.coordinates(Z.karbPos[i]));
     Z.nextSignal = new pi(getMessage(Z.karbPos[i]), 2);
     Z.assignedPilgrimPos = new pi(0,i);
   }
   void assignFuel(int i) {
-    Z.log(Z.CUR.turn+" assigned smth to fuel at " + Z.coordinates(Z.fuelPos[i]));
+    // Z.log(Z.CUR.turn+" assigned smth to fuel at " + Z.coordinates(Z.fuelPos[i]));
     Z.nextSignal = new pi(getMessage(Z.fuelPos[i]), 2);
     Z.assignedPilgrimPos = new pi(1,i);
   }
@@ -203,6 +203,28 @@ public class Castle extends Building {
     int i = (int)(Math.random()*tot);
     if(i < Z.karbcount) assignKarb(i);
     else assignFuel(i-Z.karbcount);
+  }
+
+  boolean assignCloseUnexplored() {
+    sortKarb(0);
+    for (int i = 0; i < Z.karbcount; i++)
+      if (!isOccupiedKarb[Z.sortedKarb[i]]
+          && !Z.badResource[Z.karbPos[Z.sortedKarb[i]]]
+          && countAssigned(Z.karbPos[Z.sortedKarb[i]]) == 0
+          && ourSide(Z.sortedKarb[i])) {
+            assignKarb(Z.sortedKarb[i]);
+            return true;
+          }
+    sortFuel(0);
+    for (int i = 0; i < Z.fuelcount; i++)
+      if (!isOccupiedKarb[Z.sortedFuel[i]]
+          && !Z.badResource[Z.fuelPos[Z.sortedFuel[i]]]
+          && countAssigned(Z.fuelPos[Z.sortedFuel[i]]) == 0
+          && ourSide(Z.sortedFuel[i])) {
+            assignFuel(Z.sortedFuel[i]);
+            return true;
+          }
+    return false;
   }
 
   boolean tryAssignKarb() {
@@ -298,6 +320,11 @@ public class Castle extends Building {
     return Z.tryBuild(PILGRIM);
   }
 
+  Action2 fillResources() {
+    boolean assigned = assignCloseUnexplored();
+    if (!assigned) return null;
+    return Z.tryBuild(PILGRIM);
+  }
 
   Robot2 newPilgrim() { // closest pilgrim with signal PILGRIM, within distance 3
     int bestDist = MOD; Robot2 P = null;
@@ -387,16 +414,20 @@ public class Castle extends Building {
     if (!shouldBuild && (Z.karbonite < 80 || Z.fuel < 250)) return null;
     if (Z.U.closeAttackers() < 20 && Z.karbonite > 195 && Z.fuel > 1800) return safeBuild();
     if (shouldPilgrim()) return makePilgrim();
-    if (Z.shouldSave || Z.lastSecretAttack >= Z.CUR.turn-30) return null;
     if (Z.me.turn >= 920 && Z.fuel >= 6000-50*(1000-Z.me.turn)) return spamBuild();
     if (Z.canBuild(PILGRIM) && closeResources() > closePilgrim()) return makePilgrim();
+    if (Z.canBuild(PILGRIM) && Z.CUR.turn > 100) {
+      A = fillResources();
+      // Z.log("HA "+(A == null));
+    }
+    if (A != null) return A;
+    if (Z.shouldSave || Z.lastSecretAttack >= Z.CUR.turn-30) return null;
     return safeBuild();
   }
 
   Action2 run() {
     if (Z.me.turn == 1) initVars();
-    determineCastleLoc();
-    updatePilgrimID(); updateAttackerID(); updateVars();
+    determineCastleLoc(); updatePilgrimID(); updateAttackerID(); updateVars();
     if (Z.isSuperSecret && !Z.continuedChain) return Z.tryBuildSecret(PILGRIM);
     Action2 A = castleBuild(); if (A != null && A.type != -1) return A;
     return tryAttack();

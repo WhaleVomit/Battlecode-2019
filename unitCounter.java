@@ -21,6 +21,9 @@ public class unitCounter {
           if (R.unit != -1) Z.type[R.id] = R.unit;
           if (Z.type[R.id] != 0) totUnits[Z.type[R.id]] ++;
         }
+    } else {
+      for (Robot2 R: Z.robots) if (R.team == Z.CUR.team && R.unit != -1)
+        Z.type[R.id] = R.unit;
     }
     closeUnits = new int[6]; closeEnemy = new int[6];
     for (Robot2 R: Z.robots)  if (Z.euclidDist(R) <= VISION_R[Z.CUR.unit]) {
@@ -71,7 +74,8 @@ public class unitCounter {
 
   int decideUnit() {
 	  if (Z.CUR.unit == CASTLE && Z.me.turn <= 20) return PREACHER; // CRUSADER
-    return (Math.random() > 0.8) ? CRUSADER : PROPHET;
+    return PROPHET;
+    // return (Math.random() > 0.8) ? CRUSADER : PROPHET;
     /*if (Z.numAttacks > 0) return PROPHET;
     double a = closeUnits[3], b = closeUnits[4]/2.0, c = closeUnits[5];
     if (closeUnits[3]+closeUnits[4]+closeUnits[5] < 15) {

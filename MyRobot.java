@@ -38,7 +38,7 @@ public class MyRobot extends BCAbstractRobot {
   boolean producedByCastle;
 
   // NOT PILGRIM
-  boolean updEnemy = true;
+  boolean updEnemy = true, seenEnemy = false;
   int[][][] enemyDist;
 
   // ATTACKERS
@@ -65,10 +65,12 @@ public class MyRobot extends BCAbstractRobot {
 
   // BUILDING
   int patrolcount;
-  int[] sortedPatrol, atkToPatrol, patrolPos, atkToPatrolPrev;
+  int[] atkToPatrol, patrolPos, atkToPatrolPrev;
   int[][] badPatrol; // if positive, don't patrol here
   int assignedAttackerPos = -1;
   int enex=-1, eney=-1;
+  double besx = -1, besy = -1;
+  double[] patrolscore = new double[4097];
 
   // PILGRIM
   int sparseGoal = MOD;
@@ -160,7 +162,6 @@ public class MyRobot extends BCAbstractRobot {
         danger = new int[h][w];
         safe = new safeMap(this,4);
       }
-      setClosestEnemy();
     }
   }
 
@@ -1177,9 +1178,9 @@ public class MyRobot extends BCAbstractRobot {
     nearbyAllies.add(robotMapID[CUR.y+dy][CUR.x+dx]);
   }
   void remAtkToPatrolPrev() {
-    if(!IS_STRUCT[CUR.unit]) return;
-    if(atkToPatrolPrev == null) atkToPatrolPrev = new int[4097];
-    for(int i = 0; i < 4097; i++) atkToPatrolPrev[i] = atkToPatrol[i];
+    if (!IS_STRUCT[CUR.unit] || atkToPatrol == null) return;
+    if (atkToPatrolPrev == null) atkToPatrolPrev = new int[4097];
+    for (int i = 0; i < 4097; i++) atkToPatrolPrev[i] = atkToPatrol[i];
   }
 
   boolean isSignalSecret(int sig) {
@@ -1313,10 +1314,14 @@ public class MyRobot extends BCAbstractRobot {
     }
     return ret;
   }
-  
+
   void setClosestEnemy() {
 		enex = -1;
 		eney = -1;
+		besx = -1;
+		besy = -1;
+		for(int i = 0; i < 4096; i++) patrolscore[i] = MOD;
+		if(CUR.unit == CHURCH) return;
 		if(wsim) {
 			enex = w-1-CUR.x;
 			eney = CUR.y;
@@ -1324,6 +1329,10 @@ public class MyRobot extends BCAbstractRobot {
 			enex = CUR.x;
 			eney = h-1-CUR.y;
 		}
+		besx = CUR.x; besy = CUR.y;
+    double d = realdis(enex,eney,CUR.x,CUR.y);
+    double dx = (enex-CUR.y)/d; double dy = (eney-CUR.y)/d;
+    besx += 1.5*dx; besy += 1.5*dy;
 	}
 
   // TURN
@@ -1377,7 +1386,7 @@ public class MyRobot extends BCAbstractRobot {
     rem(myCastle); rem(otherCastle); rem(myChurch); rem(otherChurch);
 
     if (CUR.unit == CASTLE) {
-      // if (fuel > 2000) shouldSave = true;
+      if (fuel > 2000) shouldSave = true;
       if (myCastleID.size() > survivingOtherCastles()) shouldSave = false;
       if (lastSecretAttack <= CUR.turn-48) {
         isSuperSecret = false;
@@ -1398,6 +1407,7 @@ public class MyRobot extends BCAbstractRobot {
       signalSuccessfulAttack();
       updateSuccessfulAttacks();
     }
+    setClosestEnemy();
   }
 
   public Action2 chooseAction() {
@@ -1593,7 +1603,9 @@ public class MyRobot extends BCAbstractRobot {
       if (!(CUR.unit == CASTLE && continuedChain)) {
         nextSignal = new pi(encodeSecretSignal(),2);
         continuedChain = true;
+        log(CUR.x+" "+CUR.y+" MAKE SECRET UNIT "+A.type+" "+A.unit+" "+A.dx+" "+A.dy);
       }
+
     warnOthers(A); startEconSpam(); finish(); // startAttack();
     if (A.type == 3 && CUR.unit != PREACHER)
       hits[robotMap[CUR.y+A.dy][CUR.x+A.dx].id] ++;
