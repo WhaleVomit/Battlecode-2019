@@ -1461,9 +1461,10 @@ public class MyRobot extends BCAbstractRobot {
 	}
 
   boolean runSpam() {
+		w = map[0].length; h = map.length;
 		ORI = new Robot2(me); CUR = new Robot2(me);
-		if(me.unit != CHURCH && me.unit != PILGRIM) return false;
-		if(me.turn != 1) return false;
+		if(CUR.unit != CHURCH && CUR.unit != PILGRIM) return false;
+		if(CUR.turn != 1) return false;
 		robots = new Robot2[getVisibleRobots().length];
 		for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
 		checkSpam(); if(!shouldSpam) return false;
