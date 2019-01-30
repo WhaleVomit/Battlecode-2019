@@ -200,11 +200,11 @@ public class Building extends Attackable {
 				int pos = Z.patrolPos[Z.atkToPatrol[id]];
 				int x = Z.fdiv(pos,64); int y = pos%64;
 				//Z.log("DONT PATROL NEAR: " + Z.coordinates(pos) + ", " + id + " HAS DIED HERE");
-				for (int dx = -3; dx <= 3; dx++) for (int dy = -3; dy <= 3; dy++)
-          if (dx*dx + dy*dy <= 9) {
-            int X = x+dx, Y = y+dy;
-					  if(Z.valid(X,Y)) Z.badPatrol[Y][X] = 300;
-				  }
+				for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) {
+          // if (dx*dx + dy*dy <= 9) {
+          int X = x+dx, Y = y+dy;
+				  if(Z.valid(X,Y)) Z.badPatrol[Y][X] = 100;
+			  }
       }
 
 			for (int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++)
