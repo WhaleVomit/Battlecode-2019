@@ -918,7 +918,7 @@ public class MyRobot extends BCAbstractRobot {
   }
   Action2 tryBuildSecret(int t) {
     if (!isSuperSecret || !canBuild(t)) return null;
-    log("SECRET "+CUR.x+" "+CUR.y+" "+t);
+    // log("SECRET "+CUR.x+" "+CUR.y+" "+t);
     if (t == PREACHER) {
       if (fuel <= 15*activePreachers()+25*activeProphets()+100) return null;
       int x = mostDangerousPreacher(CUR);

@@ -207,9 +207,11 @@ public class Building extends Attackable {
 			  }
       }
 
-			for (int x = 0; x < Z.w; x++) for(int y = 0; y < Z.h; y++)
+			for (int x = 0; x < Z.w; x++) for (int y = 0; y < Z.h; y++) {
+        if (Z.euclidDist(x,y) < 16) Z.badPatrol[y][x] = 0;
 				if (Z.badPatrol[y][x] != 0) Z.badPatrol[y][x]--;
-
+      }
+      
 			for (int i = 0; i < 4097; i++)
 	      if (!isOccupiedPatrol[Z.atkToPatrol[i]]) Z.atkToPatrol[i] = -1;
 

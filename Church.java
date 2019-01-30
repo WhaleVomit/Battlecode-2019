@@ -11,9 +11,21 @@ public class Church extends Building {
     return PREACHER;
   }
 
+  boolean closestChurch() {
+    if (Z.CUR.unit != CHURCH) return false;
+    int d = Z.destination;
+    for (int i = -10; i <= 10; ++i) for (int j = -10; j <= 10; ++j)
+      if (i*i+j*j <= 100) {
+        int x = Z.CUR.x+i, y = Z.CUR.y+j;
+        if (Z.yourStruct(x,y) && Z.euclidDist(x,y,Z.fdiv(d,64),d%64) < Z.euclidDist(d)) return false;
+      }
+    return true;
+  }
+
   Action2 runSuperSecret() {
+    if (Z.CUR.team == 0 && closestChurch()) Z.log("AHA "+Z.CUR.x+" "+Z.CUR.y);
     boolean buildPilgrim = true;
-    if (Z.continuedChain) buildPilgrim = false;
+    if (Z.continuedChain && !closestChurch()) buildPilgrim = false;
     if (Z.shouldStopChain()) buildPilgrim = false;
 
     if (buildPilgrim) return Z.tryBuildSecret(PILGRIM);
@@ -24,7 +36,7 @@ public class Church extends Building {
   }
 
   public Action2 run() {
-    if (Z.isSuperSecret && (Z.CUR.turn <= 3 || !Z.continuedChain)) {
+    if (Z.isSuperSecret && (Z.CUR.turn <= 5 || !Z.continuedChain)) {
       Action2 A = runSuperSecret();
       if (A != null) return A;
     }
