@@ -418,7 +418,7 @@ public class Castle extends Building {
     if (Z.canBuild(PILGRIM) && closeResources() > closePilgrim()) return makePilgrim();
     if (Z.canBuild(PILGRIM) && Z.CUR.turn > 100) {
       A = fillResources();
-      Z.log("HA "+(A == null));
+      // Z.log("HA "+(A == null));
     }
     if (A != null) return A;
     if (Z.shouldSave || Z.lastSecretAttack >= Z.CUR.turn-30) return null;
