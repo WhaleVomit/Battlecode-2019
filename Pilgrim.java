@@ -115,8 +115,15 @@ public class Pilgrim extends Movable {
     if (Z.CUR.karbonite < 5 && Z.CUR.fuel < 25) Z.goHome = false;
     if (Z.CUR.karbonite > 16 || Z.CUR.fuel > 80) Z.goHome = true;
     if (Z.bfs.distHome() >= 15) Z.goHome = Z.CUR.karbonite == 20 && Z.CUR.fuel == 100;
-    // if (Z.giveup) Z.log("GIVE UP "+Z.CUR.coordinates()+" "+distKarb+" "+distFuel+" "+Z.goHome);
     if (Z.goHome) return giveHome();
+    if (Z.CUR.karbonite < 20 && Z.CUR.karbonite > 0 && Z.karboniteMap[Z.CUR.y][Z.CUR.x]) return null;
+    if (Z.CUR.fuel < 100 && Z.CUR.fuel > 0 && Z.fuelMap[Z.CUR.y][Z.CUR.x]) return null;
+    // if (35 <= Z.CUR.x && Z.CUR.x <= 45 && 35 <= Z.CUR.y && Z.CUR.y <= 45) {
+    /*if (Z.CUR.team == 1) {
+      Z.log("OOPS "+Z.CUR.x+" "+Z.CUR.y+" "+Z.giveup+" "+Z.coordinates(bestKarb)+" "+distKarb+" "+Z.coordinates(bestFuel)+" "+distFuel);
+      if (Z.resourceLoc != null) Z.log(Z.resourceLoc.f+" "+Z.resourceLoc.s+" "+Z.danger[Z.resourceLoc.s][Z.resourceLoc.f]);
+    }*/
+    // }
 
     if (!Z.giveup) {
       Action2 A = considerResourceLoc(); if (A != null) return A;
@@ -126,7 +133,8 @@ public class Pilgrim extends Movable {
         if (distKarb <= distFuel) return Z.safe.move(bestKarb);
         return Z.safe.move(bestFuel);
       }
-      if (Z.resource == 0 && distKarb != MOD) return Z.safe.move(bestKarb);
+
+      // if (Z.resource == 0 && distKarb != MOD) return Z.safe.move(bestKarb);
       return Z.safe.move(bestFuel);
     } else { // inactive pilgrim
       // Z.log("GIVE UP 2 "+Z.coordinates(bestKarb)+" "+Z.coordinates(bestFuel)+" "+closeToStruct(bestKarb)+" "+closeToStruct(bestFuel)+" "+Z.euclidDist(Z.bfs.closestStruct(true)));
@@ -186,14 +194,12 @@ public class Pilgrim extends Movable {
     }
     if (Z.shouldSpam) {
       if (Z.lastSpam >= 9 || Z.CUR.turn <= 9) return Z.tryBuildEconSpam(CHURCH);
-      Z.genDanger();
       return Z.safe.moveReallySparse();
     }
     if (Z.isSuperSecret) {
       Action2 A = runSuperSecret();
       if (A != null) return A;
     }
-    Z.genDanger();
     Action2 A = react(); if (A != null) return A;
     if (!Z.giveup) {
       if (Z.lastAction <= Z.CUR.turn-50) Z.giveup = true;

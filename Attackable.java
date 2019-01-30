@@ -104,9 +104,14 @@ public class Attackable extends Movable {
       if (Z.euclidDist(R) > 100) return moveTowardEnemy(R);
       Action2 A = waitOutOfRange(R);
       if (A != null) {
-          double d0 = Math.sqrt(Z.euclidDist(R));
-          double d1 = Math.sqrt(Z.euclidDist(R,Z.CUR.x+A.dx,Z.CUR.y+A.dy));
-          if (d1+1 <= d0) return A;
+        double d0 = Math.sqrt(Z.euclidDist(R));
+        double d1 = Math.sqrt(Z.euclidDist(R,Z.CUR.x+A.dx,Z.CUR.y+A.dy));
+        if (d1+1 <= d0) return A;
+      }
+      if (R.unit == CRUSADER && !attacking(R) && Z.totDamage(Z.CUR.x,Z.CUR.y) == 0 && Z.CUR.health == 40) {
+        if (A == null) return new Action2();
+        // Z.log("HUH "+Z.CUR.x+" "+Z.CUR.y+" "+A.dx+" "+A.dy);
+        return A;
       }
       if (Z.euclidDist(R) > 49 || R.unit == PROPHET) return moveTowardEnemy(R);
       return minimizeDamage(R);

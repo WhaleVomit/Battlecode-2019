@@ -131,31 +131,34 @@ public class MyRobot extends BCAbstractRobot {
 
   void initVars() {
     // if (me.unit == CASTLE) canRush = true;
-    dirs = new ArrayList<>();
-    for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy)
-    if (dx*dx + dy*dy <= 9) dirs.add(new pi(dx,dy));
-    sortMove(dirs);
+    if (dirs == null) {
+      // log("HI");
+      dirs = new ArrayList<>();
+      for (int dx = -3; dx <= 3; ++dx) for (int dy = -3; dy <= 3; ++dy)
+      if (dx*dx + dy*dy <= 9) dirs.add(new pi(dx,dy));
+      sortMove(dirs);
 
-    w = map[0].length; h = map.length;
-    wsim = genwsim(); hsim = genhsim();
-    totResource = 0;
-    for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
-      if (karboniteMap[i][j] || fuelMap[i][j])
-        totResource ++;
+      w = map[0].length; h = map.length;
+      wsim = genwsim(); hsim = genhsim();
+      totResource = 0;
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
+        if (karboniteMap[i][j] || fuelMap[i][j])
+          totResource ++;
 
-    robotMap = new Robot2[h][w]; robotMapID = new int[h][w];
-    for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
-      robotMapID[i][j] = -1;
+      robotMap = new Robot2[h][w]; robotMapID = new int[h][w];
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j)
+        robotMapID[i][j] = -1;
 
-    if (me.unit == CRUSADER) bfs = new bfsMap(this,9);
-    else bfs = new bfsMap(this,4);
+      if (me.unit == CRUSADER) bfs = new bfsMap(this,9);
+      else bfs = new bfsMap(this,4);
 
-    lastTurn = new int[h][w];
-    for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) lastTurn[i][j] = -MOD;
+      lastTurn = new int[h][w];
+      for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) lastTurn[i][j] = -MOD;
 
-    if (me.unit == PILGRIM) {
-      danger = new int[h][w];
-      safe = new safeMap(this,4);
+      if (me.unit == PILGRIM) {
+        danger = new int[h][w];
+        safe = new safeMap(this,4);
+      }
     }
   }
 
@@ -845,7 +848,8 @@ public class MyRobot extends BCAbstractRobot {
 
   // BUILD
   boolean canBuild(int t) {
-    if (!(fuel >= CONSTRUCTION_F[t] && karbonite >= CONSTRUCTION_K[t])) return false;
+    int F = CONSTRUCTION_F[t]; if (t == PILGRIM) F += 2;
+    if (!(fuel >= F && karbonite >= CONSTRUCTION_K[t])) return false;
     for (int dx = -1; dx <= 1; ++dx) for (int dy = -1; dy <= 1; ++dy) {
       int x = CUR.x+dx, y = CUR.y+dy;
       if (t == CHURCH && containsResource(x,y)) continue;
@@ -1357,7 +1361,7 @@ public class MyRobot extends BCAbstractRobot {
     rem(myCastle); rem(otherCastle); rem(myChurch); rem(otherChurch);
 
     if (CUR.unit == CASTLE) {
-      if (fuel > 2000) shouldSave = true;
+      // if (fuel > 2000) shouldSave = true;
       if (myCastleID.size() > survivingOtherCastles()) shouldSave = false;
       if (lastSecretAttack <= CUR.turn-48) {
         isSuperSecret = false;
@@ -1373,6 +1377,7 @@ public class MyRobot extends BCAbstractRobot {
     }
     U = new unitCounter(this);
     genEnemyDist();
+    if (CUR.unit == PILGRIM) genDanger();
     if (CUR.turn > 5) {
       signalSuccessfulAttack();
       updateSuccessfulAttacks();
@@ -1449,12 +1454,12 @@ public class MyRobot extends BCAbstractRobot {
     if (nextSignal != null) signal(nextSignal.f,nextSignal.s);
     remAtkToPatrolPrev();
   }
-  
+
   boolean checkOccupiedSpam(int x, int y) {
 		for(Robot2 r: robots) if(r.x == x && r.y == y) return true;
 		return false;
 	}
-  
+
   boolean runSpam() {
 		ORI = new Robot2(me); CUR = new Robot2(me);
 		if(me.unit != CHURCH && me.unit != PILGRIM) return false;
@@ -1468,7 +1473,7 @@ public class MyRobot extends BCAbstractRobot {
 				return false;
 			}
 		}
-		
+
 		// just build in a random direction
 		if(fuel < 2) return false;
 		signal(25432, 2);
@@ -1477,7 +1482,7 @@ public class MyRobot extends BCAbstractRobot {
 		} else {
 			if(karbonite < CONSTRUCTION_K[CHURCH] || fuel-2 < CONSTRUCTION_F[CHURCH]) return false;
 		}
-		
+
 		boolean done = false;
 		for(int dx = -1; dx <= 1; dx++) {
 			for(int dy = -1; dy <= 1; dy++) {
@@ -1493,7 +1498,7 @@ public class MyRobot extends BCAbstractRobot {
 	}
 
   public Action turn() {
-		if(runSpam()) return conv(build);
+		if (runSpam()) return conv(build);
     initVars();
     updateVars();
     // log("TIME "+me.turn+" "+me.time);
