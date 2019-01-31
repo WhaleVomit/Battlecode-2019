@@ -343,16 +343,17 @@ public class Castle extends Building {
   }
 
   void checkEscort(int t) {
+    if (Z.euclidDist(t) <= 100) return;
     int x = Z.fdiv(t,64), y = t%64;
     for (int i = -5; i <= 5; ++i) for (int j = -5; j <= 5; ++j) if (i*i+j*j <= 25) {
       int X = x+i, Y = y+j;
       if (Z.valid(X,Y) && Z.sentEscort[X][Y]) return;
     }
-    if (Z.hsim) {
+    /*if (Z.hsim) {
       if (Math.abs(2*y+1-Z.h) > 16) return;
     } else {
       if (Math.abs(2*x+1-Z.w) > 16) return;
-    }
+    }*/
     int bestDist = MOD;
     for (int i = -4; i <= 4; ++i) for (int j = -4; j <= 4; ++j) if (i*i+j*j <= 16) {
       int X = x+i, Y = y+j;
@@ -408,7 +409,7 @@ public class Castle extends Building {
 
   Action2 castleBuild() {
     // if (Z.CUR.team == 1) return Z.tryBuild(CRUSADER);
-    if (Z.CUR.turn == 1) return null;
+    // if (Z.CUR.turn == 1) return null;
     Action2 A = panicBuild(); if (A != null) return A;
     if (Z.escortPos != null) return tryBuildEscort();
     if (!shouldBuild && (Z.karbonite < 80 || Z.fuel < 250)) return null;

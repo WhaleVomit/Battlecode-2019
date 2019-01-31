@@ -1236,10 +1236,11 @@ public class MyRobot extends BCAbstractRobot {
     }
   }
   void checkSecretUnit() { // determine if this is a super secret unit
+    // if (CUR.team == 1) return;
     if (isSuperSecret) return;
 
     if (CUR.unit == CASTLE) {
-      if (enoughResourcesSecret() && lastSecretAttack <= CUR.turn-50) { // true
+      if ((enoughResourcesSecret() || CUR.turn > 3000) && lastSecretAttack <= CUR.turn-50) { // true
         if (myCastleID.size() > survivingOtherCastles()) return;
         destination = getDestination(); if (destination == MOD) return;
         // log("WHAT "+coordinates(destination));
@@ -1337,7 +1338,6 @@ public class MyRobot extends BCAbstractRobot {
 
   // TURN
   void updateVars() {
-    ORI = new Robot2(me); CUR = new Robot2(me);
     castle_talk = -1; nextSignal = null;
 
     // if (CUR.team == 1) shouldSave = false;
@@ -1487,12 +1487,8 @@ public class MyRobot extends BCAbstractRobot {
 	}
 
   boolean runSpam() {
-		w = map[0].length; h = map.length;
-		ORI = new Robot2(me); CUR = new Robot2(me);
 		if(CUR.unit != CHURCH && CUR.unit != PILGRIM) return false;
 		if(CUR.turn != 1) return false;
-		robots = new Robot2[getVisibleRobots().length];
-		for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
 		checkSpam(); if(!shouldSpam) return false;
 		for (int i = 0; i < robots.length; ++i) {
       if (robots[i].team == CUR.team && robots[i].unit == CASTLE && adjacent(CUR,robots[i])) {
@@ -1523,7 +1519,7 @@ public class MyRobot extends BCAbstractRobot {
 		}
 		return done;
 	}
-	
+
 	pi nextFuzzy(int des) {
 		int x = fdiv(des,64); int y = des%64;
 		int bestDist = MOD; pi bestNext = new pi(MOD, MOD);
@@ -1540,24 +1536,20 @@ public class MyRobot extends BCAbstractRobot {
 		}
 		return bestNext;
 	}
-	
+
 	boolean runSecret() {
-		w = map[0].length; h = map.length;
-		ORI = new Robot2(me); CUR = new Robot2(me);
-		if(CUR.unit != CHURCH && CUR.unit != PILGRIM) return false;
-		if(CUR.turn != 1) return false;
-		if(continuedChain) return false;
-		robots = new Robot2[getVisibleRobots().length];
-		for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
-		checkSecretUnit();
-		if(!isSuperSecret) return false;
-		for (int i = 0; i < robots.length; ++i) {
+		if (CUR.unit != CHURCH && CUR.unit != PILGRIM || CUR.turn != 1) return false;
+		for (int i = 0; i < robots.length; ++i)
       if (robots[i].team == CUR.team && robots[i].unit == CASTLE && adjacent(CUR,robots[i])) {
 				producedByCastle = true;
 				return false;
 			}
-		}
-		
+
+    robotMap = new Robot2[h][w]; robotMapID = new int[h][w];
+    for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) robotMapID[i][j] = -1;
+    lastTurn = new int[h][w];
+    for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) lastTurn[i][j] = -MOD;
+
 		for (int i = 0; i < h; ++i) for (int j = 0; j < w; ++j) {
       int t = getVisibleRobotMap()[i][j]; if (t == -1) continue;
       lastTurn[i][j] = CUR.turn;
@@ -1574,21 +1566,36 @@ public class MyRobot extends BCAbstractRobot {
         addStruct(R);
       }
     }
-    if(CUR.unit == PILGRIM) {
-			if(shouldStopChain()) return false;
-			build = tryBuildSecret(CHURCH);
-			return true;
+
+    checkSecretUnit(); if (!isSuperSecret) return false;
+    if (CUR.unit == PILGRIM) {
+			if (shouldStopChain()) return false;
+			build = tryBuildSecret(CHURCH); return true;
 		} else {
-			if(shouldStopChain()) return false;
+			if (shouldStopChain()) return false;
 			Church temp = new Church(this);
-			build = temp.runSuperSecret();
-			return true;
+			build = temp.runSuperSecret(); return true;
 		}
 	}
 
   public Action turn() {
+		w = map[0].length; h = map.length;
+		ORI = new Robot2(me); CUR = new Robot2(me);
+		robots = new Robot2[getVisibleRobots().length];
+		for (int i = 0; i < robots.length; ++i) robots[i] = new Robot2(getVisibleRobots()[i]);
+
 		if (runSpam()) return conv(build);
-		if (runSecret()) return conv(build);
+		/*if (runSecret()) {
+      if (isSuperSecret && build.type == 4)
+        if (!(CUR.unit == CASTLE && continuedChain)) {
+          nextSignal = new pi(encodeSecretSignal(),2);
+          continuedChain = true;
+          log("OOPS TRY SIGNAL");
+          // log(CUR.x+" "+CUR.y+" MAKE SECRET UNIT "+A.type+" "+A.unit+" "+A.dx+" "+A.dy);
+        }
+      log("HUHHH "+CUR.unit+" "+build.type);
+      return conv(build);
+    }*/
     initVars();
     updateVars();
     // log("TIME "+me.turn+" "+me.time);

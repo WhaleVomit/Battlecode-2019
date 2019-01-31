@@ -23,7 +23,7 @@ public class Church extends Building {
   }
 
   Action2 runSuperSecret() {
-    if (Z.CUR.team == 0 && closestChurch()) Z.log("AHA "+Z.CUR.x+" "+Z.CUR.y);
+    // if (Z.CUR.team == 0 && closestChurch()) Z.log("AHA "+Z.CUR.x+" "+Z.CUR.y);
     boolean buildPilgrim = true;
     if (Z.continuedChain && !closestChurch()) buildPilgrim = false;
     if (Z.shouldStopChain()) buildPilgrim = false;
