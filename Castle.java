@@ -412,6 +412,7 @@ public class Castle extends Building {
     // if (Z.CUR.turn == 1) return null;
     Action2 A = panicBuild(); if (A != null) return A;
     if (Z.escortPos != null) return tryBuildEscort();
+    // Z.log("WHAT "+Z.shouldSave+" "+Z.U.closeAttackers()+" "+shouldBuild);
     if (!shouldBuild && (Z.karbonite < 80 || Z.fuel < 250)) return null;
     if (Z.U.closeAttackers() < 20 && Z.karbonite > 195 && Z.fuel > 1800) return safeBuild();
     if (shouldPilgrim()) return makePilgrim();

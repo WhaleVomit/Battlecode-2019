@@ -58,7 +58,7 @@ public class unitCounter {
   }
 
   boolean tooMany() {
-    return totAttackers() >= 20 && Z.fuel < Z.FUEL_RATIO*totAttackers();
+    return totAttackers() >= 20 && closeAttackers() >= 20 && Z.fuel < Z.FUEL_RATIO*totAttackers();
   }
 
   /*boolean shouldBeginAttack() {

@@ -103,6 +103,7 @@ public class Building extends Attackable {
   }
   Action2 safeBuild() {
     // if (Z.CUR.team == 1) return tryBuildAttacker(PREACHER);
+    // Z.log("HUHHHH" +Z.U.tooMany()+" "+Z.U.closeAttackers());
 	  int numDefenders = Z.U.closeUnits[CRUSADER]+Z.U.closeUnits[PREACHER]+Z.U.closeUnits[PROPHET];
 	  if (Z.karbonite < 80 || Z.fuel < 250) return null; // always reserve room for new church
     if (Z.CUR.unit == CASTLE && Z.U.tooMany()) return null;
@@ -113,7 +114,6 @@ public class Building extends Attackable {
       mn = Math.min(mn,C.castle_talk);
       if (mn < 30 && Z.U.closeAttackers() > mn+2) return null;
     }
-
     return tryBuildAttacker(Z.U.decideUnit());
   }
   Action2 spamBuild() {
@@ -211,7 +211,7 @@ public class Building extends Attackable {
         if (Z.euclidDist(x,y) < 16) Z.badPatrol[y][x] = 0;
 				if (Z.badPatrol[y][x] != 0) Z.badPatrol[y][x]--;
       }
-      
+
 			for (int i = 0; i < 4097; i++)
 	      if (!isOccupiedPatrol[Z.atkToPatrol[i]]) Z.atkToPatrol[i] = -1;
 
