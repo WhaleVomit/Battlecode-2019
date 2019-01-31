@@ -65,7 +65,7 @@ public class Castle extends Building {
 	  return res;
   }
   double crowdedFactor(int pos) {
-	  double val = Z.sq(countAssigned(pos)+1.0);
+	  double val = Math.pow(countAssigned(pos)+1.0, 3);
 	  return val;
   }
   double sideFactor(int pos) { // decreases gradually from our side, steep incline on other side
